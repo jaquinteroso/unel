@@ -1,15 +1,17 @@
 Rails.application.routes.draw do
   devise_for :admins
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
+  
+  # MUNDO PRIVADO (Panel de UNEL)
+  # Todas las URLs empezarán con /admin/...
+  namespace :admin do
+    # Aquí irán los resources protegidos más adelante, ej:
+    # resources :products
+  end
 
-  # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
-  # Can be used by load balancers and uptime monitors to verify that the app is live.
-  get "up" => "rails/health#show", as: :rails_health_check
+  # MUNDO PÚBLICO (Clientes)
+  # Aquí irán las rutas normales que hará Pedro
+  # resources :products, only: [:index, :show]
 
-  # Render dynamic PWA files from app/views/pwa/* (remember to link manifest in application.html.erb)
-  # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
-  # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
-
-  # Defines the root path route ("/")
-  # root "posts#index"
+  # Defines cuál es la portada de la página web (la dejaremos comentada por ahora)
+  # root "pages#home"
 end
