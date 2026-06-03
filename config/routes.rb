@@ -1,17 +1,20 @@
 Rails.application.routes.draw do
+  # 1. AUTENTICACIÓN
   devise_for :admins
+
+  # 2. MUNDO PÚBLICO (La Vitrina - Lo que diseña Pedro)
+  # ¡Aquí configuramos la página de inicio!
+  root "products#index" 
   
-  # MUNDO PRIVADO (Panel de UNEL)
-  # Todas las URLs empezarán con /admin/...
+  # Rutas para ver el catálogo y el detalle de una conserva
+  resources :products, only: [:index, :show]
+
+  # 3. MUNDO PRIVADO (El Panel de UNEL - Donde tú programas)
   namespace :admin do
-    # Aquí irán los resources protegidos más adelante, ej:
-    # resources :products
+    # Esto genera automáticamente todas las rutas CRUD (Crear, Leer, Actualizar, Borrar)
+    resources :products
+    
+    # Si quieres que el admin tenga un dashboard inicial al entrar a /admin
+    # get 'dashboard', to: 'dashboard#index'
   end
-
-  # MUNDO PÚBLICO (Clientes)
-  # Aquí irán las rutas normales que hará Pedro
-  # resources :products, only: [:index, :show]
-
-  # Defines cuál es la portada de la página web (la dejaremos comentada por ahora)
-  # root "pages#home"
 end
