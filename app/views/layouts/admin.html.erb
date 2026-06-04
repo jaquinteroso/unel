@@ -13,26 +13,40 @@
   </head>
 
   <!-- Un diseño rápido de Tailwind: Fondo gris claro y pantalla dividida -->
-  <body class="bg-gray-100 flex h-screen">
+  <body class="bg-unel-crema flex h-screen ">
     
     <!-- Barra lateral (Sidebar) exclusiva del Admin -->
-    <nav class="w-64 bg-slate-800 text-white p-6 shadow-xl">
+    <nav class="w-64 bg-unel-carbon text-unel-blanco p-6 shadow-xl rounded-r-2xl h-screen fixed">
       <h2 class="text-2xl font-bold mb-6">UNEL Admin</h2>
-      <ul>
-        <li class="mb-4"><a href="#" class="hover:text-blue-300 transition">📦 Inventario</a></li>
-        <li class="mb-4"><a href="#" class="hover:text-blue-300 transition">📊 Ventas</a></li>
-        <li class="mt-12 pt-4 border-t border-slate-600 text-sm text-red-400">
-           <!-- Aquí luego pondremos el botón real de Devise para cerrar sesión -->
-           Salir del Panel
-        </li>
+      <ul class="mt-14">
+        <li class="mb-4"><a href="#" class="pl-1 hover:text-unel-dorado hover:border-l border-unel-dorado hover:pl-1.5 transition-all">Dashboard</a></li>
+        <li class="mb-4"><a href="#" class="pl-1 hover:text-unel-dorado hover:border-l border-unel-dorado hover:pl-1.5 transition-all">Productos y costos</a></li>
+        <li class="mb-4"><a href="#" class="pl-1 hover:text-unel-dorado hover:border-l border-unel-dorado hover:pl-1.5 transition-all">Ventas</a></li>
+        <li class="mb-4"><a href="#" class="pl-1 hover:text-unel-dorado hover:border-l border-unel-dorado hover:pl-1.5 transition-all">Inventario</a></li>
+        <li class="mb-4"><a href="#" class="pl-1 hover:text-unel-dorado hover:border-l border-unel-dorado hover:pl-1.5 transition-all">Clientes</a></li>
+        <li class="mb-4"><a href="#" class="pl-1 hover:text-unel-dorado hover:border-l border-unel-dorado hover:pl-1.5 transition-all">Pedidos</a></li>
+        <li class="mb-4"><a href="#" class="pl-1 hover:text-unel-dorado hover:border-l border-unel-dorado hover:pl-1.5 transition-all">Finanzas</a></li>
+        <li class="mb-4"><a href="#" class="pl-1 hover:text-unel-dorado hover:border-l border-unel-dorado hover:pl-1.5 transition-all">Catálogo público</a></li>
+        
       </ul>
+      <div class="mt-12 pt-4 border-t border-unel-dorado text-sm text-red-400">
+        <!-- Aquí luego pondremos el botón real de Devise para cerrar sesión -->
+        Salir del Panel
+      </div>
     </nav>
 
+    <div class="w-full">
+      <header class="w-full bg-unel-blanco h-15 shadow-lg">
+
+      </header>
+
+      <main class=" ml-64 flex-1 p-8 overflow-y-auto">
+        <!-- El yield es donde aparecerán los formularios y tablas -->
+        <%= yield %>
+      </main>
+    </div>
     <!-- Contenido principal: Aquí Rails inyectará las vistas -->
-    <main class="flex-1 p-8 overflow-y-auto">
-      <!-- El yield es donde aparecerán los formularios y tablas -->
-      <%= yield %>
-    </main>
+    
 
   </body>
 </html>
