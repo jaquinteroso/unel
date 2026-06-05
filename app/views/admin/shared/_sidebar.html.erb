@@ -1,69 +1,135 @@
-<aside class="w-64 shrink-0 bg-unel-carbon px-6 py-6 text-unel-crema shadow-xl">
+<aside
+  data-admin-sidebar-target="sidebar"
+  class="w-64 shrink-0 overflow-hidden bg-unel-carbon px-4 py-6 text-unel-crema shadow-xl transition-all duration-300"
+>
   <div class="mb-10">
     <p class="text-xs font-semibold uppercase tracking-wide text-unel-dorado">
-      Panel administrativo
+      <span data-admin-sidebar-target="label">
+        Panel administrativo
+      </span>
+
+      <span data-admin-sidebar-target="compactLabel" class="hidden">
+        Panel
+      </span>
     </p>
 
     <h1 class="mt-2 text-2xl font-bold text-unel-blanco">
-      UNEL Admin
+      <span data-admin-sidebar-target="label">
+        UNEL Admin
+      </span>
+
+      <span data-admin-sidebar-target="compactLabel" class="hidden">
+        U
+      </span>
     </h1>
   </div>
 
   <nav class="space-y-8">
     <div>
       <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-unel-humo">
-        Principal
+        <span data-admin-sidebar-target="label">
+          Principal
+        </span>
       </p>
 
       <a href="#" class="mt-2 block  px-4 py-3  text-unel-crema    hover:text-unel-dorado hover:border-l border-unel-dorado hover:pl-5 transition-all text-sm font-medium">
-        Dashboard
+        <span data-admin-sidebar-target="label">
+          Dashboard
+        </span>
+
+        <span data-admin-sidebar-target="compactLabel" class="hidden">
+          D
+        </span>
       </a>
     </div>
 
     <div>
       <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-unel-humo">
-        Gestión
+        <span data-admin-sidebar-target="label">
+          Gestión
+        </span>
       </p>
 
       <%= link_to admin_products_path,
         class: "mt-2 block  px-4 py-3  text-unel-crema    hover:text-unel-dorado hover:border-l border-unel-dorado hover:pl-5 transition-all text-sm font-medium" do %>
-        Productos y costos
+        <span data-admin-sidebar-target="label">
+          Productos y costos
+        </span>
+
+        <span data-admin-sidebar-target="compactLabel" class="hidden">
+          P
+        </span>
       <% end %>
 
       <a href="#" class="mt-2 block  px-4 py-3  text-unel-crema    hover:text-unel-dorado hover:border-l border-unel-dorado hover:pl-5 transition-all text-sm font-medium">
-        Inventario
+        <span data-admin-sidebar-target="label">
+          Inventario
+        </span>
+
+        <span data-admin-sidebar-target="compactLabel" class="hidden">
+          I
+        </span>
       </a>
 
       <a href="#" class="mt-2 block  px-4 py-3  text-unel-crema    hover:text-unel-dorado hover:border-l border-unel-dorado hover:pl-5 transition-all text-sm font-medium">
-        Clientes y ventas
+        <span data-admin-sidebar-target="label">
+          Clientes y ventas
+        </span>
+
+        <span data-admin-sidebar-target="compactLabel" class="hidden">
+          C
+        </span>
       </a>
     </div>
 
     <div>
       <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-unel-humo">
-        Finanzas
+        <span data-admin-sidebar-target="label">
+          Finanzas
+        </span>
       </p>
 
       <a href="#" class="mt-2 block  px-4 py-3  text-unel-crema    hover:text-unel-dorado hover:border-l border-unel-dorado hover:pl-5 transition-all text-sm font-medium">
-        Finanzas
+        <span data-admin-sidebar-target="label">
+          Finanzas
+        </span>
+
+        <span data-admin-sidebar-target="compactLabel" class="hidden">
+          F
+        </span>
       </a>
     </div>
 
     <div>
       <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-unel-humo">
-        Canal público
+        <span data-admin-sidebar-target="label">
+          Canal público
+        </span>
       </p>
 
       <a href="#" class="mt-2 block  px-4 py-3  text-unel-crema    hover:text-unel-dorado hover:border-l border-unel-dorado hover:pl-5 transition-all text-sm font-medium">
-        Catálogo público
+        <span data-admin-sidebar-target="label">
+          Catálogo público
+        </span>
+
+        <span data-admin-sidebar-target="compactLabel" class="hidden">
+          CP
+        </span>
       </a>
     </div>
   </nav>
 
   <div class="mt-10 border-t border-unel-humo pt-6">
-    <%= button_to "Salir del panel",
-      destroy_admin_session_path,
+    <%= button_to destroy_admin_session_path,
       method: :delete,
-      class: "w-full rounded-xl border border-red-400 px-4 py-3 text-sm font-semibold text-red-400 transition hover:bg-red-500 hover:text-white cursor-pointer" %>
+      class: "w-full rounded-xl border border-red-400 px-4 py-3 text-sm font-semibold text-red-400 transition hover:bg-red-500 hover:text-white cursor-pointer" do %>
+      <span data-admin-sidebar-target="label">
+        Salir del panel
+      </span>
+
+      <span data-admin-sidebar-target="compactLabel" class="hidden">
+        Salir
+      </span>
+    <% end %>
   </div>
 </aside>

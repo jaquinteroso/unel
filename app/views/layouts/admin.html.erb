@@ -13,18 +13,18 @@
   </head>
 
   <body class="min-h-screen bg-unel-blanco text-unel-negro">
+    
+    <div data-controller="admin-sidebar" class="flex min-h-screen">
+      <%= render "admin/shared/sidebar" %>
 
-  <div class="flex min-h-screen">
-    <%= render "admin/shared/sidebar" %>
+      <div class="flex min-h-screen min-w-0 flex-1 flex-col">
+        <%= render "admin/shared/topbar" %>
 
-    <div class="flex min-h-screen flex-1 flex-col">
-      <%= render "admin/shared/topbar" %>
-
-      <main class="flex-1 overflow-y-auto p-8">
-        <%= yield %>
-      </main>
+        <main class="flex-1 overflow-y-auto p-8">
+          <%= yield %>
+        </main>
+      </div>
     </div>
-  </div>
-  
-</body>
+    
+  </body>
 </html>
