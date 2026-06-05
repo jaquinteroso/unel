@@ -1,0 +1,69 @@
+<aside class="w-64 shrink-0 bg-unel-carbon px-6 py-6 text-unel-crema shadow-xl">
+  <div class="mb-10">
+    <p class="text-xs font-semibold uppercase tracking-wide text-unel-dorado">
+      Panel administrativo
+    </p>
+
+    <h1 class="mt-2 text-2xl font-bold text-unel-blanco">
+      UNEL Admin
+    </h1>
+  </div>
+
+  <nav class="space-y-8">
+    <div>
+      <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-unel-humo">
+        Principal
+      </p>
+
+      <a href="#" class="mt-2 block  px-4 py-3  text-unel-crema    hover:text-unel-dorado hover:border-l border-unel-dorado hover:pl-5 transition-all text-sm font-medium">
+        Dashboard
+      </a>
+    </div>
+
+    <div>
+      <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-unel-humo">
+        Gestión
+      </p>
+
+      <%= link_to admin_products_path,
+        class: "mt-2 block  px-4 py-3  text-unel-crema    hover:text-unel-dorado hover:border-l border-unel-dorado hover:pl-5 transition-all text-sm font-medium" do %>
+        Productos y costos
+      <% end %>
+
+      <a href="#" class="mt-2 block  px-4 py-3  text-unel-crema    hover:text-unel-dorado hover:border-l border-unel-dorado hover:pl-5 transition-all text-sm font-medium">
+        Inventario
+      </a>
+
+      <a href="#" class="mt-2 block  px-4 py-3  text-unel-crema    hover:text-unel-dorado hover:border-l border-unel-dorado hover:pl-5 transition-all text-sm font-medium">
+        Clientes y ventas
+      </a>
+    </div>
+
+    <div>
+      <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-unel-humo">
+        Finanzas
+      </p>
+
+      <a href="#" class="mt-2 block  px-4 py-3  text-unel-crema    hover:text-unel-dorado hover:border-l border-unel-dorado hover:pl-5 transition-all text-sm font-medium">
+        Finanzas
+      </a>
+    </div>
+
+    <div>
+      <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-unel-humo">
+        Canal público
+      </p>
+
+      <a href="#" class="mt-2 block  px-4 py-3  text-unel-crema    hover:text-unel-dorado hover:border-l border-unel-dorado hover:pl-5 transition-all text-sm font-medium">
+        Catálogo público
+      </a>
+    </div>
+  </nav>
+
+  <div class="mt-10 border-t border-unel-humo pt-6">
+    <%= button_to "Salir del panel",
+      destroy_admin_session_path,
+      method: :delete,
+      class: "w-full rounded-xl border border-red-400 px-4 py-3 text-sm font-semibold text-red-400 transition hover:bg-red-500 hover:text-white cursor-pointer" %>
+  </div>
+</aside>

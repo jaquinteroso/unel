@@ -1,0 +1,59 @@
+<header class="flex h-16 items-center justify-between border-b border-unel-crema-2 bg-white px-6">
+  <div class="flex items-center gap-4">
+    <button
+      type="button"
+      class="rounded-xl p-2 text-unel-humo transition hover:bg-unel-crema hover:text-unel-negro"
+    >
+      ☰
+    </button>
+
+    <form
+      action="<%= content_for?(:admin_search_path) ? yield(:admin_search_path) : request.path %>"
+      method="get"
+      class="hidden items-center rounded-xl bg-unel-crema px-4 py-2 md:flex"
+    >
+      <span class="mr-2 text-sm text-unel-humo">⌕</span>
+
+      <input
+        type="text"
+        name="q"
+        value="<%= params[:q] %>"
+        placeholder="<%= content_for?(:admin_search_placeholder) ? yield(:admin_search_placeholder) : 'Buscar en el panel...' %>"
+        class="w-64 bg-transparent text-sm text-unel-negro outline-none placeholder:text-unel-humo"
+      >
+    </form>
+  </div>
+
+  <div class="flex items-center gap-4">
+    <% if content_for?(:admin_section) %>
+      <span class="hidden rounded-full border border-unel-crema-2 px-3 py-1 text-xs font-semibold text-unel-humo md:inline-flex">
+        <%= yield(:admin_section) %>
+      </span>
+    <% end %>
+
+    <button
+      type="button"
+      class="relative rounded-xl p-2 text-unel-humo transition hover:bg-unel-crema hover:text-unel-negro"
+      title="Notificaciones"
+    >
+      🔔
+      <span class="absolute right-2 top-2 h-2 w-2 rounded-full bg-unel-dorado"></span>
+    </button>
+
+    <div class="flex items-center gap-3 border-l border-unel-crema-2 pl-4">
+      <div class="hidden text-right sm:block">
+        <p class="text-sm font-semibold text-unel-negro">
+          <%= current_admin.email if defined?(current_admin) && current_admin.present? %>
+        </p>
+
+        <p class="text-xs text-unel-humo">
+          Administrador
+        </p>
+      </div>
+
+      <div class="flex h-10 w-10 items-center justify-center rounded-full bg-unel-verde text-sm font-bold text-unel-blanco">
+        U
+      </div>
+    </div>
+  </div>
+</header>

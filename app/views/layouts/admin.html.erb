@@ -12,96 +12,19 @@
     <%= javascript_include_tag "application", "data-turbo-track": "reload", type: "module" %>
   </head>
 
-  <!-- Un diseño rápido de Tailwind: Fondo gris claro y pantalla dividida -->
-  <body class="bg-gray-100 flex h-screen ">
-    
-    <!-- Barra lateral (Sidebar) exclusiva del Admin -->
-    <nav class="w-64 bg-unel-carbon text-unel-blanco p-10 shadow-xl rounded-r-lg h-screen fixed">
-      <h2 class="text-2xl font-bold mb-6">UNEL Admin</h2>
-      <ul class="mt-14"> 
+  <body class="min-h-screen bg-unel-blanco text-unel-negro">
 
-        <li class="mb-4"><a href="#" class="pl-1 hover:text-unel-dorado hover:border-l border-unel-dorado hover:pl-1.5 transition-all">Dashboard</a></li>
-        <!--<li class="mb-4"><a href="#" class="pl-1 hover:text-unel-dorado hover:border-l border-unel-dorado hover:pl-1.5 transition-all">Productos y costos</a></li>-->
-        <li class="mb-4"><%= link_to "Productos y costos", admin_products_path, class: "pl-1 hover:text-unel-dorado hover:border-l border-unel-dorado hover:pl-1.5 transition-all" %></li>
-        <li class="mb-4"><a href="#" class="pl-1 hover:text-unel-dorado hover:border-l border-unel-dorado hover:pl-1.5 transition-all">Ventas</a></li>
-        <li class="mb-4"><a href="#" class="pl-1 hover:text-unel-dorado hover:border-l border-unel-dorado hover:pl-1.5 transition-all">Inventario</a></li>
-        <li class="mb-4"><a href="#" class="pl-1 hover:text-unel-dorado hover:border-l border-unel-dorado hover:pl-1.5 transition-all">Clientes</a></li>
-        <li class="mb-4"><a href="#" class="pl-1 hover:text-unel-dorado hover:border-l border-unel-dorado hover:pl-1.5 transition-all">Pedidos</a></li>
-        <li class="mb-4"><a href="#" class="pl-1 hover:text-unel-dorado hover:border-l border-unel-dorado hover:pl-1.5 transition-all">Finanzas</a></li>
-        <li class="mb-4"><a href="#" class="pl-1 hover:text-unel-dorado hover:border-l border-unel-dorado hover:pl-1.5 transition-all">Catálogo público</a></li>
-        
-      </ul>
-      
-      <div class="mt-12 pt-10  border-t border-unel-dorado w-full">
-        
-        <%= link_to "Salir del Panel", root_path, class: "pt-3 pb-3 pl-11 pr-11 text-sm bg-red-500 w-full rounded-2xl" %>
-      </div>
-    </nav>
+  <div class="flex min-h-screen">
+    <%= render "admin/shared/sidebar" %>
 
-    <div class="w-full">
-      <!--<header class="w-full bg-white h-20 shadow-sm border-b border-unel-crema-2">
+    <div class="flex min-h-screen flex-1 flex-col">
+      <%= render "admin/shared/topbar" %>
 
-        <div class="flex pl-74 pr-10 items-center justify-between gap-6 h-full">
-          
-          <h1 class="text-2xl font-bold text-unel-verde">
-            <%= content_for?(:admin_title) ? yield(:admin_title) : "Panel administrativo" %>
-          </h1>
-          
-        </div>
-
-      </header>-->
-      <header class="flex h-16 items-center justify-between border-b border-unel-crema-2 bg-white px-6">
-        <div class="pl-64 flex items-center gap-4">
-          <button type="button" class="rounded-xl  text-unel-humo transition-all hover:text-unel-dorado cursor-pointer">
-            ☰
-          </button>
-
-          <div class="hidden items-center rounded-lg bg-gray-100 px-4 py-2 md:flex">
-            <span class="mr-2 text-sm text-unel-humo">⌕</span>
-
-            <input
-              type="text"
-              placeholder="<%= content_for?(:admin_search_placeholder) ? yield(:admin_search_placeholder) : 'Buscar en el panel...' %>"
-              class="w-64 bg-transparent text-sm text-unel-negro outline-none placeholder:text-unel-humo"
-            >
-          </div>
-        </div>
-
-        <div class="flex items-center gap-4">
-          <% if content_for?(:admin_section) %>
-            <span class="hidden rounded-full border border-unel-crema-2 px-3 py-1 text-xs font-semibold text-unel-humo md:inline-flex">
-              <%= yield(:admin_section) %>
-            </span>
-          <% end %>
-
-          <button type="button" class="relative rounded-xl p-2 text-unel-humo transition hover:bg-unel-crema hover:text-unel-negro">
-            🔔
-            <span class="absolute right-2 top-2 h-2 w-2 rounded-full bg-unel-dorado"></span>
-          </button>
-
-          <div class="flex items-center gap-3 border-l border-unel-crema-2 pl-4">
-            <div class="hidden text-right sm:block">
-              <p class="text-sm font-semibold text-unel-negro">
-                UNEL
-              </p>
-              <p class="text-xs text-unel-humo">
-                Administrador
-              </p>
-            </div>
-
-            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-unel-verde text-sm font-bold text-unel-blanco">
-              U
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <main class=" ml-64 flex-1 p-8 overflow-y-auto">
-        <!-- El yield es donde aparecerán los formularios y tablas -->
+      <main class="flex-1 overflow-y-auto p-8">
         <%= yield %>
       </main>
     </div>
-    
-
-  </body>
+  </div>
+  
+</body>
 </html>
