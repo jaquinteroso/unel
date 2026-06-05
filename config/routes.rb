@@ -11,6 +11,17 @@ Rails.application.routes.draw do
 
   # 3. MUNDO PRIVADO (El Panel de UNEL - Donde tú programas)
   namespace :admin do
+    get "orders/index"
+    get "orders/show"
+    get "customers/index"
+    get "customers/show"
+    get "finances/index"
+    get "inventory_movements/index"
+    get "inventory_movements/new"
+    get "ingredients/index"
+    get "ingredients/new"
+    get "ingredients/edit"
+    get "dashboard/index"
     # Esto genera automáticamente todas las rutas CRUD (Crear, Leer, Actualizar, Borrar)
     resources :products
     
