@@ -1,1 +1,17 @@
 @import "tailwindcss";
+
+@source "../../views";
+@source "../../helpers";
+@source "../../javascript";
+
+@theme {
+  --color-unel-negro: #111009;
+  --color-unel-crema: #f2ece0;
+  --color-unel-crema-2: #e8dfd0;
+  --color-unel-dorado: #b8924a;
+  --color-unel-dorado-2: #d4a85a;
+  --color-unel-verde: #2e3d2c;
+  --color-unel-humo: #7a6e60;
+  --color-unel-blanco: #faf7f2;
+  --color-unel-carbon: #1e1c18;
+}
