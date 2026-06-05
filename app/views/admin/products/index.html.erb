@@ -1,6 +1,19 @@
+<% content_for :admin_section_key, "products" %>
 <% content_for :admin_section, "Productos y costos" %>
 <% content_for :admin_search_placeholder, "Buscar productos..." %>
 <% content_for :admin_search_path, admin_products_path %>
+
+<!--
+Después, cuando tengas Dashboard, en su vista pondrías:
+
+<% content_for :admin_section_key, "dashboard" %>
+<% content_for :admin_section, "Dashboard" %>
+
+Cuando tengas Inventario:
+
+<% content_for :admin_section_key, "inventory" %>
+<% content_for :admin_section, "Inventario" %>
+-->
 
 <section>
   <div class="mb-8 flex items-start justify-between gap-4">
