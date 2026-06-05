@@ -30,10 +30,9 @@
         <!--<div data-admin-sidebar-target="sectionDivider" class="mx-auto hidden h-px w-8 bg-unel-humo"></div>-->
       </div>
 
-      <a href="#"
-         data-active-path="/admin/dashboard"
-         data-admin-sidebar-target="navItem"
-         class="relative mt-2 flex w-full items-center justify-start gap-3 px-4 py-3 text-unel-crema hover:text-unel-dorado transition-all text-sm font-medium">
+      <%= link_to "/admin/dashboard",
+         data: { active_path: "/admin/dashboard", admin_sidebar_target: "navItem" },
+         class: "relative mt-2 flex w-full items-center justify-start gap-3 px-4 py-3 text-unel-crema hover:text-unel-dorado transition-all text-sm font-medium" do %>
         <span data-admin-sidebar-target="activeIndicator" class="absolute left-0 hidden h-7 w-1 rounded-full bg-unel-dorado-2"></span>
 
         <span class="shrink-0">
@@ -45,7 +44,7 @@
         <span data-admin-sidebar-target="label">
           Dashboard
         </span>
-      </a>
+      <% end %>
     </div>
 
     <div>
@@ -76,10 +75,26 @@
         </span>
       <% end %>
 
-      <a href="#"
-         data-active-path="/admin/inventory"
-         data-admin-sidebar-target="navItem"
-         class="relative mt-2 flex w-full items-center justify-start gap-3 px-4 py-3 text-unel-crema hover:text-unel-dorado transition-all text-sm font-medium">
+      <%= link_to "/admin/ingredients",
+         data: { active_path: "/admin/ingredients", admin_sidebar_target: "navItem" },
+         class: "relative mt-2 flex w-full items-center justify-start gap-3 px-4 py-3 text-unel-crema hover:text-unel-dorado transition-all text-sm font-medium" do %>
+
+        <span data-admin-sidebar-target="activeIndicator" class="absolute left-0 hidden h-7 w-1 rounded-full bg-unel-dorado-2"></span>
+
+        <span class="shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5v9.75A2.25 2.25 0 0 1 18 19.5H6a2.25 2.25 0 0 1-2.25-2.25V7.5m16.5 0A2.25 2.25 0 0 0 18 5.25H6A2.25 2.25 0 0 0 3.75 7.5m16.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-6 3.625a2.25 2.25 0 0 1-2.36 0l-6-3.625a2.25 2.25 0 0 1-1.07-1.916V7.5" />
+          </svg>
+        </span>
+
+        <span data-admin-sidebar-target="label">
+          Ingredientes
+        </span>
+      <% end %>
+
+      <%= link_to "/admin/inventory_movements",
+         data: { active_path: "/admin/inventory_movements", admin_sidebar_target: "navItem" },
+         class: "relative mt-2 flex w-full items-center justify-start gap-3 px-4 py-3 text-unel-crema hover:text-unel-dorado transition-all text-sm font-medium" do %>
         <span data-admin-sidebar-target="activeIndicator" class="absolute left-0 hidden h-7 w-1 rounded-full bg-unel-dorado-2"></span>
 
         <span class="shrink-0">
@@ -91,12 +106,11 @@
         <span data-admin-sidebar-target="label">
           Inventario
         </span>
-      </a>
+      <% end %>
 
-      <a href="#"
-         data-active-path="/admin/customers"
-         data-admin-sidebar-target="navItem"
-         class="relative mt-2 flex w-full items-center justify-start gap-3 px-4 py-3 text-unel-crema hover:text-unel-dorado transition-all text-sm font-medium">
+      <%= link_to "/admin/customers",
+         data: { active_path: "/admin/customers", admin_sidebar_target: "navItem" },
+         class: "relative mt-2 flex w-full items-center justify-start gap-3 px-4 py-3 text-unel-crema hover:text-unel-dorado transition-all text-sm font-medium" do %>
         <span data-admin-sidebar-target="activeIndicator" class="absolute left-0 hidden h-7 w-1 rounded-full bg-unel-dorado-2"></span>
 
         <span class="shrink-0">
@@ -106,9 +120,26 @@
         </span>
 
         <span data-admin-sidebar-target="label">
-          Clientes y ventas
+          Clientes
         </span>
-      </a>
+      <% end %>
+
+      <%= link_to "/admin/orders",
+         data: { active_path: "/admin/orders", admin_sidebar_target: "navItem" },
+         class: "relative mt-2 flex w-full items-center justify-start gap-3 px-4 py-3 text-unel-crema hover:text-unel-dorado transition-all text-sm font-medium" do %>
+
+        <span data-admin-sidebar-target="activeIndicator" class="absolute left-0 hidden h-7 w-1 rounded-full bg-unel-dorado-2"></span>
+
+        <span class="shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6M6.75 3.75h10.5A2.25 2.25 0 0 1 19.5 6v15l-3.75-2.25L12 21l-3.75-2.25L4.5 21V6a2.25 2.25 0 0 1 2.25-2.25Z" />
+          </svg>
+        </span>
+
+        <span data-admin-sidebar-target="label">
+          Pedidos
+        </span>
+      <% end %>
     </div>
 
     <div>
@@ -122,10 +153,9 @@
         <div data-admin-sidebar-target="sectionDivider" class="mx-auto hidden h-px w-8 bg-unel-humo"></div>
       </div>
 
-      <a href="#"
-         data-active-path="/admin/finances"
-         data-admin-sidebar-target="navItem"
-         class="relative mt-2 flex w-full items-center justify-start gap-3 px-4 py-3 text-unel-crema hover:text-unel-dorado transition-all text-sm font-medium">
+      <%= link_to "/admin/finances",
+         data: { active_path: "/admin/finances", admin_sidebar_target: "navItem" },
+         class: "relative mt-2 flex w-full items-center justify-start gap-3 px-4 py-3 text-unel-crema hover:text-unel-dorado transition-all text-sm font-medium" do %>
         <span data-admin-sidebar-target="activeIndicator" class="absolute left-0 hidden h-7 w-1 rounded-full bg-unel-dorado-2"></span>
 
         <span class="shrink-0">
@@ -137,7 +167,7 @@
         <span data-admin-sidebar-target="label">
           Finanzas
         </span>
-      </a>
+      <% end %>
     </div>
 
     <div>
@@ -151,12 +181,8 @@
         <div data-admin-sidebar-target="sectionDivider" class="mx-auto hidden h-px w-8 bg-unel-humo"></div>
       </div>
 
-      <a href="#"
-         data-active-path="/admin/catalog"
-         data-admin-sidebar-target="navItem"
-         class="relative mt-2 flex w-full items-center justify-start gap-3 px-4 py-3 text-unel-crema hover:text-unel-dorado transition-all text-sm font-medium">
-        <span data-admin-sidebar-target="activeIndicator" class="absolute left-0 hidden h-7 w-1 rounded-full bg-unel-dorado-2"></span>
-
+      <%= link_to products_path,
+        class: "relative mt-2 flex w-full items-center justify-start gap-3 px-4 py-3 text-unel-crema hover:text-unel-dorado transition-all text-sm font-medium" do %>
         <span class="shrink-0">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
@@ -166,7 +192,7 @@
         <span data-admin-sidebar-target="label">
           Catálogo público
         </span>
-      </a>
+      <% end %>
     </div>
   </nav>
 

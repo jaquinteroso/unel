@@ -15,51 +15,81 @@ export default class extends Controller {
 
   connect() {
     this.highlightActiveLink()
+
+    const isCollapsed = localStorage.getItem("unelSidebarCollapsed") === "true"
+    this.setCollapsed(isCollapsed)
   }
 
   toggle() {
-    this.sidebarTarget.classList.toggle("w-64")
-    this.sidebarTarget.classList.toggle("w-20")
-    this.sidebarTarget.classList.toggle("text-center")
+    const isCurrentlyCollapsed = this.sidebarTarget.classList.contains("w-20")
+    const nextState = !isCurrentlyCollapsed
 
-    this.brandTarget.classList.toggle("mb-10")
-    this.brandTarget.classList.toggle("mb-8")
+    this.setCollapsed(nextState)
+    localStorage.setItem("unelSidebarCollapsed", nextState)
+  }
 
-    this.navTarget.classList.toggle("space-y-8")
-    this.navTarget.classList.toggle("space-y-5")
+  setCollapsed(isCollapsed) {
+    if (isCollapsed) {
+      this.sidebarTarget.classList.remove("w-64")
+      this.sidebarTarget.classList.add("w-20", "text-center")
 
-    this.logoutWrapperTarget.classList.toggle("mt-10")
-    this.logoutWrapperTarget.classList.toggle("mt-6")
+      this.brandTarget.classList.remove("mb-10")
+      this.brandTarget.classList.add("mb-8")
 
-    this.labelTargets.forEach((label) => {
-      label.classList.toggle("hidden")
-    })
+      this.navTarget.classList.remove("space-y-8")
+      this.navTarget.classList.add("space-y-5")
 
-    this.navItemTargets.forEach((item) => {
-      item.classList.toggle("justify-start")
-      item.classList.toggle("justify-center")
+      this.logoutWrapperTarget.classList.remove("mt-10")
+      this.logoutWrapperTarget.classList.add("mt-6")
 
-      item.classList.toggle("gap-3")
-      item.classList.toggle("gap-0")
+      this.labelTargets.forEach((label) => {
+        label.classList.add("hidden")
+      })
 
-      item.classList.toggle("px-4")
-      item.classList.toggle("px-0")
+      this.navItemTargets.forEach((item) => {
+        item.classList.remove("justify-start", "gap-3", "px-4", "py-3", "mt-2")
+        item.classList.add("justify-center", "gap-0", "px-0", "py-2", "mt-1")
+      })
 
-      item.classList.toggle("py-3")
-      item.classList.toggle("py-2")
+      this.sectionHeaderTargets.forEach((header) => {
+        header.classList.remove("mb-3")
+        header.classList.add("mb-2")
+      })
 
-      item.classList.toggle("mt-2")
-      item.classList.toggle("mt-1")
-    })
+      this.sectionDividerTargets.forEach((divider) => {
+        divider.classList.remove("hidden")
+      })
+    } else {
+      this.sidebarTarget.classList.remove("w-20", "text-center")
+      this.sidebarTarget.classList.add("w-64")
 
-    this.sectionHeaderTargets.forEach((header) => {
-      header.classList.toggle("mb-3")
-      header.classList.toggle("mb-2")
-    })
+      this.brandTarget.classList.remove("mb-8")
+      this.brandTarget.classList.add("mb-10")
 
-    this.sectionDividerTargets.forEach((divider) => {
-      divider.classList.toggle("hidden")
-    })
+      this.navTarget.classList.remove("space-y-5")
+      this.navTarget.classList.add("space-y-8")
+
+      this.logoutWrapperTarget.classList.remove("mt-6")
+      this.logoutWrapperTarget.classList.add("mt-10")
+
+      this.labelTargets.forEach((label) => {
+        label.classList.remove("hidden")
+      })
+
+      this.navItemTargets.forEach((item) => {
+        item.classList.remove("justify-center", "gap-0", "px-0", "py-2", "mt-1")
+        item.classList.add("justify-start", "gap-3", "px-4", "py-3", "mt-2")
+      })
+
+      this.sectionHeaderTargets.forEach((header) => {
+        header.classList.remove("mb-2")
+        header.classList.add("mb-3")
+      })
+
+      this.sectionDividerTargets.forEach((divider) => {
+        divider.classList.add("hidden")
+      })
+    }
   }
 
   highlightActiveLink() {

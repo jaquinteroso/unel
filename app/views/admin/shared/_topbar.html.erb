@@ -29,9 +29,9 @@
   </div>
 
   <div class="flex items-center gap-4">
-    <% if content_for?(:admin_section) %>
+    <% if content_for?(:admin_section_inner) %>
       <span class="hidden rounded-full border border-unel-crema-2 px-3 py-1 text-xs font-semibold text-unel-humo md:inline-flex">
-        <%= yield(:admin_section) %>
+        <%= yield(:admin_section_inner) %>
       </span>
     <% end %>
 
