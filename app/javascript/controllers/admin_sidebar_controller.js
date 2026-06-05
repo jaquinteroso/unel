@@ -9,7 +9,8 @@ export default class extends Controller {
     "navItem",
     "sectionHeader",
     "sectionDivider",
-    "logoutWrapper"
+    "logoutWrapper",
+    "activeIndicator"
   ]
 
   connect() {
@@ -77,28 +78,22 @@ export default class extends Controller {
   }
 
   activateLink(link) {
-    link.classList.remove(
-      "text-unel-crema",
-      "border-transparent"
-    )
+    link.classList.remove("text-unel-crema")
+    link.classList.add("text-unel-dorado-2")
 
-    link.classList.add(
-      "text-unel-dorado-2",
-      "border-unel-dorado-2"
-    )
+    const indicator = link.querySelector("[data-admin-sidebar-target='activeIndicator']")
+    if (indicator) {
+      indicator.classList.remove("hidden")
+    }
   }
 
   deactivateLink(link) {
-    link.classList.remove(
-      "text-unel-dorado-2",
-      "border-unel-dorado-2"
-    )
+    link.classList.remove("text-unel-dorado-2")
+    link.classList.add("text-unel-crema", "hover:text-unel-dorado")
 
-    link.classList.add(
-      "text-unel-crema",
-      "border-transparent",
-      "hover:border-unel-dorado",
-      "hover:text-unel-dorado"
-    )
+    const indicator = link.querySelector("[data-admin-sidebar-target='activeIndicator']")
+    if (indicator) {
+      indicator.classList.add("hidden")
+    }
   }
 }
