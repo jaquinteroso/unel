@@ -9,3 +9,6 @@ application.register("hello", HelloController)
 
 import AdminSidebarController from "./admin_sidebar_controller"
 application.register("admin-sidebar", AdminSidebarController)
+
+import TableFilterController from "./table_filter_controller"
+application.register("table-filter", TableFilterController)

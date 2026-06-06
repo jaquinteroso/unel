@@ -11,7 +11,7 @@
 
     </button>
 
-    <form
+    <!--<form
       action="<%= content_for?(:admin_search_path) ? yield(:admin_search_path) : request.path %>"
       method="get"
       class="hidden items-center rounded-xl bg-unel-crema px-4 py-2 md:flex"
@@ -25,15 +25,16 @@
         placeholder="<%= content_for?(:admin_search_placeholder) ? yield(:admin_search_placeholder) : 'Buscar en el panel...' %>"
         class="w-64 bg-transparent text-sm text-unel-negro outline-none placeholder:text-unel-humo"
       >
-    </form>
-  </div>
-
-  <div class="flex items-center gap-4">
+    </form>-->
     <% if content_for?(:admin_section_inner) %>
       <span class="hidden rounded-full border border-unel-crema-2 px-3 py-1 text-xs font-semibold text-unel-humo md:inline-flex">
         <%= yield(:admin_section_inner) %>
       </span>
     <% end %>
+  </div>
+
+  <div class="flex items-center gap-4">
+    
 
     <button
       type="button"
