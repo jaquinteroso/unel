@@ -68,36 +68,36 @@ Cuando tengas Inventario:
   <!--Cards-->
   <div class="flex w-full gap-4">
     <%= render "admin/shared/stat_card",
-    title: "Total productos",
-    value: product_stats[:total_products] || 0,
-    description: "Productos registrados" %>
+      title: "Total productos",
+      value: product_stats[:total_products] || 0,
+      description: "Productos registrados" %>
 
-  <%= render "admin/shared/stat_card",
-    title: "Costo promedio",
-    value: number_to_currency(product_stats[:average_cost] || 0, unit: "$", precision: 0, delimiter: "."),
-    description: "Costo unitario promedio" %>
+    <%= render "admin/shared/stat_card",
+      title: "Costo promedio",
+      value: number_to_currency(product_stats[:average_cost] || 0, unit: "$", precision: 0, delimiter: "."),
+      description: "Costo unitario promedio" %>
 
-  <%= render "admin/shared/stat_card",
-    title: "Sin precio final",
-    value: product_stats[:without_final_price] || 0,
-    description: "Productos pendientes de precio" %>
+    <%= render "admin/shared/stat_card",
+      title: "Sin precio final",
+      value: product_stats[:without_final_price] || 0,
+      description: "Productos pendientes de precio" %>
 
-  <%= render "admin/shared/stat_card",
-    title: "Stock bajo",
-    value: product_stats[:low_stock] || 0,
-    description: "Productos bajo el mínimo" %>
+    <%= render "admin/shared/stat_card",
+      title: "Stock bajo",
+      value: product_stats[:low_stock] || 0,
+      description: "Productos bajo el mínimo" %>
   </div>
 
-<% products = defined?(@products) && @products.present? ? @products : preview_products %>
+  <% products = defined?(@products) && @products.present? ? @products : preview_products %>
 
-  <div  data-controller="table-filter" class="rounded-lg mt-4 border border-unel-crema-2 bg-white shadow-sm">
+  <div data-controller="table-filter" class="rounded-lg mt-4 border border-unel-crema-2 bg-white shadow-sm">
     <div class="border-b border-unel-crema-2 px-6 py-5">
       <h2 class="text-lg font-bold text-unel-carbon">
         Productos registrados
       </h2>
 
       <p class="mt-1 text-sm text-unel-humo">
-        Lista de productos con sus costos, márgenes y precios finales.
+        Lista de productos con sus costos, márgenes, precios sugeridos y precios finales.
       </p>
     </div>
 
@@ -135,6 +135,7 @@ Cuando tengas Inventario:
               <th class="px-6 py-4 font-semibold">Producto</th>
               <th class="px-6 py-4 font-semibold">Costo</th>
               <th class="px-6 py-4 font-semibold">Margen</th>
+              <th class="px-6 py-4 font-semibold">Precio sugerido</th>
               <th class="px-6 py-4 font-semibold">Precio final</th>
               <th class="px-6 py-4 font-semibold">Stock</th>
               <th class="px-6 py-4 text-right font-semibold">Acciones</th>
@@ -143,9 +144,15 @@ Cuando tengas Inventario:
 
           <tbody class="divide-y divide-unel-crema-2">
             <% products.each do |product| %>
+              <% cost = product.cost.to_f %>
+              <% margin = product.margin.to_f %>
+              <% suggested_price = product.respond_to?(:suggested_price) && product.suggested_price.present? ? product.suggested_price.to_f : cost * (1 + margin / 100.0) %>
+              <% final_price = product.price || 0 %>
+              <% stock = product.stock.to_i %>
+
               <tr
                 data-table-filter-target="row"
-                data-search-text="<%= [product.name, product.cost, product.margin, product.price, product.stock].join(' ') %>"
+                data-search-text="<%= [product.name, product.cost, product.margin, suggested_price, final_price, stock].join(' ') %>"
                 class="transition hover:bg-unel-crema/50"
               >
                 <td class="px-6 py-4 font-semibold text-unel-negro">
@@ -160,12 +167,28 @@ Cuando tengas Inventario:
                   <%= product.margin || 0 %>%
                 </td>
 
-                <td class="px-6 py-4 font-semibold text-unel-verde">
-                  <%= number_to_currency(product.price || 0, unit: "$", precision: 0, delimiter: ".") %>
+                <td class="px-6 py-4 font-semibold text-unel-carbon">
+                  <%= number_to_currency(suggested_price, unit: "$", precision: 0, delimiter: ".") %>
                 </td>
 
-                <td class="px-6 py-4 text-unel-humo">
-                  <%= product.stock || 0 %>
+                <td class="px-6 py-4 font-semibold text-unel-verde">
+                  <%= number_to_currency(final_price, unit: "$", precision: 0, delimiter: ".") %>
+                </td>
+
+                <td class="px-6 py-4">
+                  <% if stock <= 0 %>
+                    <span class="inline-flex rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">
+                      Agotado
+                    </span>
+                  <% elsif stock <= 5 %>
+                    <span class="inline-flex rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+                      Bajo · <%= stock %>
+                    </span>
+                  <% else %>
+                    <span class="inline-flex rounded-full border border-unel-crema-2 bg-white px-3 py-1 text-xs font-semibold text-unel-verde">
+                      <%= stock %> unidades
+                    </span>
+                  <% end %>
                 </td>
 
                 <td class="px-6 py-4 text-right">
@@ -183,13 +206,14 @@ Cuando tengas Inventario:
           </tbody>
         </table>
       </div>
+
       <div data-table-filter-target="emptyState" class="hidden border-t border-unel-crema-2 px-6 py-12 text-center">
         <p class="text-lg font-bold text-unel-negro">
           No encontramos productos con esa búsqueda
         </p>
 
         <p class="mx-auto mt-2 max-w-md text-sm text-unel-humo">
-          Intenta buscar por nombre, costo, margen, precio o stock.
+          Intenta buscar por nombre, costo, margen, precio sugerido, precio final o stock.
         </p>
 
         <button
@@ -217,5 +241,4 @@ Cuando tengas Inventario:
       </div>
     <% end %>
   </div>
-  
 </section>
