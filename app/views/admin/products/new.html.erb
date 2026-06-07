@@ -5,6 +5,17 @@
 
 <% product = defined?(@product) && @product.present? ? @product : Product.new %>
 <% ingredients = defined?(@ingredients) && @ingredients.present? ? @ingredients : [] %>
+<% preview_enabled = Rails.env.development? && params[:preview] == "true" %>
+
+<% if preview_enabled && ingredients.empty? %>
+  <% preview_ingredient = Struct.new(:id, :name, :unit_measure, :cost_per_unit, keyword_init: true) %>
+
+  <% ingredients = [
+    preview_ingredient.new(id: 1, name: "Cholgas limpias", unit_measure: "kg", cost_per_unit: 3200),
+    preview_ingredient.new(id: 2, name: "Aceite de oliva", unit_measure: "ml", cost_per_unit: 18),
+    preview_ingredient.new(id: 3, name: "Sal de mar", unit_measure: "g", cost_per_unit: 4)
+  ] %>
+<% end %>
 
 <section>
   <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -73,66 +84,132 @@
 
           <div class="space-y-4 px-4 py-5 sm:px-6">
             <% if ingredients.any? %>
-              <div class="grid gap-4 rounded-xl border border-unel-crema-2 bg-unel-blanco p-4 md:grid-cols-[1fr_160px]">
-                <div>
-                  <label class="block text-sm font-semibold text-unel-carbon">
-                    Ingrediente
-                  </label>
+                <div data-controller="recipe-items">
+                <div data-recipe-items-target="container" class="space-y-4">
+                    <div data-recipe-item class="grid gap-4 rounded-xl border border-unel-crema-2 bg-unel-blanco p-4 md:grid-cols-[1fr_160px_auto]">
+                    <div>
+                        <label class="block text-sm font-semibold text-unel-carbon">
+                        Ingrediente
+                        </label>
 
-                  <select
-                    name="product[recipe_items_attributes][0][ingredient_id]"
-                    class="mt-2 w-full rounded-xl border border-unel-crema-2 bg-white px-4 py-3 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado"
-                  >
-                    <option value="">Selecciona un ingrediente</option>
+                        <select
+                        name="product[recipe_items_attributes][0][ingredient_id]"
+                        class="mt-2 w-full rounded-xl border border-unel-crema-2 bg-white px-4 py-3 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado"
+                        >
+                        <option value="">Selecciona un ingrediente</option>
 
-                    <% ingredients.each do |ingredient| %>
-                      <option value="<%= ingredient.id %>">
-                        <%= ingredient.name %>
-                        <% if ingredient.respond_to?(:unit_measure) && ingredient.unit_measure.present? %>
-                          (<%= ingredient.unit_measure %>)
+                        <% ingredients.each do |ingredient| %>
+                            <option value="<%= ingredient.id %>">
+                            <%= ingredient.name %>
+                            <% if ingredient.respond_to?(:unit_measure) && ingredient.unit_measure.present? %>
+                                (<%= ingredient.unit_measure %>)
+                            <% end %>
+                            </option>
                         <% end %>
-                      </option>
-                    <% end %>
-                  </select>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-unel-carbon">
+                        Cantidad
+                        </label>
+
+                        <input
+                        type="number"
+                        name="product[recipe_items_attributes][0][quantity]"
+                        min="0"
+                        step="0.01"
+                        placeholder="0"
+                        class="mt-2 w-full rounded-xl border border-unel-crema-2 bg-white px-4 py-3 text-sm text-unel-carbon outline-none transition placeholder:text-unel-humo focus:border-unel-dorado"
+                        >
+                    </div>
+
+                    <div class="flex items-end">
+                        <button
+                        type="button"
+                        data-action="recipe-items#remove"
+                        class="w-full rounded-xl border border-red-200 px-4 py-3 text-sm font-semibold text-red-500 transition hover:bg-red-50 md:w-auto"
+                        >
+                        Quitar
+                        </button>
+                    </div>
+                    </div>
                 </div>
 
-                <div>
-                  <label class="block text-sm font-semibold text-unel-carbon">
-                    Cantidad
-                  </label>
+                <template data-recipe-items-target="template">
+                    <div data-recipe-item class="grid gap-4 rounded-xl border border-unel-crema-2 bg-unel-blanco p-4 md:grid-cols-[1fr_160px_auto]">
+                    <div>
+                        <label class="block text-sm font-semibold text-unel-carbon">
+                        Ingrediente
+                        </label>
 
-                  <input
-                    type="number"
-                    name="product[recipe_items_attributes][0][quantity]"
-                    min="0"
-                    step="0.01"
-                    placeholder="0"
-                    class="mt-2 w-full rounded-xl border border-unel-crema-2 bg-white px-4 py-3 text-sm text-unel-carbon outline-none transition placeholder:text-unel-humo focus:border-unel-dorado"
-                  >
+                        <select
+                        name="product[recipe_items_attributes][__INDEX__][ingredient_id]"
+                        class="mt-2 w-full rounded-xl border border-unel-crema-2 bg-white px-4 py-3 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado"
+                        >
+                        <option value="">Selecciona un ingrediente</option>
+
+                        <% ingredients.each do |ingredient| %>
+                            <option value="<%= ingredient.id %>">
+                            <%= ingredient.name %>
+                            <% if ingredient.respond_to?(:unit_measure) && ingredient.unit_measure.present? %>
+                                (<%= ingredient.unit_measure %>)
+                            <% end %>
+                            </option>
+                        <% end %>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-unel-carbon">
+                        Cantidad
+                        </label>
+
+                        <input
+                        type="number"
+                        name="product[recipe_items_attributes][__INDEX__][quantity]"
+                        min="0"
+                        step="0.01"
+                        placeholder="0"
+                        class="mt-2 w-full rounded-xl border border-unel-crema-2 bg-white px-4 py-3 text-sm text-unel-carbon outline-none transition placeholder:text-unel-humo focus:border-unel-dorado"
+                        >
+                    </div>
+
+                    <div class="flex items-end">
+                        <button
+                        type="button"
+                        data-action="recipe-items#remove"
+                        class="w-full rounded-xl border border-red-200 px-4 py-3 text-sm font-semibold text-red-500 transition hover:bg-red-50 md:w-auto"
+                        >
+                        Quitar
+                        </button>
+                    </div>
+                    </div>
+                </template>
+
+                <button
+                    type="button"
+                    data-action="recipe-items#add"
+                    class="mt-4 rounded-xl border border-unel-crema-2 px-4 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado"
+                >
+                    Agregar otro ingrediente
+                </button>
                 </div>
-              </div>
-
-              <button
-                type="button"
-                class="rounded-xl border border-unel-crema-2 px-4 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado"
-              >
-                Agregar otro ingrediente
-              </button>
             <% else %>
-              <div class="rounded-xl border border-dashed border-unel-crema-2 bg-unel-blanco px-6 py-8 text-center">
+                <div class="rounded-xl border border-dashed border-unel-crema-2 bg-unel-blanco px-6 py-8 text-center">
                 <p class="text-sm font-bold text-unel-carbon">
-                  Todavía no hay ingredientes disponibles
+                    Todavía no hay ingredientes disponibles
                 </p>
 
                 <p class="mx-auto mt-2 max-w-md text-sm text-unel-humo">
-                  Cuando existan ingredientes registrados, aquí podrás asociarlos a la receta del producto.
+                    Cuando existan ingredientes registrados, aquí podrás asociarlos a la receta del producto.
                 </p>
 
                 <%= link_to "Ir a ingredientes", "/admin/ingredients",
-                  class: "mt-5 inline-flex rounded-xl border border-unel-crema-2 px-4 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado" %>
-              </div>
+                    class: "mt-5 inline-flex rounded-xl border border-unel-crema-2 px-4 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado" %>
+                </div>
             <% end %>
-          </div>
+            </div>
         </div>
       </div>
 
@@ -201,6 +278,10 @@
                 min: 0,
                 step: 1,
                 placeholder: "0",
+                data: {
+                  price_preview_target: "price",
+                  action: "input->price-preview#calculate"
+                },
                 class: "mt-2 w-full rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-3 text-sm text-unel-carbon outline-none transition placeholder:text-unel-humo focus:border-unel-dorado" %>
             </div>
           </div>
@@ -224,6 +305,10 @@
               min: 0,
               step: 1,
               placeholder: "0",
+              data: {
+                price_preview_target: "stock",
+                action: "input->price-preview#calculate"
+              },
               class: "mt-2 w-full rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-3 text-sm text-unel-carbon outline-none transition placeholder:text-unel-humo focus:border-unel-dorado" %>
           </div>
         </div>
@@ -232,6 +317,10 @@
           <h2 class="text-lg font-bold text-unel-carbon">
             Resumen
           </h2>
+
+          <p class="mt-1 text-sm text-unel-humo">
+            Vista rápida de los valores principales antes de crear el producto.
+          </p>
 
           <div class="mt-4 space-y-3 text-sm">
             <div class="flex items-center justify-between gap-4">
@@ -248,9 +337,30 @@
               </span>
             </div>
 
-            <div class="flex items-center justify-between gap-4 border-t border-unel-crema-2 pt-3">
+            <div class="flex items-center justify-between gap-4">
               <span class="text-unel-humo">Precio sugerido</span>
-              <span data-price-preview-target="summarySuggestedPrice" class="font-bold text-unel-verde">
+              <span data-price-preview-target="summarySuggestedPrice" class="font-semibold text-unel-verde">
+                Pendiente
+              </span>
+            </div>
+
+            <div class="flex items-center justify-between gap-4">
+              <span class="text-unel-humo">Precio final</span>
+              <span data-price-preview-target="summaryFinalPrice" class="font-semibold text-unel-carbon">
+                Pendiente
+              </span>
+            </div>
+
+            <div class="flex items-center justify-between gap-4">
+              <span class="text-unel-humo">Diferencia</span>
+              <span data-price-preview-target="summaryPriceDifference" class="font-semibold text-unel-carbon">
+                Pendiente
+              </span>
+            </div>
+
+            <div class="flex items-center justify-between gap-4 border-t border-unel-crema-2 pt-3">
+              <span class="text-unel-humo">Stock inicial</span>
+              <span data-price-preview-target="summaryStock" class="font-bold text-unel-verde">
                 Pendiente
               </span>
             </div>
