@@ -1,0 +1,99 @@
+<% content_for :admin_section_key, "products" %>
+<% content_for :admin_section_inner, @product.name %>
+<% content_for :admin_search_placeholder, "Buscar productos..." %>
+<% content_for :admin_search_path, admin_products_path %>
+
+<section class="space-y-6">
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <p class="text-sm font-semibold uppercase tracking-wide text-unel-dorado">
+        Detalle de Producto
+      </p>
+      <h1 class="mt-1 text-2xl font-bold text-unel-carbon md:text-3xl">
+        <%= @product.name %>
+      </h1>
+    </div>
+    
+    <div class="flex gap-3">
+      <%= link_to "Editar", edit_admin_product_path(@product), class: "rounded-xl bg-unel-dorado px-4 py-2 text-sm font-semibold text-white transition hover:bg-yellow-600" %>
+      <%= link_to "Volver", admin_products_path, class: "rounded-xl border border-unel-crema-2 px-4 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado" %>
+    </div>
+  </div>
+
+  <div class="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
+    
+    <div class="rounded-lg border border-unel-crema-2 bg-white p-6 shadow-sm xl:col-span-2">
+      <h2 class="text-lg font-bold text-unel-carbon">Información General</h2>
+      <p class="mt-4 text-sm text-unel-humo">
+        <%= @product.description.presence || "Este producto no tiene una descripción registrada." %>
+      </p>
+      
+      <div class="mt-6 flex items-center gap-2 border-t border-unel-crema-2 pt-4">
+        <span class="text-sm font-semibold text-unel-carbon">Stock Actual:</span>
+        <% si_hay_stock = @product.stock.to_i > 0 %>
+        <span class="rounded-full px-3 py-1 text-xs font-bold <%= si_hay_stock ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' %>">
+          <%= @product.stock || 0 %> unidades
+        </span>
+      </div>
+    </div>
+
+    <div class="rounded-lg border border-unel-crema-2 bg-white p-6 shadow-sm">
+      <h2 class="text-lg font-bold text-unel-carbon">Estructura de Precios</h2>
+      <ul class="mt-4 space-y-3 text-sm">
+        <li class="flex justify-between">
+          <span class="text-unel-humo">Costo Unitario Base</span>
+          <span class="font-semibold text-unel-carbon"><%= number_to_currency(@product.cost, delimiter: ".", precision: 0, format: "$%n") %></span>
+        </li>
+        <li class="flex justify-between">
+          <span class="text-unel-humo">Margen Aplicado</span>
+          <span class="font-semibold text-unel-carbon"><%= @product.margin %>%</span>
+        </li>
+        <li class="flex justify-between border-t border-unel-crema-2 pt-3">
+          <span class="text-unel-humo">Precio Final de Venta</span>
+          <span class="font-bold text-unel-verde text-lg"><%= number_to_currency(@product.price, delimiter: ".", precision: 0, format: "$%n") %></span>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="rounded-lg border border-unel-crema-2 bg-white shadow-sm">
+    <div class="border-b border-unel-crema-2 px-6 py-4">
+      <h2 class="text-lg font-bold text-unel-carbon">Composición de la Receta</h2>
+    </div>
+    
+    <div class="p-6">
+      <% if @product.recipe_items.any? %>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead>
+              <tr class="border-b border-unel-crema-2 text-unel-humo">
+                <th class="pb-3 font-semibold">Materia Prima</th>
+                <th class="pb-3 font-semibold">Cantidad Requerida</th>
+                <th class="pb-3 font-semibold">Costo Aprox.</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @product.recipe_items.includes(:ingredient).each do |item| %>
+                <tr class="border-b border-unel-crema-2/50 last:border-0 hover:bg-gray-50 transition">
+                  <td class="py-3 text-unel-carbon font-medium"><%= item.ingredient.name %></td>
+                  <td class="py-3 text-unel-carbon"><%= item.quantity %> <%= item.ingredient.unit_measure %></td>
+                  <td class="py-3 text-unel-carbon">
+                    <% costo_ingrediente = item.quantity * item.ingredient.cost_per_unit rescue 0 %>
+                    <%= number_to_currency(costo_ingrediente, delimiter: ".", precision: 0, format: "$%n") %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="rounded-xl border border-dashed border-unel-crema-2 bg-unel-blanco px-6 py-8 text-center">
+          <p class="text-sm font-bold text-unel-carbon">Receta vacía</p>
+          <p class="mx-auto mt-2 max-w-md text-sm text-unel-humo">
+            Este producto aún no tiene ingredientes asociados. Edita el producto para definir su receta.
+          </p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</section>
