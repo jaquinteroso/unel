@@ -1,6 +1,6 @@
 <aside
   data-admin-sidebar-target="sidebar"
-  class="w-64 shrink-0 overflow-hidden bg-unel-carbon px-4 py-6 text-unel-crema shadow-xl transition-all duration-300"
+  class="fixed inset-y-0 left-0 z-40 h-screen w-64 shrink-0 -translate-x-full overflow-y-auto bg-unel-carbon px-4 py-6 text-unel-crema shadow-xl transition-all duration-300 lg:static lg:z-auto lg:h-auto lg:translate-x-0 lg:overflow-hidden"
 >
   <div data-admin-sidebar-target="brand" class="mb-10 flex items-center gap-3">
     <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-unel-verde text-sm font-bold text-unel-blanco">
@@ -215,3 +215,9 @@
     <% end %>
   </div>
 </aside>
+
+<div
+  data-admin-sidebar-target="overlay"
+  data-action="click->admin-sidebar#closeMobileMenu"
+  class="fixed inset-0 z-30 hidden bg-black/40 lg:hidden"
+></div>

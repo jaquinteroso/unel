@@ -10,22 +10,84 @@ export default class extends Controller {
     "sectionHeader",
     "sectionDivider",
     "logoutWrapper",
-    "activeIndicator"
+    "activeIndicator",
+    "overlay"
   ]
 
   connect() {
-    this.highlightActiveLink()
+    this.desktopQuery = window.matchMedia("(min-width: 1024px)")
+    this.handleScreenChange = () => this.syncSidebarMode()
 
-    const isCollapsed = localStorage.getItem("unelSidebarCollapsed") === "true"
-    this.setCollapsed(isCollapsed)
+    this.desktopQuery.addEventListener("change", this.handleScreenChange)
+
+    this.highlightActiveLink()
+    this.syncSidebarMode()
+  }
+
+  disconnect() {
+    if (this.desktopQuery && this.handleScreenChange) {
+      this.desktopQuery.removeEventListener("change", this.handleScreenChange)
+    }
   }
 
   toggle() {
+    if (this.isDesktop()) {
+      this.toggleDesktopCollapse()
+    } else {
+      this.toggleMobileMenu()
+    }
+  }
+
+  isDesktop() {
+    return this.desktopQuery.matches
+  }
+
+  syncSidebarMode() {
+    if (this.isDesktop()) {
+      this.closeMobileMenu()
+
+      const isCollapsed = localStorage.getItem("unelSidebarCollapsed") === "true"
+      this.setCollapsed(isCollapsed)
+    } else {
+      this.setCollapsed(false)
+      this.closeMobileMenu()
+    }
+  }
+
+  toggleDesktopCollapse() {
     const isCurrentlyCollapsed = this.sidebarTarget.classList.contains("w-20")
     const nextState = !isCurrentlyCollapsed
 
     this.setCollapsed(nextState)
     localStorage.setItem("unelSidebarCollapsed", nextState)
+  }
+
+  toggleMobileMenu() {
+    const isOpen = this.sidebarTarget.classList.contains("translate-x-0")
+
+    if (isOpen) {
+      this.closeMobileMenu()
+    } else {
+      this.openMobileMenu()
+    }
+  }
+
+  openMobileMenu() {
+    this.sidebarTarget.classList.remove("-translate-x-full")
+    this.sidebarTarget.classList.add("translate-x-0")
+
+    if (this.hasOverlayTarget) {
+      this.overlayTarget.classList.remove("hidden")
+    }
+  }
+
+  closeMobileMenu() {
+    this.sidebarTarget.classList.remove("translate-x-0")
+    this.sidebarTarget.classList.add("-translate-x-full")
+
+    if (this.hasOverlayTarget) {
+      this.overlayTarget.classList.add("hidden")
+    }
   }
 
   setCollapsed(isCollapsed) {
