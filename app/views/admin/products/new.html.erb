@@ -1,1 +1,380 @@
-<% content_for :admin_title, "Nuevo Producto" %>
+<% content_for :admin_section_key, "products" %>
+<% content_for :admin_section_inner, "Nuevo producto" %>
+<% content_for :admin_search_placeholder, "Buscar productos..." %>
+<% content_for :admin_search_path, admin_products_path %>
+
+<% product = defined?(@product) && @product.present? ? @product : Product.new %>
+<% ingredients = defined?(@ingredients) && @ingredients.present? ? @ingredients : [] %>
+<% preview_enabled = Rails.env.development? && params[:preview] == "true" %>
+
+<% if preview_enabled && ingredients.empty? %>
+  <% preview_ingredient = Struct.new(:id, :name, :unit_measure, :cost_per_unit, keyword_init: true) %>
+
+  <% ingredients = [
+    preview_ingredient.new(id: 1, name: "Cholgas limpias", unit_measure: "kg", cost_per_unit: 3200),
+    preview_ingredient.new(id: 2, name: "Aceite de oliva", unit_measure: "ml", cost_per_unit: 18),
+    preview_ingredient.new(id: 3, name: "Sal de mar", unit_measure: "g", cost_per_unit: 4)
+  ] %>
+<% end %>
+
+<section>
+  <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+    <div>
+      <p class="text-sm font-semibold uppercase tracking-wide text-unel-dorado">
+        Productos y costos
+      </p>
+
+      <h1 class="mt-2 text-2xl font-bold text-unel-carbon md:text-3xl">
+        Nuevo producto
+      </h1>
+
+      <p class="mt-2 max-w-2xl text-sm text-unel-humo">
+        Registra una nueva conserva, define sus costos, precios e inventario inicial.
+      </p>
+    </div>
+
+    <%= link_to "Volver a productos", admin_products_path,
+      class: "rounded-xl border border-unel-crema-2 px-4 py-2 text-center text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado" %>
+  </div>
+
+  <%= form_with model: [:admin, product], local: true, data: { controller: "price-preview" }, class: "space-y-6" do |form| %>
+    <div class="grid gap-6 xl:grid-cols-[1.4fr_0.9fr]">
+      <div class="space-y-6">
+        <div class="rounded-lg border border-unel-crema-2 bg-white shadow-sm">
+          <div class="border-b border-unel-crema-2 px-4 py-5 sm:px-6">
+            <h2 class="text-lg font-bold text-unel-carbon">
+              Información general
+            </h2>
+
+            <p class="mt-1 text-sm text-unel-humo">
+              Datos principales con los que se identificará el producto en el catálogo y en el panel.
+            </p>
+          </div>
+
+          <div class="grid gap-5 px-4 py-5 sm:px-6">
+            <div>
+              <%= form.label :name, "Nombre del producto", class: "block text-sm font-semibold text-unel-carbon" %>
+
+              <%= form.text_field :name,
+                placeholder: "Ej: Conserva de cholgas",
+                class: "mt-2 w-full rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-3 text-sm text-unel-carbon outline-none transition placeholder:text-unel-humo focus:border-unel-dorado" %>
+            </div>
+
+            <div>
+              <%= form.label :description, "Descripción", class: "block text-sm font-semibold text-unel-carbon" %>
+
+              <%= form.text_area :description,
+                rows: 5,
+                placeholder: "Describe el producto, su origen, sabor o características principales.",
+                class: "mt-2 w-full resize-none rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-3 text-sm text-unel-carbon outline-none transition placeholder:text-unel-humo focus:border-unel-dorado" %>
+            </div>
+          </div>
+        </div>
+
+        <div class="rounded-lg border border-unel-crema-2 bg-white shadow-sm">
+          <div class="border-b border-unel-crema-2 px-4 py-5 sm:px-6">
+            <h2 class="text-lg font-bold text-unel-carbon">
+              Receta e ingredientes
+            </h2>
+
+            <p class="mt-1 text-sm text-unel-humo">
+              Asocia ingredientes al producto para que más adelante el sistema pueda calcular costos automáticamente.
+            </p>
+          </div>
+
+          <div class="space-y-4 px-4 py-5 sm:px-6">
+            <% if ingredients.any? %>
+                <div data-controller="recipe-items">
+                <div data-recipe-items-target="container" class="space-y-4">
+                    <div data-recipe-item class="grid gap-4 rounded-xl border border-unel-crema-2 bg-unel-blanco p-4 md:grid-cols-[1fr_160px_auto]">
+                    <div>
+                        <label class="block text-sm font-semibold text-unel-carbon">
+                        Ingrediente
+                        </label>
+
+                        <select
+                        name="product[recipe_items_attributes][0][ingredient_id]"
+                        class="mt-2 w-full rounded-xl border border-unel-crema-2 bg-white px-4 py-3 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado"
+                        >
+                        <option value="">Selecciona un ingrediente</option>
+
+                        <% ingredients.each do |ingredient| %>
+                            <option value="<%= ingredient.id %>">
+                            <%= ingredient.name %>
+                            <% if ingredient.respond_to?(:unit_measure) && ingredient.unit_measure.present? %>
+                                (<%= ingredient.unit_measure %>)
+                            <% end %>
+                            </option>
+                        <% end %>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-unel-carbon">
+                        Cantidad
+                        </label>
+
+                        <input
+                        type="number"
+                        name="product[recipe_items_attributes][0][quantity]"
+                        min="0"
+                        step="0.01"
+                        placeholder="0"
+                        class="mt-2 w-full rounded-xl border border-unel-crema-2 bg-white px-4 py-3 text-sm text-unel-carbon outline-none transition placeholder:text-unel-humo focus:border-unel-dorado"
+                        >
+                    </div>
+
+                    <div class="flex items-end">
+                        <button
+                        type="button"
+                        data-action="recipe-items#remove"
+                        class="w-full rounded-xl border border-red-200 px-4 py-3 text-sm font-semibold text-red-500 transition hover:bg-red-50 md:w-auto"
+                        >
+                        Quitar
+                        </button>
+                    </div>
+                    </div>
+                </div>
+
+                <template data-recipe-items-target="template">
+                    <div data-recipe-item class="grid gap-4 rounded-xl border border-unel-crema-2 bg-unel-blanco p-4 md:grid-cols-[1fr_160px_auto]">
+                    <div>
+                        <label class="block text-sm font-semibold text-unel-carbon">
+                        Ingrediente
+                        </label>
+
+                        <select
+                        name="product[recipe_items_attributes][__INDEX__][ingredient_id]"
+                        class="mt-2 w-full rounded-xl border border-unel-crema-2 bg-white px-4 py-3 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado"
+                        >
+                        <option value="">Selecciona un ingrediente</option>
+
+                        <% ingredients.each do |ingredient| %>
+                            <option value="<%= ingredient.id %>">
+                            <%= ingredient.name %>
+                            <% if ingredient.respond_to?(:unit_measure) && ingredient.unit_measure.present? %>
+                                (<%= ingredient.unit_measure %>)
+                            <% end %>
+                            </option>
+                        <% end %>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-unel-carbon">
+                        Cantidad
+                        </label>
+
+                        <input
+                        type="number"
+                        name="product[recipe_items_attributes][__INDEX__][quantity]"
+                        min="0"
+                        step="0.01"
+                        placeholder="0"
+                        class="mt-2 w-full rounded-xl border border-unel-crema-2 bg-white px-4 py-3 text-sm text-unel-carbon outline-none transition placeholder:text-unel-humo focus:border-unel-dorado"
+                        >
+                    </div>
+
+                    <div class="flex items-end">
+                        <button
+                        type="button"
+                        data-action="recipe-items#remove"
+                        class="w-full rounded-xl border border-red-200 px-4 py-3 text-sm font-semibold text-red-500 transition hover:bg-red-50 md:w-auto"
+                        >
+                        Quitar
+                        </button>
+                    </div>
+                    </div>
+                </template>
+
+                <button
+                    type="button"
+                    data-action="recipe-items#add"
+                    class="mt-4 rounded-xl border border-unel-crema-2 px-4 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado"
+                >
+                    Agregar otro ingrediente
+                </button>
+                </div>
+            <% else %>
+                <div class="rounded-xl border border-dashed border-unel-crema-2 bg-unel-blanco px-6 py-8 text-center">
+                <p class="text-sm font-bold text-unel-carbon">
+                    Todavía no hay ingredientes disponibles
+                </p>
+
+                <p class="mx-auto mt-2 max-w-md text-sm text-unel-humo">
+                    Cuando existan ingredientes registrados, aquí podrás asociarlos a la receta del producto.
+                </p>
+
+                <%= link_to "Ir a ingredientes", "/admin/ingredients",
+                    class: "mt-5 inline-flex rounded-xl border border-unel-crema-2 px-4 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado" %>
+                </div>
+            <% end %>
+            </div>
+        </div>
+      </div>
+
+      <div class="space-y-6">
+        <div class="rounded-lg border border-unel-crema-2 bg-white shadow-sm">
+          <div class="border-b border-unel-crema-2 px-4 py-5 sm:px-6">
+            <h2 class="text-lg font-bold text-unel-carbon">
+              Costos y precios
+            </h2>
+
+            <p class="mt-1 text-sm text-unel-humo">
+              Define el costo base, margen esperado y precio final de venta.
+            </p>
+          </div>
+
+          <div class="space-y-5 px-4 py-5 sm:px-6">
+            <div>
+              <%= form.label :cost, "Costo unitario", class: "block text-sm font-semibold text-unel-carbon" %>
+
+              <%= form.number_field :cost,
+                min: 0,
+                step: 1,
+                placeholder: "0",
+                data: {
+                  price_preview_target: "cost",
+                  action: "input->price-preview#calculate"
+                },
+                class: "mt-2 w-full rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-3 text-sm text-unel-carbon outline-none transition placeholder:text-unel-humo focus:border-unel-dorado" %>
+            </div>
+
+            <div>
+              <%= form.label :margin, "Margen (%)", class: "block text-sm font-semibold text-unel-carbon" %>
+
+              <%= form.number_field :margin,
+                min: 0,
+                step: 0.1,
+                placeholder: "0",
+                data: {
+                  price_preview_target: "margin",
+                  action: "input->price-preview#calculate"
+                },
+                class: "mt-2 w-full rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-3 text-sm text-unel-carbon outline-none transition placeholder:text-unel-humo focus:border-unel-dorado" %>
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-unel-carbon">
+                Precio sugerido
+              </label>
+
+              <div
+                data-price-preview-target="suggestedPrice"
+                class="mt-2 rounded-xl border border-unel-crema-2 bg-unel-crema px-4 py-3 text-sm font-semibold text-unel-humo"
+              >
+                Pendiente
+              </div>
+
+              <p class="mt-2 text-xs text-unel-humo">
+                Este valor se calcula automáticamente con el costo unitario y el margen ingresado.
+              </p>
+            </div>
+
+            <div>
+              <%= form.label :price, "Precio final", class: "block text-sm font-semibold text-unel-carbon" %>
+
+              <%= form.number_field :price,
+                min: 0,
+                step: 1,
+                placeholder: "0",
+                data: {
+                  price_preview_target: "price",
+                  action: "input->price-preview#calculate"
+                },
+                class: "mt-2 w-full rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-3 text-sm text-unel-carbon outline-none transition placeholder:text-unel-humo focus:border-unel-dorado" %>
+            </div>
+          </div>
+        </div>
+
+        <div class="rounded-lg border border-unel-crema-2 bg-white shadow-sm">
+          <div class="border-b border-unel-crema-2 px-4 py-5 sm:px-6">
+            <h2 class="text-lg font-bold text-unel-carbon">
+              Inventario
+            </h2>
+
+            <p class="mt-1 text-sm text-unel-humo">
+              Define la cantidad inicial disponible para este producto.
+            </p>
+          </div>
+
+          <div class="px-4 py-5 sm:px-6">
+            <%= form.label :stock, "Stock inicial", class: "block text-sm font-semibold text-unel-carbon" %>
+
+            <%= form.number_field :stock,
+              min: 0,
+              step: 1,
+              placeholder: "0",
+              data: {
+                price_preview_target: "stock",
+                action: "input->price-preview#calculate"
+              },
+              class: "mt-2 w-full rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-3 text-sm text-unel-carbon outline-none transition placeholder:text-unel-humo focus:border-unel-dorado" %>
+          </div>
+        </div>
+
+        <div class="rounded-lg border border-unel-crema-2 bg-white p-4 shadow-sm sm:p-6">
+          <h2 class="text-lg font-bold text-unel-carbon">
+            Resumen
+          </h2>
+
+          <p class="mt-1 text-sm text-unel-humo">
+            Vista rápida de los valores principales antes de crear el producto.
+          </p>
+
+          <div class="mt-4 space-y-3 text-sm">
+            <div class="flex items-center justify-between gap-4">
+              <span class="text-unel-humo">Costo unitario</span>
+              <span data-price-preview-target="summaryCost" class="font-semibold text-unel-carbon">
+                Pendiente
+              </span>
+            </div>
+
+            <div class="flex items-center justify-between gap-4">
+              <span class="text-unel-humo">Margen</span>
+              <span data-price-preview-target="summaryMargin" class="font-semibold text-unel-carbon">
+                Pendiente
+              </span>
+            </div>
+
+            <div class="flex items-center justify-between gap-4">
+              <span class="text-unel-humo">Precio sugerido</span>
+              <span data-price-preview-target="summarySuggestedPrice" class="font-semibold text-unel-verde">
+                Pendiente
+              </span>
+            </div>
+
+            <div class="flex items-center justify-between gap-4">
+              <span class="text-unel-humo">Precio final</span>
+              <span data-price-preview-target="summaryFinalPrice" class="font-semibold text-unel-carbon">
+                Pendiente
+              </span>
+            </div>
+
+            <div class="flex items-center justify-between gap-4">
+              <span class="text-unel-humo">Diferencia</span>
+              <span data-price-preview-target="summaryPriceDifference" class="font-semibold text-unel-carbon">
+                Pendiente
+              </span>
+            </div>
+
+            <div class="flex items-center justify-between gap-4 border-t border-unel-crema-2 pt-3">
+              <span class="text-unel-humo">Stock inicial</span>
+              <span data-price-preview-target="summaryStock" class="font-bold text-unel-verde">
+                Pendiente
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+          <%= link_to "Cancelar", admin_products_path,
+            class: "rounded-xl border border-unel-crema-2 px-4 py-2 text-center text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado" %>
+
+          <%= form.submit "Crear producto",
+            class: "rounded-xl bg-unel-verde px-4 py-2 text-sm font-semibold text-unel-blanco transition hover:bg-unel-carbon cursor-pointer" %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</section>

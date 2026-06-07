@@ -16,10 +16,46 @@ Cuando tengas Inventario:
 <% content_for :admin_section, "Inventario" %>
 -->
 
+<% preview_enabled = Rails.env.development? && params[:preview] == "true" %>
+
+<% preview_products = [] %>
+
+<% if preview_enabled %>
+  <% preview_product = Struct.new(:name, :cost, :margin, :price, :stock, keyword_init: true) %>
+
+  <% preview_products = [
+    preview_product.new(name: "Conserva de cholgas", cost: 1250, margin: 40, price: 1800, stock: 12),
+    preview_product.new(name: "Conserva de navajuelas", cost: 1480, margin: 35, price: 2200, stock: 4),
+    preview_product.new(name: "Salmón ahumado artesanal", cost: 3200, margin: 45, price: 5200, stock: 8),
+    preview_product.new(name: "Mix de mariscos del Pacífico", cost: 2100, margin: 30, price: 2990, stock: 0)
+  ] %>
+<% end %>
+
+<% products = defined?(@products) && @products.present? ? @products : preview_products %>
+
+<% product_stats = if defined?(@product_stats) && @product_stats.present? %>
+  <% @product_stats.with_indifferent_access %>
+<% else %>
+  <% total_products = products.count %>
+  <% total_cost = products.sum { |product| product.cost.to_f } %>
+  <% average_cost = total_products.positive? ? total_cost / total_products : 0 %>
+  <% without_final_price = products.count { |product| product.price.blank? || product.price.to_f.zero? } %>
+  <% low_stock = products.count { |product| product.stock.to_i <= 5 } %>
+
+  <% {
+    total_products: total_products,
+    average_cost: average_cost,
+    without_final_price: without_final_price,
+    low_stock: low_stock
+  }.with_indifferent_access %>
+<% end %>
+
+
 <section>
-  <div class="mb-8 flex items-start justify-between gap-4">
+  <!--Header de página-->
+  <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
     <div>
-      <h1 class="text-3xl font-bold text-unel-carbon">
+      <h1 class="text-2xl font-bold text-unel-carbon md:text-3xl">
         Productos y costos
       </h1>
 
@@ -29,26 +65,180 @@ Cuando tengas Inventario:
     </div>
   </div>
 
-  <div class="flex w-full gap-4">
+  <!--Cards-->
+  <div class="flex w-full flex-wrap gap-4 xl:flex-nowrap justify-around">
     <%= render "admin/shared/stat_card",
-    title: "Total productos",
-    value: product_stats[:total_products] || 0,
-    description: "Productos registrados" %>
+      title: "Total productos",
+      value: product_stats[:total_products] || 0,
+      description: "Productos registrados" %>
 
-  <%= render "admin/shared/stat_card",
-    title: "Costo promedio",
-    value: number_to_currency(product_stats[:average_cost] || 0, unit: "$", precision: 0, delimiter: "."),
-    description: "Costo unitario promedio" %>
+    <%= render "admin/shared/stat_card",
+      title: "Costo promedio",
+      value: number_to_currency(product_stats[:average_cost] || 0, unit: "$", precision: 0, delimiter: "."),
+      description: "Costo unitario promedio" %>
 
-  <%= render "admin/shared/stat_card",
-    title: "Sin precio final",
-    value: product_stats[:without_final_price] || 0,
-    description: "Productos pendientes de precio" %>
+    <%= render "admin/shared/stat_card",
+      title: "Sin precio final",
+      value: product_stats[:without_final_price] || 0,
+      description: "Productos pendientes de precio" %>
 
-  <%= render "admin/shared/stat_card",
-    title: "Stock bajo",
-    value: product_stats[:low_stock] || 0,
-    description: "Productos bajo el mínimo" %>
+    <%= render "admin/shared/stat_card",
+      title: "Stock bajo",
+      value: product_stats[:low_stock] || 0,
+      description: "Productos bajo el mínimo" %>
   </div>
-  
+
+  <% products = defined?(@products) && @products.present? ? @products : preview_products %>
+
+  <div data-controller="table-filter" class="rounded-lg mt-4 border border-unel-crema-2 bg-white shadow-sm">
+    <div class="border-b border-unel-crema-2 px-4 py-5 sm:px-6">
+      <h2 class="text-lg font-bold text-unel-carbon">
+        Productos registrados
+      </h2>
+
+      <p class="mt-1 text-sm text-unel-humo">
+        Lista de productos con sus costos, márgenes, precios sugeridos y precios finales.
+      </p>
+    </div>
+
+    <div class="flex flex-col gap-4 border-b border-unel-crema-2 px-4 py-4 sm:px-6 md:flex-row md:items-center md:justify-between">
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <%= link_to "Nuevo producto", new_admin_product_path,
+          class: "w-full rounded-xl bg-unel-verde px-4 py-2 text-center text-sm font-semibold text-unel-blanco transition hover:bg-unel-carbon sm:w-auto" %>
+
+        <button type="button" class="w-full rounded-xl border border-unel-crema-2 px-4 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado sm:w-auto">
+          Exportar
+        </button>
+      </div>
+
+      <div class="flex w-full flex-col gap-3 sm:flex-row sm:items-center md:w-auto">
+        <span data-table-filter-target="resultsCount" class="text-xs text-unel-humo">
+        </span>
+
+        <div class="w-full rounded-xl bg-unel-crema px-4 py-2 sm:w-auto">
+          <input
+            type="search"
+            placeholder="Buscar producto..."
+            data-table-filter-target="input"
+            data-action="input->table-filter#filter"
+            class="w-full bg-transparent text-sm text-unel-negro outline-none placeholder:text-unel-humo sm:w-64"
+          >
+        </div>
+      </div>
+    </div>
+
+    <% if products.any? %>
+      <div class="overflow-x-auto">
+        <table class="min-w-245 w-full text-left text-sm">
+          <thead class="bg-unel-verde text-xs uppercase tracking-wide text-unel-blanco">
+            <tr>
+              <th class="px-6 py-4 font-semibold">Producto</th>
+              <th class="px-6 py-4 font-semibold">Costo</th>
+              <th class="px-6 py-4 font-semibold">Margen</th>
+              <th class="px-6 py-4 font-semibold">Precio sugerido</th>
+              <th class="px-6 py-4 font-semibold">Precio final</th>
+              <th class="px-6 py-4 font-semibold">Stock</th>
+              <th class="px-6 py-4 text-right font-semibold">Acciones</th>
+            </tr>
+          </thead>
+
+          <tbody class="divide-y divide-unel-crema-2">
+            <% products.each do |product| %>
+              <% cost = product.cost.to_f %>
+              <% margin = product.margin.to_f %>
+              <% suggested_price = product.respond_to?(:suggested_price) && product.suggested_price.present? ? product.suggested_price.to_f : cost * (1 + margin / 100.0) %>
+              <% final_price = product.price || 0 %>
+              <% stock = product.stock.to_i %>
+
+              <tr
+                data-table-filter-target="row"
+                data-search-text="<%= [product.name, product.cost, product.margin, suggested_price, final_price, stock].join(' ') %>"
+                class="transition hover:bg-unel-crema/50"
+              >
+                <td class="px-6 py-4 font-semibold text-unel-negro">
+                  <%= product.name %>
+                </td>
+
+                <td class="px-6 py-4 text-unel-humo">
+                  <%= number_to_currency(product.cost || 0, unit: "$", precision: 0, delimiter: ".") %>
+                </td>
+
+                <td class="px-6 py-4 text-unel-humo">
+                  <%= product.margin || 0 %>%
+                </td>
+
+                <td class="px-6 py-4 font-semibold text-unel-carbon">
+                  <%= number_to_currency(suggested_price, unit: "$", precision: 0, delimiter: ".") %>
+                </td>
+
+                <td class="px-6 py-4 font-semibold text-unel-verde">
+                  <%= number_to_currency(final_price, unit: "$", precision: 0, delimiter: ".") %>
+                </td>
+
+                <td class="px-6 py-4">
+                  <% if stock <= 0 %>
+                    <span class="inline-flex rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">
+                      Agotado
+                    </span>
+                  <% elsif stock <= 5 %>
+                    <span class="inline-flex rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+                      Bajo · <%= stock %>
+                    </span>
+                  <% else %>
+                    <span class="inline-flex rounded-full border border-unel-crema-2 bg-white px-3 py-1 text-xs font-semibold text-unel-verde">
+                      <%= stock %> unidades
+                    </span>
+                  <% end %>
+                </td>
+
+                <td class="px-6 py-4 text-right">
+                  <% if preview_enabled %>
+                    <span class="text-sm font-semibold text-unel-humo">
+                      Editar
+                    </span>
+                  <% else %>
+                    <%= link_to "Editar", edit_admin_product_path(product),
+                      class: "text-sm font-semibold text-unel-dorado transition hover:text-unel-dorado-2" %>
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+
+      <div data-table-filter-target="emptyState" class="hidden border-t border-unel-crema-2 px-4 py-12 text-center sm:px-6">
+        <p class="text-lg font-bold text-unel-negro">
+          No encontramos productos con esa búsqueda
+        </p>
+
+        <p class="mx-auto mt-2 max-w-md text-sm text-unel-humo">
+          Intenta buscar por nombre, costo, margen, precio sugerido, precio final o stock.
+        </p>
+
+        <button
+          type="button"
+          data-action="table-filter#clear"
+          class="mt-6 rounded-xl border border-unel-crema-2 px-4 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado"
+        >
+          Limpiar búsqueda
+        </button>
+      </div>
+    <% else %>
+      <div class="px-4 py-12 text-center sm:px-6">
+        <p class="text-lg font-bold text-unel-negro">
+          Todavía no hay productos registrados
+        </p>
+
+        <p class="mx-auto mt-2 max-w-md text-sm text-unel-humo">
+          Crea el primer producto para comenzar a calcular costos, márgenes y precios sugeridos.
+        </p>
+
+        <div class="mt-6">
+          <%= link_to "Crear primer producto", new_admin_product_path,
+            class: "rounded-xl bg-unel-verde px-4 py-2 text-sm font-semibold text-unel-blanco transition hover:bg-unel-carbon" %>
+        </div>
+      </div>
+    <% end %>
+  </div>
 </section>

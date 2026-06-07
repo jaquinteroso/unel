@@ -1,4 +1,4 @@
-<div class="rounded-lg border border-unel-crema-2 bg-white p-6 shadow-sm w-1/4">
+<div class="rounded-lg border border-unel-crema-2 bg-white p-6 shadow-sm flex-1 min-w-55">
   <p class="text-sm font-medium text-unel-humo">
     <%= title %>
   </p>
@@ -13,3 +13,14 @@
     </p>
   <% end %>
 </div>
+
+<!--Voy a dejar las cards de productos preparadas para recibir @product_stats.
+
+Necesito que desde Admin::ProductsController#index me entregues un hash con estas keys:
+
+- total_products
+- average_cost
+- without_final_price
+- low_stock
+
+Mientras no estén, la vista muestra 0 por defecto.-->

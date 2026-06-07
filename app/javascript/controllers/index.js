@@ -9,3 +9,12 @@ application.register("hello", HelloController)
 
 import AdminSidebarController from "./admin_sidebar_controller"
 application.register("admin-sidebar", AdminSidebarController)
+
+import TableFilterController from "./table_filter_controller"
+application.register("table-filter", TableFilterController)
+
+import PricePreviewController from "./price_preview_controller"
+application.register("price-preview", PricePreviewController)
+
+import RecipeItemsController from "./recipe_items_controller"
+application.register("recipe-items", RecipeItemsController)
