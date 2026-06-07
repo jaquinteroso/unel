@@ -24,3 +24,6 @@ application.register("recipe-items", RecipeItemsController)
 
 import TableFilterController from "./table_filter_controller"
 application.register("table-filter", TableFilterController)
+
+import TrixNoAttachmentsController from "./trix_no_attachments_controller"
+application.register("trix-no-attachments", TrixNoAttachmentsController)

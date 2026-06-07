@@ -15,3 +15,30 @@
   --color-unel-blanco: #faf7f2;
   --color-unel-carbon: #1e1c18;
 }
+
+@layer components {
+  .unel-product-description-trix .trix-button-group--file-tools {
+    display: none;
+  }
+
+  .unel-product-description-trix trix-toolbar {
+    margin-bottom: 0.5rem;
+  }
+
+  .unel-product-description-trix trix-editor.unel-product-description-editor {
+    min-height: 150px;
+    width: 100%;
+    border: 1px solid #e8dfd0;
+    border-radius: 0.75rem;
+    background-color: #faf7f2;
+    padding: 1rem;
+    font-size: 0.875rem;
+    color: #1e1c18;
+    outline: none;
+    transition: border-color 150ms ease;
+  }
+
+  .unel-product-description-trix trix-editor.unel-product-description-editor:focus {
+    border-color: #b8924a;
+  }
+}

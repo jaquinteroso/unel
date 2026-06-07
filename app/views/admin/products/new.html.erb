@@ -78,8 +78,16 @@
             </div>
 
             <div>
-              <%= form.label :description, "Descripción", class: "block text-sm font-semibold text-unel-carbon" %>
-              <%= form.rich_text_area :description, class: "mt-2 block w-full rounded-xl border border-unel-crema-2 bg-unel-blanco p-4 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado min-h-[150px]" %>
+              <%= form.label :description, "Descripción", class: "block text-sm font-semibold text-unel-carbon mb-2" %>
+
+              <div class="unel-product-description-trix">
+                <%= form.rich_text_area :description,
+                  data: {
+                    controller: "trix-no-attachments",
+                    action: "trix-file-accept->trix-no-attachments#rejectFile"
+                  },
+                  class: "unel-product-description-editor" %>
+              </div>
             </div>
           </div>
         </div>

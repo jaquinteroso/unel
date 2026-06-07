@@ -438,3 +438,33 @@ trix-editor .attachment__metadata {
   padding: 0 !important;
   max-width: 100% !important;
 }
+
+
+
+/* UNEL: solo editor de descripción del producto */
+.unel-product-description-trix .trix-button-group--file-tools,
+.unel-product-description-trix [data-trix-action="attachFiles"],
+.unel-product-description-trix .trix-button--icon-attach {
+  display: none !important;
+}
+
+.unel-product-description-trix trix-toolbar {
+  margin-bottom: 0.5rem;
+}
+
+.unel-product-description-trix trix-editor.unel-product-description-editor {
+  min-height: 150px !important;
+  width: 100% !important;
+  border: 1px solid #e8dfd0 !important;
+  border-radius: 0.75rem !important;
+  background-color: #faf7f2 !important;
+  padding: 1rem !important;
+  font-size: 0.875rem !important;
+  color: #1e1c18 !important;
+  outline: none !important;
+  transition: border-color 150ms ease;
+}
+
+.unel-product-description-trix trix-editor.unel-product-description-editor:focus {
+  border-color: #b8924a !important;
+}
