@@ -18,15 +18,18 @@
 <% end %>
 
 <% products = defined?(@products) && @products.present? ? @products : preview_products %>
+<% low_stock_threshold = defined?(@low_stock_threshold) && @low_stock_threshold.present? ? @low_stock_threshold.to_i : 5 %>
+<% stock_setting_backend_ready = respond_to?(:admin_stock_setting_path) %>
+<% low_stock_count = products.count { |product| product.stock.to_i <= low_stock_threshold } %>
 
 <% product_stats = if defined?(@product_stats) && @product_stats.present? %>
-<% @product_stats.with_indifferent_access %>
+  <% @product_stats.with_indifferent_access.merge(low_stock: low_stock_count) %>
 <% else %>
   <% total_products = products.count %>
   <% total_cost = products.sum { |product| product.cost.to_f } %>
   <% average_cost = total_products.positive? ? total_cost / total_products : 0 %>
   <% without_final_price = products.count { |product| product.price.blank? || product.price.to_f.zero? } %>
-  <% low_stock = products.count { |product| product.stock.to_i <= 5 } %>
+  <% low_stock = low_stock_count %>
 
   <% {
     total_products: total_products,
@@ -37,7 +40,7 @@
 <% end %>
 
 
-<section>
+<section data-controller="stock-threshold-modal" data-action="keydown@window->stock-threshold-modal#closeWithEscape">
   <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
     <div>
       <h1 class="text-2xl font-bold text-unel-carbon md:text-3xl">
@@ -66,10 +69,27 @@
       value: product_stats[:without_final_price] || 0,
       description: "Productos pendientes de precio" %>
 
-    <%= render "admin/shared/stat_card",
-      title: "Stock bajo",
-      value: product_stats[:low_stock] || 0,
-      description: "Productos bajo el mínimo" %>
+    <div class="rounded-lg border border-unel-crema-2 bg-white p-6 shadow-sm flex-1 min-w-55">
+      <p class="text-sm font-medium text-unel-humo">
+        Stock bajo
+      </p>
+
+      <p class="mt-2 text-3xl font-bold text-unel-negro">
+        <%= product_stats[:low_stock] || 0 %>
+      </p>
+
+      <p class="mt-2 text-xs text-unel-humo">
+        Productos con <%= low_stock_threshold %> unidades o menos
+      </p>
+
+      <button
+        type="button"
+        data-action="stock-threshold-modal#open"
+        class="mt-4 text-xs font-semibold text-unel-dorado transition hover:text-unel-dorado-2"
+      >
+        Editar cantidad mínima
+      </button>
+    </div>
   </div>
 
   <% products = defined?(@products) && @products.present? ? @products : preview_products %>
@@ -179,7 +199,7 @@
                       <span class="inline-flex rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">
                         Agotado
                       </span>
-                    <% elsif stock <= 5 %>
+                    <% elsif stock <= low_stock_threshold %>
                       <span class="inline-flex rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
                         Bajo · <%= stock %>
                       </span>
@@ -244,5 +264,117 @@
         </div>
       </div>
     <% end %>
+  </div>
+
+  <div
+    data-stock-threshold-modal-target="modal"
+    class="fixed inset-0 z-50 hidden"
+  >
+    <div
+      data-action="click->stock-threshold-modal#close"
+      class="absolute inset-0 bg-black/40"
+    ></div>
+
+    <div class="relative z-10 flex min-h-screen items-center justify-center px-4">
+      <div class="w-full max-w-md rounded-2xl border border-unel-crema-2 bg-white p-6 shadow-xl">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h2 class="text-lg font-bold text-unel-carbon">
+              Editar cantidad mínima
+            </h2>
+
+            <p class="mt-1 text-sm text-unel-humo">
+              Los productos con esta cantidad o menos se marcarán como stock bajo.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            data-action="stock-threshold-modal#close"
+            class="rounded-lg px-2 py-1 text-unel-humo transition hover:bg-unel-crema hover:text-unel-carbon"
+          >
+            ✕
+          </button>
+        </div>
+
+        <% if stock_setting_backend_ready %>
+          <%= form_with url: admin_stock_setting_path, method: :patch, local: true, class: "mt-6 space-y-4" do %>
+            <div>
+              <label for="low_stock_threshold" class="block text-sm font-semibold text-unel-carbon">
+                Cantidad mínima
+              </label>
+
+              <input
+                id="low_stock_threshold"
+                type="number"
+                name="low_stock_threshold"
+                value="<%= low_stock_threshold %>"
+                min="0"
+                step="1"
+                data-stock-threshold-modal-target="input"
+                class="mt-2 w-full rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-3 text-sm font-semibold text-unel-carbon outline-none transition focus:border-unel-dorado"
+              >
+            </div>
+
+            <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                data-action="stock-threshold-modal#close"
+                class="rounded-xl border border-unel-crema-2 px-4 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado"
+              >
+                Cancelar
+              </button>
+
+              <button
+                type="submit"
+                class="rounded-xl bg-unel-verde px-4 py-2 text-sm font-semibold text-unel-blanco transition hover:bg-unel-carbon"
+              >
+                Guardar cambios
+              </button>
+            </div>
+          <% end %>
+        <% else %>
+          <div class="mt-6 space-y-4">
+            <div>
+              <label for="low_stock_threshold_preview" class="block text-sm font-semibold text-unel-carbon">
+                Cantidad mínima
+              </label>
+
+              <input
+                id="low_stock_threshold_preview"
+                type="number"
+                value="<%= low_stock_threshold %>"
+                min="0"
+                step="1"
+                data-stock-threshold-modal-target="input"
+                class="mt-2 w-full rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-3 text-sm font-semibold text-unel-carbon outline-none transition focus:border-unel-dorado"
+              >
+            </div>
+
+            <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              Esta configuración todavía no se puede guardar porque falta conectar el backend.
+            </div>
+
+            <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                data-action="stock-threshold-modal#close"
+                class="rounded-xl border border-unel-crema-2 px-4 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado"
+              >
+                Cerrar
+              </button>
+
+              <button
+                type="button"
+                disabled
+                class="rounded-xl bg-unel-verde px-4 py-2 text-sm font-semibold text-unel-blanco opacity-50"
+              >
+                Guardar cambios
+              </button>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
   </div>
 </section>

@@ -27,3 +27,6 @@ application.register("table-filter", TableFilterController)
 
 import TrixNoAttachmentsController from "./trix_no_attachments_controller"
 application.register("trix-no-attachments", TrixNoAttachmentsController)
+
+import StockThresholdModalController from "./stock_threshold_modal_controller"
+application.register("stock-threshold-modal", StockThresholdModalController)
