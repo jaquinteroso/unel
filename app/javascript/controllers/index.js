@@ -7,6 +7,9 @@ import { application } from "./application"
 import AdminSidebarController from "./admin_sidebar_controller"
 application.register("admin-sidebar", AdminSidebarController)
 
+import DisableEnterController from "./disable_enter_controller"
+application.register("disable-enter", DisableEnterController)
+
 import FlashController from "./flash_controller"
 application.register("flash", FlashController)
 

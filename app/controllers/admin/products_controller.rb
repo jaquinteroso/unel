@@ -5,7 +5,7 @@ class Admin::ProductsController < Admin::ApplicationController
   # Punto 1: Estadísticas y Lista
   def index
     @products = Product.all
-    
+
     # Preparamos las cartas de estadísticas para Pedro
     @product_stats = {
       total_products: @products.count,
@@ -38,6 +38,7 @@ class Admin::ProductsController < Admin::ApplicationController
     if @product.save
       redirect_to admin_products_path, notice: "Producto creado con éxito."
     else
+      flash.now[:alert] = "No se pudo crear el producto. Revisa los errores marcados abajo."
       render :new, status: :unprocessable_entity
     end
   end
@@ -47,6 +48,7 @@ class Admin::ProductsController < Admin::ApplicationController
     if @product.update(product_params)
       redirect_to admin_products_path, notice: "Producto actualizado con éxito."
     else
+      flash.now[:alert] = "No se pudo actualizar el producto. Revisa los errores marcados abajo."
       render :edit, status: :unprocessable_entity
     end
   end

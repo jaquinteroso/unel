@@ -20,7 +20,7 @@
 <% products = defined?(@products) && @products.present? ? @products : preview_products %>
 
 <% product_stats = if defined?(@product_stats) && @product_stats.present? %>
-  <% @product_stats.with_indifferent_access %>
+<% @product_stats.with_indifferent_access %>
 <% else %>
   <% total_products = products.count %>
   <% total_cost = products.sum { |product| product.cost.to_f } %>
@@ -45,7 +45,7 @@
       </h1>
 
       <p class="mt-2 max-w-2xl text-sm text-unel-humo">
-        Administra recetas, costos unitarios, márgenes y precios sugeridos de las conservas.
+      Administra recetas, costos unitarios, márgenes y precios sugeridos de las conservas.
       </p>
     </div>
   </div>
@@ -81,7 +81,7 @@
       </h2>
 
       <p class="mt-1 text-sm text-unel-humo">
-        Lista de productos con sus costos, márgenes, precios sugeridos y precios finales.
+      Lista de productos con sus costos, márgenes, precios sugeridos y precios finales.
       </p>
     </div>
 
@@ -101,12 +101,12 @@
 
         <div class="w-full rounded-xl bg-unel-crema px-4 py-2 sm:w-auto">
           <input
-            type="search"
-            placeholder="Buscar producto..."
-            data-table-filter-target="input"
-            data-action="input->table-filter#filter"
-            class="w-full bg-transparent text-sm text-unel-negro outline-none placeholder:text-unel-humo sm:w-64"
-          >
+              type="search"
+              placeholder="Buscar producto..."
+              data-table-filter-target="input"
+              data-action="input->table-filter#filter"
+              class="w-full bg-transparent text-sm text-unel-negro outline-none placeholder:text-unel-humo sm:w-64"
+              >
         </div>
       </div>
     </div>
@@ -136,70 +136,75 @@
               <% stock = product.stock.to_i %>
 
               <tr
-                data-table-filter-target="row"
-                data-search-text="<%= [product.name, product.cost, product.margin, suggested_price, final_price, stock].join(' ') %>"
-                class="transition hover:bg-unel-crema/50"
-              >
-                <td class="px-6 py-4">
-                  <% if product.respond_to?(:image) && product.image.attached? %>
-                    <%= image_tag product.image, class: "h-10 w-10 rounded-lg object-cover border border-unel-crema-2" %>
-                  <% else %>
-                    <div class="h-10 w-10 rounded-lg bg-unel-crema flex items-center justify-center text-unel-humo text-xs border border-unel-crema-2 text-center leading-tight">
-                      Sin foto
+                  data-table-filter-target="row"
+                  data-search-text="<%= [product.name, product.cost, product.margin, suggested_price, final_price, stock].join(' ') %>"
+                  class="transition hover:bg-unel-crema/50"
+                  >
+                  <td class="px-6 py-4">
+                    <% if product.respond_to?(:image) && product.image.attached? %>
+                      <%= image_tag product.image, class: "h-10 w-10 rounded-lg object-cover border border-unel-crema-2" %>
+                    <% else %>
+                      <div class="h-10 w-10 rounded-lg bg-unel-crema flex items-center justify-center text-unel-humo text-xs border border-unel-crema-2 text-center leading-tight">
+                        Sin foto
+                      </div>
+                    <% end %>
+                  </td>
+
+                  <td class="px-6 py-4 font-semibold text-unel-negro">
+                    <% if preview_enabled %>
+                      <%= product.name %>
+                    <% else %>
+                      <%= link_to product.name, admin_product_path(product), class: "hover:text-unel-dorado transition" %>
+                    <% end %>
+                  </td>
+
+                  <td class="px-6 py-4 text-unel-humo">
+                    <%= number_to_currency(product.cost || 0, unit: "$", precision: 0, delimiter: ".") %>
+                  </td>
+
+                  <td class="px-6 py-4 text-unel-humo">
+                    <%= product.margin || 0 %>%
+                  </td>
+
+                  <td class="px-6 py-4 font-semibold text-unel-carbon">
+                    <%= number_to_currency(suggested_price, unit: "$", precision: 0, delimiter: ".") %>
+                  </td>
+
+                  <td class="px-6 py-4 font-semibold text-unel-verde">
+                    <%= number_to_currency(final_price, unit: "$", precision: 0, delimiter: ".") %>
+                  </td>
+
+                  <td class="px-6 py-4">
+                    <% if stock <= 0 %>
+                      <span class="inline-flex rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">
+                        Agotado
+                      </span>
+                    <% elsif stock <= 5 %>
+                      <span class="inline-flex rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+                        Bajo · <%= stock %>
+                      </span>
+                    <% else %>
+                      <span class="inline-flex rounded-full border border-unel-crema-2 bg-white px-3 py-1 text-xs font-semibold text-unel-verde">
+                        <%= stock %> unidades
+                      </span>
+                    <% end %>
+                  </td>
+
+                  <td class="px-6 py-4">
+                    <div class="flex items-center justify-end gap-3">
+                      <% if preview_enabled %>
+                        <span class="text-sm font-semibold text-unel-humo">Editar</span>
+                      <% else %>
+                        <%= link_to "Editar", edit_admin_product_path(product),
+                          class: "text-sm font-semibold text-unel-dorado transition hover:text-unel-dorado-2" %>
+
+                        <%= button_to "Eliminar", admin_product_path(product),
+                        method: :delete,
+                        form: { data: { turbo_confirm: "¿Eliminar #{product.name}?" } },
+                        class: "text-sm font-semibold text-red-500 transition hover:text-red-700 cursor-pointer" %>
+                    <% end %>
                     </div>
-                  <% end %>
-                </td>
-
-                <td class="px-6 py-4 font-semibold text-unel-negro">
-                  <% if preview_enabled %>
-                    <%= product.name %>
-                  <% else %>
-                    <%= link_to product.name, admin_product_path(product), class: "hover:text-unel-dorado transition" %>
-                  <% end %>
-                </td>
-
-                <td class="px-6 py-4 text-unel-humo">
-                  <%= number_to_currency(product.cost || 0, unit: "$", precision: 0, delimiter: ".") %>
-                </td>
-
-                <td class="px-6 py-4 text-unel-humo">
-                  <%= product.margin || 0 %>%
-                </td>
-
-                <td class="px-6 py-4 font-semibold text-unel-carbon">
-                  <%= number_to_currency(suggested_price, unit: "$", precision: 0, delimiter: ".") %>
-                </td>
-
-                <td class="px-6 py-4 font-semibold text-unel-verde">
-                  <%= number_to_currency(final_price, unit: "$", precision: 0, delimiter: ".") %>
-                </td>
-
-                <td class="px-6 py-4">
-                  <% if stock <= 0 %>
-                    <span class="inline-flex rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">
-                      Agotado
-                    </span>
-                  <% elsif stock <= 5 %>
-                    <span class="inline-flex rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
-                      Bajo · <%= stock %>
-                    </span>
-                  <% else %>
-                    <span class="inline-flex rounded-full border border-unel-crema-2 bg-white px-3 py-1 text-xs font-semibold text-unel-verde">
-                      <%= stock %> unidades
-                    </span>
-                  <% end %>
-                </td>
-
-                <td class="px-6 py-4 text-right">
-                  <% if preview_enabled %>
-                    <span class="text-sm font-semibold text-unel-humo">
-                      Editar
-                    </span>
-                  <% else %>
-                    <%= link_to "Editar", edit_admin_product_path(product),
-                      class: "text-sm font-semibold text-unel-dorado transition hover:text-unel-dorado-2" %>
-                  <% end %>
-                </td>
+                  </td>
               </tr>
             <% end %>
           </tbody>
@@ -208,29 +213,29 @@
 
       <div data-table-filter-target="emptyState" class="hidden border-t border-unel-crema-2 px-4 py-12 text-center sm:px-6">
         <p class="text-lg font-bold text-unel-negro">
-          No encontramos productos con esa búsqueda
+        No encontramos productos con esa búsqueda
         </p>
 
         <p class="mx-auto mt-2 max-w-md text-sm text-unel-humo">
-          Intenta buscar por nombre, costo, margen, precio sugerido, precio final o stock.
+        Intenta buscar por nombre, costo, margen, precio sugerido, precio final o stock.
         </p>
 
         <button
-          type="button"
-          data-action="table-filter#clear"
-          class="mt-6 rounded-xl border border-unel-crema-2 px-4 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado"
-        >
-          Limpiar búsqueda
+            type="button"
+            data-action="table-filter#clear"
+            class="mt-6 rounded-xl border border-unel-crema-2 px-4 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado"
+            >
+            Limpiar búsqueda
         </button>
       </div>
     <% else %>
       <div class="px-4 py-12 text-center sm:px-6">
         <p class="text-lg font-bold text-unel-negro">
-          Todavía no hay productos registrados
+        Todavía no hay productos registrados
         </p>
 
         <p class="mx-auto mt-2 max-w-md text-sm text-unel-humo">
-          Crea el primer producto para comenzar a calcular costos, márgenes y precios sugeridos.
+        Crea el primer producto para comenzar a calcular costos, márgenes y precios sugeridos.
         </p>
 
         <div class="mt-6">

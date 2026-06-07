@@ -21,7 +21,7 @@
   <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
     <div>
       <p class="text-sm font-semibold uppercase tracking-wide text-unel-dorado">
-        Productos y costos
+      Productos y costos
       </p>
 
       <h1 class="mt-2 text-2xl font-bold text-unel-carbon md:text-3xl">
@@ -29,7 +29,7 @@
       </h1>
 
       <p class="mt-2 max-w-2xl text-sm text-unel-humo">
-        Registra una nueva conserva, define sus costos, precios e inventario inicial.
+      Registra una nueva conserva, define sus costos, precios e inventario inicial.
       </p>
     </div>
 
@@ -37,7 +37,19 @@
       class: "rounded-xl border border-unel-crema-2 px-4 py-2 text-center text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado" %>
   </div>
 
-  <%= form_with model: [:admin, product], local: true, data: { controller: "price-preview" }, class: "space-y-6" do |form| %>
+  <%= form_with model: [:admin, product], local: true, data: { controller: "price-preview disable-enter", action: "keydown->disable-enter#prevent" }, class: "space-y-6" do |form| %>
+
+    <% if product.errors.any? %>
+      <div class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 shadow-sm">
+        <h3 class="text-sm font-bold text-red-700">Revisa los siguientes errores:</h3>
+        <ul class="mt-2 list-disc pl-5 text-sm font-medium text-red-600">
+          <% product.errors.each do |error| %>
+            <li><%= error.message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
     <div class="grid gap-6 xl:grid-cols-[1.4fr_0.9fr]">
       <div class="space-y-6">
         <div class="rounded-lg border border-unel-crema-2 bg-white shadow-sm">
@@ -47,17 +59,22 @@
             </h2>
 
             <p class="mt-1 text-sm text-unel-humo">
-              Datos principales con los que se identificará el producto en el catálogo y en el panel.
+            Datos principales con los que se identificará el producto en el catálogo y en el panel.
             </p>
           </div>
 
           <div class="grid gap-5 px-4 py-5 sm:px-6">
             <div>
-              <%= form.label :name, "Nombre del producto", class: "block text-sm font-semibold text-unel-carbon" %>
+              <%= form.label :name, "Nombre del producto *", class: "block text-sm font-semibold text-unel-carbon" %>
 
               <%= form.text_field :name,
                 placeholder: "Ej: Conserva de cholgas",
                 class: "mt-2 w-full rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-3 text-sm text-unel-carbon outline-none transition placeholder:text-unel-humo focus:border-unel-dorado" %>
+            </div>
+
+            <div>
+              <%= form.label :image, "Fotografía del producto", class: "block text-sm font-semibold text-unel-carbon" %>
+              <%= form.file_field :image, class: "mt-2 w-full rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-2 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado file:mr-4 file:rounded-lg file:border-0 file:bg-unel-crema file:px-4 file:py-2 file:text-sm file:font-semibold file:text-unel-dorado hover:file:bg-unel-crema-2" %>
             </div>
 
             <div>
@@ -135,51 +152,22 @@
                 <template data-recipe-items-target="template">
                   <div data-recipe-item class="grid gap-4 rounded-xl border border-unel-crema-2 bg-unel-blanco p-4 md:grid-cols-[1fr_160px_auto]">
                     <div>
-                      <label class="block text-sm font-semibold text-unel-carbon">
-                        Ingrediente
-                      </label>
-
-                      <select
-                          name="product[recipe_items_attributes][__INDEX__][ingredient_id]"
-                          class="mt-2 w-full rounded-xl border border-unel-crema-2 bg-white px-4 py-3 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado"
-                          >
-                          <option value="">Selecciona un ingrediente</option>
-
-                          <% ingredients.each do |ingredient| %>
-                            <option value="<%= ingredient.id %>">
-                            <%= ingredient.name %>
-                            <% if ingredient.respond_to?(:unit_measure) && ingredient.unit_measure.present? %>
-                              (<%= ingredient.unit_measure %>)
-                            <% end %>
-                            </option>
-                          <% end %>
+                      <label class="block text-sm font-semibold text-unel-carbon">Ingrediente</label>
+                      <select name="product[recipe_items_attributes][__INDEX__][ingredient_id]" class="mt-2 w-full rounded-xl border border-unel-crema-2 bg-white px-4 py-3 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado">
+                        <option value="">Selecciona un ingrediente</option>
+                        <% ingredients.each do |ingredient| %>
+                          <option value="<%= ingredient.id %>"><%= ingredient.name %> (<%= ingredient.unit_measure %>)</option>
+                        <% end %>
                       </select>
                     </div>
-
                     <div>
-                      <label class="block text-sm font-semibold text-unel-carbon">
-                        Cantidad
-                      </label>
-
-                      <input
-                          type="number"
-                          name="product[recipe_items_attributes][__INDEX__][quantity]"
-                          min="0"
-                          step="0.01"
-                          placeholder="0"
-                          class="mt-2 w-full rounded-xl border border-unel-crema-2 bg-white px-4 py-3 text-sm text-unel-carbon outline-none transition placeholder:text-unel-humo focus:border-unel-dorado"
-                          >
+                      <label class="block text-sm font-semibold text-unel-carbon">Cantidad</label>
+                      <input type="number" name="product[recipe_items_attributes][__INDEX__][quantity]" min="0" step="0.01" class="mt-2 w-full rounded-xl border border-unel-crema-2 bg-white px-4 py-3 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado">
                     </div>
-
-                      <div class="flex items-end">
-                        <button
-                            type="button"
-                            data-action="recipe-items#remove"
-                            class="w-full rounded-xl border border-red-200 px-4 py-3 text-sm font-semibold text-red-500 transition hover:bg-red-50 md:w-auto"
-                            >
-                            Quitar
-                        </button>
-                      </div>
+                    <div class="flex items-end">
+                      <button type="button" data-action="recipe-items#remove" class="w-full rounded-xl border border-red-200 px-4 py-3 text-sm font-semibold text-red-500 transition hover:bg-red-50 md:w-auto">Quitar</button>
+                      <input type="hidden" name="product[recipe_items_attributes][__INDEX__][_destroy]" value="false" data-destroy-field>
+                    </div>
                   </div>
                 </template>
 
