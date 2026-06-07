@@ -1,4 +1,6 @@
 class Product < ApplicationRecord
+  has_one_attached :image
+  has_rich_text :description
   has_many :recipe_items, dependent: :destroy
   has_many :ingredients, through: :recipe_items
 

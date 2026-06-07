@@ -3,21 +3,7 @@
 <% content_for :admin_search_placeholder, "Buscar productos..." %>
 <% content_for :admin_search_path, admin_products_path %>
 
-<% product_stats = (@product_stats || {}).with_indifferent_access %>
-<!--
-Después, cuando tengas Dashboard, en su vista pondrías:
-
-<% content_for :admin_section_key, "dashboard" %>
-<% content_for :admin_section, "Dashboard" %>
-
-Cuando tengas Inventario:
-
-<% content_for :admin_section_key, "inventory" %>
-<% content_for :admin_section, "Inventario" %>
--->
-
 <% preview_enabled = Rails.env.development? && params[:preview] == "true" %>
-
 <% preview_products = [] %>
 
 <% if preview_enabled %>
@@ -52,7 +38,6 @@ Cuando tengas Inventario:
 
 
 <section>
-  <!--Header de página-->
   <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
     <div>
       <h1 class="text-2xl font-bold text-unel-carbon md:text-3xl">
@@ -65,7 +50,6 @@ Cuando tengas Inventario:
     </div>
   </div>
 
-  <!--Cards-->
   <div class="flex w-full flex-wrap gap-4 xl:flex-nowrap justify-around">
     <%= render "admin/shared/stat_card",
       title: "Total productos",
@@ -132,6 +116,7 @@ Cuando tengas Inventario:
         <table class="min-w-245 w-full text-left text-sm">
           <thead class="bg-unel-verde text-xs uppercase tracking-wide text-unel-blanco">
             <tr>
+              <th class="px-6 py-4 font-semibold w-16">Imagen</th>
               <th class="px-6 py-4 font-semibold">Producto</th>
               <th class="px-6 py-4 font-semibold">Costo</th>
               <th class="px-6 py-4 font-semibold">Margen</th>
@@ -155,8 +140,22 @@ Cuando tengas Inventario:
                 data-search-text="<%= [product.name, product.cost, product.margin, suggested_price, final_price, stock].join(' ') %>"
                 class="transition hover:bg-unel-crema/50"
               >
+                <td class="px-6 py-4">
+                  <% if product.respond_to?(:image) && product.image.attached? %>
+                    <%= image_tag product.image, class: "h-10 w-10 rounded-lg object-cover border border-unel-crema-2" %>
+                  <% else %>
+                    <div class="h-10 w-10 rounded-lg bg-unel-crema flex items-center justify-center text-unel-humo text-xs border border-unel-crema-2 text-center leading-tight">
+                      Sin foto
+                    </div>
+                  <% end %>
+                </td>
+
                 <td class="px-6 py-4 font-semibold text-unel-negro">
-                  <%= product.name %>
+                  <% if preview_enabled %>
+                    <%= product.name %>
+                  <% else %>
+                    <%= link_to product.name, admin_product_path(product), class: "hover:text-unel-dorado transition" %>
+                  <% end %>
                 </td>
 
                 <td class="px-6 py-4 text-unel-humo">

@@ -4,17 +4,20 @@
 
 import { application } from "./application"
 
-import HelloController from "./hello_controller"
-application.register("hello", HelloController)
-
 import AdminSidebarController from "./admin_sidebar_controller"
 application.register("admin-sidebar", AdminSidebarController)
 
-import TableFilterController from "./table_filter_controller"
-application.register("table-filter", TableFilterController)
+import FlashController from "./flash_controller"
+application.register("flash", FlashController)
+
+import HelloController from "./hello_controller"
+application.register("hello", HelloController)
 
 import PricePreviewController from "./price_preview_controller"
 application.register("price-preview", PricePreviewController)
 
 import RecipeItemsController from "./recipe_items_controller"
 application.register("recipe-items", RecipeItemsController)
+
+import TableFilterController from "./table_filter_controller"
+application.register("table-filter", TableFilterController)

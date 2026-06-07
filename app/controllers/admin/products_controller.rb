@@ -1,5 +1,5 @@
 class Admin::ProductsController < Admin::ApplicationController
-  before_action :set_product, only: [:edit, :update]
+  before_action :set_product, only: [:show, :edit, :update, :destroy]
   before_action :set_ingredients, only: [:new, :edit, :create, :update]
 
   # Punto 1: Estadísticas y Lista
@@ -13,6 +13,11 @@ class Admin::ProductsController < Admin::ApplicationController
       without_final_price: @products.where(price: [nil, 0]).count,
       low_stock: @products.where("stock < ?", 10).count # Asumimos que menos de 10 es bajo stock
     }
+  end
+
+  # Punto 1.5: Ver Detalle
+  def show
+    # @product se carga automáticamente gracias al before_action de arriba
   end
 
   # Punto 2: Formulario Nuevo
@@ -46,6 +51,12 @@ class Admin::ProductsController < Admin::ApplicationController
     end
   end
 
+  # Punto 6: Eliminar en Base de Datos
+  def destroy
+    @product.destroy
+    redirect_to admin_products_path, notice: "Producto eliminado con éxito.", status: :see_other
+  end
+
   private
 
   # Método auxiliar para no repetir código
@@ -67,6 +78,7 @@ class Admin::ProductsController < Admin::ApplicationController
       :margin, 
       :price, 
       :stock,
+      :image,
       recipe_items_attributes: [:id, :ingredient_id, :quantity, :_destroy]
     )
   end
