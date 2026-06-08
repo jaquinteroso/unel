@@ -4,8 +4,10 @@ one:
   product: one
   ingredient: one
   quantity: 9.99
+  quantity_unit: g
 
 two:
   product: two
   ingredient: two
   quantity: 9.99
+  quantity_unit: g

@@ -181,7 +181,6 @@
               <% suggested_price = product.respond_to?(:suggested_price) && product.suggested_price.present? ? product.suggested_price.to_f : cost * (1 + margin / 100.0) %>
               <% final_price = product.price || 0 %>
               <% stock = product.stock.to_i %>
-              <% stock_cost = product.respond_to?(:stock_cost) ? product.stock_cost.to_f : cost * stock %>
 
               <tr
                 data-table-filter-target="row"
@@ -216,9 +215,6 @@
                   <td class="px-6 py-4 text-unel-humo">
                     <div class="font-semibold text-unel-carbon">
                       <%= number_to_currency(cost, unit: "$", precision: 0, delimiter: ".") %>
-                    </div>
-                    <div class="mt-1 text-xs text-unel-humo">
-                      Stock: <%= number_to_currency(stock_cost, unit: "$", precision: 0, delimiter: ".") %>
                     </div>
                   </td>
 

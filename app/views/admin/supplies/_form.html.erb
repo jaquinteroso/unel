@@ -1,4 +1,4 @@
-<%= form_with model: [:admin, supply], local: true, data: { controller: "disable-enter", action: "keydown->disable-enter#prevent" }, class: "space-y-6" do |form| %>
+<%= form_with model: [:admin, supply], local: true, data: { controller: "disable-enter supply-form", action: "keydown->disable-enter#prevent" }, class: "space-y-6" do |form| %>
   <% if supply.errors.any? %>
     <div class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 shadow-sm">
       <h3 class="text-sm font-bold text-red-700">Revisa los siguientes errores:</h3>
@@ -35,14 +35,39 @@
         <%= form.select :category,
           Supply::CATEGORIES.map { |value, label| [label, value] },
           { prompt: "Selecciona un tipo" },
+          data: {
+            supply_form_target: "category",
+            action: "change->supply-form#toggleCategoryFields"
+          },
           class: "mt-2 w-full rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-3 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado" %>
       </div>
 
-      <div>
-        <%= form.label :size_description, "Tamaño o descripción", class: "block text-sm font-semibold text-unel-carbon" %>
-        <%= form.text_field :size_description,
-          placeholder: "Ej: 250 ml, 63 mm, etiqueta frontal",
-          class: "mt-2 w-full rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-3 text-sm text-unel-carbon outline-none transition placeholder:text-unel-humo focus:border-unel-dorado" %>
+      <div data-supply-form-target="sizeWrapper">
+        <label class="block text-sm font-semibold text-unel-carbon">Tamaño *</label>
+        <div class="mt-2 grid gap-3 sm:grid-cols-[1fr_180px]">
+          <%= form.number_field :size_value,
+            min: 1,
+            step: 1,
+            placeholder: "Ej: 250",
+            class: "w-full rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-3 text-sm text-unel-carbon outline-none transition placeholder:text-unel-humo focus:border-unel-dorado" %>
+
+          <%= form.select :size_unit,
+            Supply::SIZE_UNITS.map { |unit| [unit, unit] },
+            { prompt: "Unidad" },
+            class: "w-full rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-3 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado" %>
+        </div>
+      </div>
+
+      <div data-supply-form-target="labelTypeWrapper">
+        <%= form.label :label_type, "Tipo de etiqueta *", class: "block text-sm font-semibold text-unel-carbon" %>
+        <%= form.select :label_type,
+          Supply::LABEL_TYPES.map { |value, label| [label, value] },
+          { prompt: "Selecciona un tipo de etiqueta" },
+          class: "mt-2 w-full rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-3 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado" %>
+
+        <p class="mt-2 text-xs text-unel-humo">
+          Usa “Otra” para etiquetas especiales distintas de frontal, lateral, tapa o QR.
+        </p>
       </div>
 
       <div>
@@ -50,7 +75,24 @@
         <%= form.select :unit_measure,
           Supply::UNIT_MEASURES.map { |unit_measure| [unit_measure, unit_measure] },
           { prompt: "Selecciona una unidad" },
+          data: {
+            supply_form_target: "unitMeasure",
+            action: "change->supply-form#togglePackQuantity"
+          },
           class: "mt-2 w-full rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-3 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado" %>
+      </div>
+
+      <div data-supply-form-target="packQuantityWrapper">
+        <%= form.label :pack_quantity, "Unidades por pack *", class: "block text-sm font-semibold text-unel-carbon" %>
+        <%= form.number_field :pack_quantity,
+          min: 1,
+          step: 1,
+          placeholder: "Ej: 12",
+          class: "mt-2 w-full rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-3 text-sm text-unel-carbon outline-none transition placeholder:text-unel-humo focus:border-unel-dorado" %>
+
+        <p class="mt-2 text-xs text-unel-humo">
+          Si compras por pack, el costo unitario real se calculará dividiendo el costo del pack por esta cantidad.
+        </p>
       </div>
 
       <div>

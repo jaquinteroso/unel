@@ -2,7 +2,7 @@ class Admin::IngredientsController < Admin::ApplicationController
   before_action :set_ingredient, only: [:edit, :update, :destroy]
 
   def index
-    @ingredients = Ingredient.order(:name)
+    @ingredients = Ingredient.includes(:products).order(:name)
   end
 
   def new
@@ -36,7 +36,9 @@ class Admin::IngredientsController < Admin::ApplicationController
     if @ingredient.destroy
       redirect_to admin_ingredients_path, notice: "Ingrediente eliminado con éxito.", status: :see_other
     else
-      redirect_to admin_ingredients_path, alert: @ingredient.errors.full_messages.to_sentence, status: :see_other
+      redirect_to admin_ingredients_path,
+        alert: "No se puede eliminar este ingrediente porque está siendo usado por uno o más productos.",
+        status: :see_other
     end
   end
 

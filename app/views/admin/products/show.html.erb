@@ -104,9 +104,9 @@
               <% @product.recipe_items.includes(:ingredient).each do |item| %>
                 <tr class="border-b border-unel-crema-2/50 last:border-0 hover:bg-gray-50 transition">
                   <td class="py-3 text-unel-carbon font-medium"><%= item.ingredient.name %></td>
-                  <td class="py-3 text-unel-carbon"><%= item.quantity %> <%= item.ingredient.unit_measure %></td>
+                  <td class="py-3 text-unel-carbon"><%= item.quantity %> <%= item.quantity_unit || item.ingredient.unit_measure %></td>
                   <td class="py-3 text-unel-carbon">
-                    <% costo_ingrediente = item.quantity * item.ingredient.cost_per_unit rescue 0 %>
+                    <% costo_ingrediente = item.calculated_cost rescue 0 %>
                     <%= number_to_currency(costo_ingrediente, delimiter: ".", precision: 0, format: "$%n") %>
                   </td>
                 </tr>
@@ -147,9 +147,9 @@
                 <tr class="border-b border-unel-crema-2/50 last:border-0 hover:bg-gray-50 transition">
                   <td class="py-3 text-unel-carbon font-medium"><%= product_supply.role_name %></td>
                   <td class="py-3 text-unel-carbon"><%= product_supply.supply.display_name %></td>
-                  <td class="py-3 text-unel-carbon"><%= product_supply.quantity %> <%= product_supply.supply.unit_measure %></td>
+                  <td class="py-3 text-unel-carbon"><%= product_supply.quantity %> unidad</td>
                   <td class="py-3 text-unel-carbon">
-                    <%= number_to_currency(product_supply.quantity * product_supply.supply.cost_per_unit, delimiter: ".", precision: 0, format: "$%n") %>
+                    <%= number_to_currency(product_supply.calculated_cost, delimiter: ".", precision: 0, format: "$%n") %>
                   </td>
                 </tr>
               <% end %>

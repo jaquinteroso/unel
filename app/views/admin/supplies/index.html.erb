@@ -38,8 +38,9 @@
               <th class="px-6 py-4 font-semibold">Nombre</th>
               <th class="px-6 py-4 font-semibold">Tipo</th>
               <th class="px-6 py-4 font-semibold">Tamaño</th>
-              <th class="px-6 py-4 font-semibold">Unidad</th>
-              <th class="px-6 py-4 font-semibold">Costo</th>
+              <th class="px-6 py-4 font-semibold">Compra</th>
+              <th class="px-6 py-4 font-semibold">Costo unitario real</th>
+              <th class="px-6 py-4 font-semibold">Usado en</th>
               <th class="px-6 py-4 text-right font-semibold">Acciones</th>
             </tr>
           </thead>
@@ -49,10 +50,19 @@
               <tr class="transition hover:bg-unel-crema/50">
                 <td class="px-6 py-4 font-semibold text-unel-negro"><%= supply.name %></td>
                 <td class="px-6 py-4 text-unel-humo"><%= supply.category_name %></td>
-                <td class="px-6 py-4 text-unel-humo"><%= supply.size_description.presence || "Sin tamaño" %></td>
-                <td class="px-6 py-4 text-unel-humo"><%= supply.unit_measure %></td>
+                <td class="px-6 py-4 text-unel-humo"><%= supply.descriptor.presence || "Sin información" %></td>
+                <td class="px-6 py-4 text-unel-humo">
+                  <% if supply.unit_measure == "pack" %>
+                    Pack de <%= supply.pack_quantity || 0 %>
+                  <% else %>
+                    Unidad
+                  <% end %>
+                </td>
                 <td class="px-6 py-4 font-semibold text-unel-verde">
-                  <%= number_to_currency(supply.cost_per_unit || 0, unit: "$", precision: 0, delimiter: ".") %>
+                  <%= number_to_currency(supply.effective_unit_cost || 0, unit: "$", precision: 0, delimiter: ".") %>
+                </td>
+                <td class="px-6 py-4 text-unel-humo">
+                  <%= pluralize(supply.products.distinct.count, "producto", "productos") %>
                 </td>
                 <td class="px-6 py-4">
                   <div class="flex items-center justify-end gap-3">

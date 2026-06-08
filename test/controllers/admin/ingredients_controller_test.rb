@@ -19,4 +19,13 @@ class Admin::IngredientsControllerTest < ActionDispatch::IntegrationTest
     get edit_admin_ingredient_url(ingredients(:one))
     assert_response :success
   end
+
+  test "should explain why a used ingredient cannot be deleted" do
+    assert_no_difference("Ingredient.count") do
+      delete admin_ingredient_url(ingredients(:one))
+    end
+
+    assert_redirected_to admin_ingredients_url
+    assert_equal "No se puede eliminar este ingrediente porque está siendo usado por uno o más productos.", flash[:alert]
+  end
 end

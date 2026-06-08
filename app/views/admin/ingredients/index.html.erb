@@ -38,6 +38,7 @@
               <th class="px-6 py-4 font-semibold">Nombre</th>
               <th class="px-6 py-4 font-semibold">Unidad de medida</th>
               <th class="px-6 py-4 font-semibold">Costo por unidad</th>
+              <th class="px-6 py-4 font-semibold">Usado en</th>
               <th class="px-6 py-4 text-right font-semibold">Acciones</th>
             </tr>
           </thead>
@@ -55,6 +56,10 @@
 
                 <td class="px-6 py-4 font-semibold text-unel-verde">
                   <%= number_to_currency(ingredient.cost_per_unit || 0, unit: "$", precision: 0, delimiter: ".") %>
+                </td>
+
+                <td class="px-6 py-4 text-unel-humo">
+                  <%= pluralize(ingredient.products.distinct.count, "producto", "productos") %>
                 </td>
 
                 <td class="px-6 py-4">

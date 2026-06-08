@@ -1,0 +1,34 @@
+es:
+  devise:
+    failure:
+      already_authenticated: "Ya has iniciado sesión."
+      inactive: "Tu cuenta todavía no está activa."
+      invalid: "Correo electrónico o contraseña incorrectos."
+      last_attempt: "Te queda un intento antes de que tu cuenta sea bloqueada."
+      locked: "Tu cuenta está bloqueada."
+      not_found_in_database: "Correo electrónico o contraseña incorrectos."
+      timeout: "Tu sesión expiró. Inicia sesión nuevamente."
+      unauthenticated: "Debes iniciar sesión para continuar."
+      unconfirmed: "Debes confirmar tu correo electrónico para continuar."
+    sessions:
+      signed_in: "Sesión iniciada correctamente."
+      signed_out: "Sesión cerrada correctamente."
+      already_signed_out: "La sesión ya estaba cerrada."
+    registrations:
+      signed_up: "Cuenta creada correctamente."
+      updated: "Cuenta actualizada correctamente."
+      destroyed: "Cuenta eliminada correctamente."
+    passwords:
+      send_instructions: "Recibirás instrucciones para restablecer tu contraseña."
+      updated: "Tu contraseña fue actualizada correctamente."
+      no_token: "No puedes acceder a esta página sin un enlace válido de recuperación."
+  errors:
+    messages:
+      already_confirmed: "ya fue confirmado"
+      confirmation_period_expired: "debe confirmarse nuevamente"
+      expired: "ha expirado"
+      not_found: "no fue encontrado"
+      not_locked: "no estaba bloqueado"
+      not_saved:
+        one: "No se pudo guardar el registro por un error:"
+        other: "No se pudo guardar el registro por %{count} errores:"

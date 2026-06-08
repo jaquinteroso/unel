@@ -86,11 +86,16 @@ class Admin::ProductsController < Admin::ApplicationController
   end
 
   def build_missing_product_supplies
-    ProductSupply::ROLES.each_key do |role|
+    ["jar", "lid"].each do |role|
       next if @product.product_supplies.any? { |product_supply| product_supply.role == role }
 
       @product.product_supplies.build(role: role, quantity: 1)
     end
+
+    blank_label_exists = @product.product_supplies.any? do |product_supply|
+      product_supply.role == "label" && product_supply.new_record? && product_supply.supply_id.blank?
+    end
+    @product.product_supplies.build(role: "label", quantity: 1) unless blank_label_exists
   end
 
   # Punto 5: Los parámetros permitidos de seguridad (Strong Params)
@@ -103,7 +108,7 @@ class Admin::ProductsController < Admin::ApplicationController
       :price, 
       :stock,
       :image,
-      recipe_items_attributes: [:id, :ingredient_id, :quantity, :_destroy],
+      recipe_items_attributes: [:id, :ingredient_id, :quantity, :quantity_unit, :_destroy],
       product_supplies_attributes: [:id, :supply_id, :role, :quantity, :_destroy]
     )
   end

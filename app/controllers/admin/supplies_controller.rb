@@ -2,7 +2,7 @@ class Admin::SuppliesController < Admin::ApplicationController
   before_action :set_supply, only: [:edit, :update, :destroy]
 
   def index
-    @supplies = Supply.ordered
+    @supplies = Supply.includes(:products).ordered
   end
 
   def new
@@ -36,7 +36,9 @@ class Admin::SuppliesController < Admin::ApplicationController
     if @supply.destroy
       redirect_to admin_supplies_path, notice: "Insumo eliminado con éxito.", status: :see_other
     else
-      redirect_to admin_supplies_path, alert: @supply.errors.full_messages.to_sentence, status: :see_other
+      redirect_to admin_supplies_path,
+        alert: "No se puede eliminar este insumo porque está siendo usado por uno o más productos.",
+        status: :see_other
     end
   end
 
@@ -47,6 +49,16 @@ class Admin::SuppliesController < Admin::ApplicationController
   end
 
   def supply_params
-    params.require(:supply).permit(:name, :category, :size_description, :unit_measure, :cost_per_unit)
+    params.require(:supply).permit(
+      :name,
+      :category,
+      :size_description,
+      :size_value,
+      :size_unit,
+      :label_type,
+      :unit_measure,
+      :pack_quantity,
+      :cost_per_unit
+    )
   end
 end

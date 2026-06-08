@@ -15,3 +15,9 @@ label:
   supply: label
   role: label
   quantity: 1
+
+qr_label:
+  product: one
+  supply: qr_label
+  role: label
+  quantity: 1

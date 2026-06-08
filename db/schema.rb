@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_08_000200) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_08_000700) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -79,7 +79,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_08_000200) do
     t.string "role", null: false
     t.bigint "supply_id", null: false
     t.datetime "updated_at", null: false
-    t.index ["product_id", "role"], name: "index_product_supplies_on_product_id_and_role", unique: true
+    t.index ["product_id", "supply_id"], name: "index_product_supplies_on_product_id_and_supply_id", unique: true
     t.index ["product_id"], name: "index_product_supplies_on_product_id"
     t.index ["supply_id"], name: "index_product_supplies_on_supply_id"
   end
@@ -100,6 +100,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_08_000200) do
     t.bigint "ingredient_id", null: false
     t.bigint "product_id", null: false
     t.decimal "quantity"
+    t.string "quantity_unit"
     t.datetime "updated_at", null: false
     t.index ["ingredient_id"], name: "index_recipe_items_on_ingredient_id"
     t.index ["product_id"], name: "index_recipe_items_on_product_id"
@@ -109,11 +110,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_08_000200) do
     t.string "category", null: false
     t.integer "cost_per_unit", default: 0, null: false
     t.datetime "created_at", null: false
+    t.string "label_type"
     t.string "name", null: false
+    t.integer "pack_quantity"
     t.string "size_description"
+    t.string "size_unit"
+    t.integer "size_value"
     t.string "unit_measure", null: false
     t.datetime "updated_at", null: false
     t.index ["category"], name: "index_supplies_on_category"
+    t.index ["label_type"], name: "index_supplies_on_label_type"
     t.index ["name", "category"], name: "index_supplies_on_name_and_category", unique: true
   end
 
