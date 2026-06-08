@@ -1,0 +1,54 @@
+es:
+  activerecord:
+    models:
+      ingredient: "Ingrediente"
+      supply: "Insumo"
+      product: "Producto"
+      recipe_item: "Ingrediente de la receta"
+      product_supply: "Insumo del producto"
+    attributes:
+      ingredient:
+        name: "Nombre"
+        unit_measure: "Unidad de medida"
+        cost_per_unit: "Costo por unidad"
+      supply:
+        name: "Nombre"
+        category: "Tipo de insumo"
+        size_value: "Tamaño"
+        size_unit: "Unidad del tamaño"
+        label_type: "Tipo de etiqueta"
+        unit_measure: "Forma de compra"
+        pack_quantity: "Unidades por pack"
+        cost_per_unit: "Costo de compra"
+      recipe_item:
+        ingredient: "Ingrediente"
+        quantity: "Cantidad"
+        quantity_unit: "Unidad"
+      product_supply:
+        supply: "Insumo"
+        role: "Tipo"
+        quantity: "Cantidad"
+    errors:
+      messages:
+        record_invalid: "No se pudo guardar el registro: %{errors}"
+      models:
+        ingredient:
+          attributes:
+            name:
+              blank: "no puede estar en blanco"
+            unit_measure:
+              blank: "no puede estar en blanco"
+              inclusion: "debe ser una unidad válida"
+            cost_per_unit:
+              blank: "no puede estar en blanco"
+              not_a_number: "debe ser un número"
+              greater_than_or_equal_to: "debe ser mayor o igual a 0"
+  errors:
+    format: "%{attribute} %{message}"
+    messages:
+      blank: "no puede estar en blanco"
+      inclusion: "no es válido"
+      not_a_number: "debe ser un número"
+      greater_than: "debe ser mayor que %{count}"
+      greater_than_or_equal_to: "debe ser mayor o igual a %{count}"
+      taken: "ya está registrado"

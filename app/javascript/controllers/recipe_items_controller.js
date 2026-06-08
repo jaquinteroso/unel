@@ -17,8 +17,17 @@ export default class extends Controller {
   remove(event) {
     const item = event.target.closest("[data-recipe-item]")
 
-    if (item) {
+    if (!item) return
+
+    const destroyField = item.querySelector("[data-destroy-field]")
+
+    if (destroyField) {
+      destroyField.value = "true"
+      item.classList.add("hidden")
+    } else {
       item.remove()
     }
+
+    this.element.dispatchEvent(new Event("input", { bubbles: true }))
   }
 }

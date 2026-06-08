@@ -1,2 +1,98 @@
-<h1>Admin::Ingredients#index</h1>
-<p>Find me in app/views/admin/ingredients/index.html.erb</p>
+<% content_for :admin_section_key, "ingredients" %>
+<% content_for :admin_section_inner, "Ingredientes" %>
+<% content_for :admin_search_placeholder, "Buscar ingredientes..." %>
+<% content_for :admin_search_path, admin_ingredients_path %>
+
+<section>
+  <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-unel-carbon md:text-3xl">
+        Ingredientes
+      </h1>
+
+      <p class="mt-2 max-w-2xl text-sm text-unel-humo">
+        Administra los ingredientes base que luego se usan para armar recetas de productos.
+      </p>
+    </div>
+
+    <%= link_to "Nuevo ingrediente", new_admin_ingredient_path,
+      class: "rounded-xl bg-unel-verde px-4 py-2 text-center text-sm font-semibold text-unel-blanco transition hover:bg-unel-carbon" %>
+  </div>
+
+  <div class="rounded-lg border border-unel-crema-2 bg-white shadow-sm">
+    <div class="border-b border-unel-crema-2 px-4 py-5 sm:px-6">
+      <h2 class="text-lg font-bold text-unel-carbon">
+        Ingredientes registrados
+      </h2>
+
+      <p class="mt-1 text-sm text-unel-humo">
+        Lista de ingredientes con su unidad de medida y costo por unidad.
+      </p>
+    </div>
+
+    <% if @ingredients.any? %>
+      <div class="overflow-x-auto">
+        <table class="min-w-180 w-full text-left text-sm">
+          <thead class="bg-unel-verde text-xs uppercase tracking-wide text-unel-blanco">
+            <tr>
+              <th class="px-6 py-4 font-semibold">Nombre</th>
+              <th class="px-6 py-4 font-semibold">Unidad de medida</th>
+              <th class="px-6 py-4 font-semibold">Costo por unidad</th>
+              <th class="px-6 py-4 font-semibold">Usado en</th>
+              <th class="px-6 py-4 text-right font-semibold">Acciones</th>
+            </tr>
+          </thead>
+
+          <tbody class="divide-y divide-unel-crema-2">
+            <% @ingredients.each do |ingredient| %>
+              <tr class="transition hover:bg-unel-crema/50">
+                <td class="px-6 py-4 font-semibold text-unel-negro">
+                  <%= ingredient.name %>
+                </td>
+
+                <td class="px-6 py-4 text-unel-humo">
+                  <%= ingredient.unit_measure %>
+                </td>
+
+                <td class="px-6 py-4 font-semibold text-unel-verde">
+                  <%= number_to_currency(ingredient.cost_per_unit || 0, unit: "$", precision: 0, delimiter: ".") %>
+                </td>
+
+                <td class="px-6 py-4 text-unel-humo">
+                  <%= pluralize(ingredient.products.distinct.count, "producto", "productos") %>
+                </td>
+
+                <td class="px-6 py-4">
+                  <div class="flex items-center justify-end gap-3">
+                    <%= link_to "Editar", edit_admin_ingredient_path(ingredient),
+                      class: "text-sm font-semibold text-unel-dorado transition hover:text-unel-dorado-2" %>
+
+                    <%= button_to "Eliminar", admin_ingredient_path(ingredient),
+                      method: :delete,
+                      form: { data: { turbo_confirm: "¿Eliminar #{ingredient.name}?" } },
+                      class: "text-sm font-semibold text-red-500 transition hover:text-red-700 cursor-pointer" %>
+                  </div>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <div class="px-4 py-12 text-center sm:px-6">
+        <p class="text-lg font-bold text-unel-negro">
+          Todavía no hay ingredientes registrados
+        </p>
+
+        <p class="mx-auto mt-2 max-w-md text-sm text-unel-humo">
+          Crea el primer ingrediente para comenzar a completar las recetas de productos.
+        </p>
+
+        <div class="mt-6">
+          <%= link_to "Crear primer ingrediente", new_admin_ingredient_path,
+            class: "rounded-xl bg-unel-verde px-4 py-2 text-sm font-semibold text-unel-blanco transition hover:bg-unel-carbon" %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</section>

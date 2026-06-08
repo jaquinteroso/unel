@@ -1,83 +1,37 @@
-# Current Task — Revisión y cierre del Módulo 1
+# Current Task — Cierre backend del Módulo 1
 
 ## Tarea actual
 
-Revisar y cerrar el Módulo 1: Costeo de productos.
+Cerrar el backend del Módulo 1: Costeo de productos.
 
-Jorge indicó que este módulo ya está bastante avanzado y probablemente casi listo, pero falta una revisión completa antes de darlo por terminado.
+El frontend de productos está bastante avanzado, pero falta consolidar el backend para que el módulo no sea solo visual.
 
-## Objetivo
+## Prioridad actual
 
-Confirmar que el módulo de costeo funciona correctamente, es entendible para el cliente y deja una base sólida para avanzar al Módulo 2: Inventario.
+Trabajar por etapas, sin implementar todo de una vez.
 
-## Archivos probablemente involucrados
+## Etapas
 
-Codex debe revisar los archivos reales del proyecto, especialmente:
+1. CRUD completo de ingredientes en admin.
+2. Seeds iniciales de ingredientes.
+3. Eliminación real de recipe_items al editar productos.
+4. Cálculo real del costo desde ingredientes.
+5. Precio sugerido oficial en backend.
+6. Umbral editable de stock bajo con AppSetting.
+7. Validación real de imagen.
+8. Validaciones generales de Product y RecipeItem.
 
-- `config/routes.rb`
-- `db/schema.rb`
-- `app/models/`
-- `app/controllers/`
-- `app/views/`
-- `app/javascript/`
-- `app/assets/`
-- `app/helpers/`
-- `db/migrate/`
+## Regla de trabajo
 
-## Flujo esperado del módulo
+Codex debe trabajar una etapa a la vez.
 
-El sistema debería permitir:
+Antes de editar archivos, debe indicar:
+- qué existe actualmente,
+- qué falta,
+- qué archivos modificará,
+- qué cambio mínimo propone,
+- cómo probarlo.
 
-1. Crear o registrar productos.
-2. Asociar ingredientes, cantidades y costos.
-3. Calcular el costo unitario o costo total del producto.
-4. Definir margen de ganancia.
-5. Calcular o mostrar precio de venta sugerido.
-6. Visualizar productos en una tabla clara.
-7. Editar información relevante si corresponde.
-8. Evitar datos inválidos o incompletos.
+## Estado actual
 
-## Checklist de revisión técnica
-
-- [ ] Revisar rutas relacionadas con productos, recetas, ingredientes o costos.
-- [ ] Revisar modelos y relaciones.
-- [ ] Revisar migraciones y `db/schema.rb`.
-- [ ] Revisar validaciones.
-- [ ] Revisar controladores.
-- [ ] Revisar vistas principales.
-- [ ] Revisar formularios.
-- [ ] Revisar cálculos de costo.
-- [ ] Revisar cálculo de margen y precio sugerido.
-- [ ] Revisar tabla/listado de productos.
-- [ ] Revisar mensajes de error o estados vacíos.
-- [ ] Probar crear un caso real.
-- [ ] Probar editar un caso real.
-- [ ] Probar comportamiento con campos incompletos.
-- [ ] Revisar que los nombres de interfaz sean claros para una pyme.
-
-## Preguntas que Codex debería responder antes de avanzar
-
-1. ¿La estructura actual del Módulo 1 es coherente?
-2. ¿Qué modelos existen y cómo se relacionan?
-3. ¿El cálculo de costos está en el lugar correcto?
-4. ¿Hay lógica de negocio en vistas que debería moverse a modelos/helpers/services?
-5. ¿Faltan validaciones importantes?
-6. ¿La interfaz es suficientemente clara para el cliente?
-7. ¿Qué cambio mínimo conviene hacer antes de cerrar M1?
-8. ¿Qué deuda técnica queda pendiente?
-
-## Definición de terminado
-
-M1 se considera terminado cuando:
-
-- el flujo principal funciona sin errores,
-- los cálculos son correctos,
-- la interfaz es entendible,
-- los datos se guardan correctamente,
-- hay validaciones mínimas,
-- Jorge puede explicar cómo funciona,
-- existe claridad sobre cómo se conectará con inventario en M2.
-
-## Siguiente paso después de M1
-
-Cuando M1 esté revisado, el siguiente paso recomendado será planificar e implementar M2: Inventario, empezando por definir si el stock inicial será por productos terminados, materias primas o ambos.
+M1 está avanzado visualmente, pero pendiente de cierre backend.

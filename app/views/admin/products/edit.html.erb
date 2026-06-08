@@ -87,15 +87,15 @@
               <div data-recipe-items-target="container" class="space-y-4">
 
                 <% product.recipe_items.each_with_index do |recipe_item, index| %>
-                  <div data-recipe-item class="grid gap-4 rounded-xl border border-unel-crema-2 bg-unel-blanco p-4 md:grid-cols-[1fr_160px_auto]">
+                  <div data-recipe-item class="grid gap-4 rounded-xl border border-unel-crema-2 bg-unel-blanco p-4 md:grid-cols-[1fr_150px_140px_auto]">
                     <input type="hidden" name="product[recipe_items_attributes][<%= index %>][id]" value="<%= recipe_item.id %>">
 
                     <div>
                       <label class="block text-sm font-semibold text-unel-carbon">Ingrediente</label>
-                      <select name="product[recipe_items_attributes][<%= index %>][ingredient_id]" class="mt-2 w-full rounded-xl border border-unel-crema-2 bg-white px-4 py-3 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado">
+                      <select name="product[recipe_items_attributes][<%= index %>][ingredient_id]" data-action="change->price-preview#calculate" class="mt-2 w-full rounded-xl border border-unel-crema-2 bg-white px-4 py-3 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado">
                         <option value="">Selecciona un ingrediente</option>
                         <% ingredients.each do |ingredient| %>
-                          <option value="<%= ingredient.id %>" <%= 'selected' if ingredient.id == recipe_item.ingredient_id %>>
+                          <option value="<%= ingredient.id %>" data-cost="<%= ingredient.cost_per_unit || 0 %>" data-unit="<%= ingredient.unit_measure %>" <%= 'selected' if ingredient.id == recipe_item.ingredient_id %>>
                           <%= ingredient.name %> (<%= ingredient.unit_measure %>)
                           </option>
                         <% end %>
@@ -104,7 +104,16 @@
 
                     <div>
                       <label class="block text-sm font-semibold text-unel-carbon">Cantidad</label>
-                      <input type="number" name="product[recipe_items_attributes][<%= index %>][quantity]" value="<%= recipe_item.quantity %>" min="0" step="0.01" class="mt-2 w-full rounded-xl border border-unel-crema-2 bg-white px-4 py-3 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado">
+                      <input type="number" name="product[recipe_items_attributes][<%= index %>][quantity]" value="<%= recipe_item.quantity %>" min="0" step="0.01" data-action="input->price-preview#calculate" class="mt-2 w-full rounded-xl border border-unel-crema-2 bg-white px-4 py-3 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado">
+                    </div>
+
+                    <div>
+                      <label class="block text-sm font-semibold text-unel-carbon">Unidad</label>
+                      <select name="product[recipe_items_attributes][<%= index %>][quantity_unit]" data-action="change->price-preview#calculate" class="mt-2 w-full rounded-xl border border-unel-crema-2 bg-white px-4 py-3 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado">
+                        <% Ingredient::UNIT_MEASURES.each do |unit_measure| %>
+                          <option value="<%= unit_measure %>" <%= "selected" if unit_measure == recipe_item.quantity_unit %>><%= unit_measure %></option>
+                        <% end %>
+                      </select>
                     </div>
 
                     <div class="flex items-end">
@@ -116,23 +125,30 @@
               </div>
 
               <template data-recipe-items-target="template">
-                <div data-recipe-item class="grid gap-4 rounded-xl border border-unel-crema-2 bg-unel-blanco p-4 md:grid-cols-[1fr_160px_auto]">
+                <div data-recipe-item class="grid gap-4 rounded-xl border border-unel-crema-2 bg-unel-blanco p-4 md:grid-cols-[1fr_150px_140px_auto]">
                   <div>
                     <label class="block text-sm font-semibold text-unel-carbon">Ingrediente</label>
-                    <select name="product[recipe_items_attributes][__INDEX__][ingredient_id]" class="mt-2 w-full rounded-xl border border-unel-crema-2 bg-white px-4 py-3 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado">
+                    <select name="product[recipe_items_attributes][__INDEX__][ingredient_id]" data-action="change->price-preview#calculate" class="mt-2 w-full rounded-xl border border-unel-crema-2 bg-white px-4 py-3 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado">
                       <option value="">Selecciona un ingrediente</option>
                       <% ingredients.each do |ingredient| %>
-                        <option value="<%= ingredient.id %>"><%= ingredient.name %> (<%= ingredient.unit_measure %>)</option>
+                        <option value="<%= ingredient.id %>" data-cost="<%= ingredient.cost_per_unit || 0 %>" data-unit="<%= ingredient.unit_measure %>"><%= ingredient.name %> (<%= ingredient.unit_measure %>)</option>
                       <% end %>
                     </select>
                   </div>
                   <div>
                     <label class="block text-sm font-semibold text-unel-carbon">Cantidad</label>
-                    <input type="number" name="product[recipe_items_attributes][__INDEX__][quantity]" min="0" step="0.01" class="mt-2 w-full rounded-xl border border-unel-crema-2 bg-white px-4 py-3 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado">
+                    <input type="number" name="product[recipe_items_attributes][__INDEX__][quantity]" min="0" step="0.01" data-action="input->price-preview#calculate" class="mt-2 w-full rounded-xl border border-unel-crema-2 bg-white px-4 py-3 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-semibold text-unel-carbon">Unidad</label>
+                    <select name="product[recipe_items_attributes][__INDEX__][quantity_unit]" data-action="change->price-preview#calculate" class="mt-2 w-full rounded-xl border border-unel-crema-2 bg-white px-4 py-3 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado">
+                      <% Ingredient::UNIT_MEASURES.each do |unit_measure| %>
+                        <option value="<%= unit_measure %>"><%= unit_measure %></option>
+                      <% end %>
+                    </select>
                   </div>
                   <div class="flex items-end">
                     <button type="button" data-action="recipe-items#remove" class="w-full rounded-xl border border-red-200 px-4 py-3 text-sm font-semibold text-red-500 transition hover:bg-red-50 md:w-auto">Quitar</button>
-                    <input type="hidden" name="product[recipe_items_attributes][__INDEX__][_destroy]" value="false" data-destroy-field>
                   </div>
                 </div>
               </template>
@@ -143,17 +159,31 @@
             </div>
           </div>
         </div>
+
+        <%= render "packaging_fields", form: form, product: product, supplies_by_category: @supplies_by_category %>
       </div>
 
       <div class="space-y-6">
         <div class="rounded-lg border border-unel-crema-2 bg-white shadow-sm">
           <div class="border-b border-unel-crema-2 px-4 py-5 sm:px-6">
             <h2 class="text-lg font-bold text-unel-carbon">Costos y precios</h2>
+            <p class="mt-1 text-sm text-unel-humo">
+              El costo unitario se calcula automáticamente desde receta e insumos.
+            </p>
           </div>
           <div class="space-y-5 px-4 py-5 sm:px-6">
             <div>
-              <%= form.label :cost, "Costo unitario", class: "block text-sm font-semibold text-unel-carbon" %>
-              <%= form.number_field :cost, min: 0, step: 1, data: { price_preview_target: "cost", action: "input->price-preview#calculate" }, class: "mt-2 w-full rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-3 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado" %>
+              <label class="block text-sm font-semibold text-unel-carbon">
+                Costo unitario calculado
+              </label>
+
+              <div data-price-preview-target="summaryCost" class="mt-2 rounded-xl border border-unel-crema-2 bg-unel-crema px-4 py-3 text-sm font-bold text-unel-verde">
+                <%= number_to_currency(product.calculated_cost || 0, unit: "$", precision: 0, delimiter: ".") %>
+              </div>
+
+              <p class="mt-2 text-xs text-unel-humo">
+                Suma ingredientes, frasco, tapa y etiqueta. No se escribe manualmente.
+              </p>
             </div>
             <div>
               <%= form.label :margin, "Margen (%)", class: "block text-sm font-semibold text-unel-carbon" %>
@@ -189,6 +219,102 @@
           <div class="px-4 py-5 sm:px-6">
             <%= form.label :stock, "Stock inicial", class: "block text-sm font-semibold text-unel-carbon" %>
             <%= form.number_field :stock, min: 0, step: 1, data: { price_preview_target: "stock", action: "input->price-preview#calculate" }, class: "mt-2 w-full rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-3 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado" %>
+          </div>
+        </div>
+
+        <div class="rounded-lg border border-unel-crema-2 bg-white p-4 shadow-sm sm:p-6">
+          <h2 class="text-lg font-bold text-unel-carbon">
+            Resumen
+          </h2>
+
+          <p class="mt-1 text-sm text-unel-humo">
+            Vista rápida de costos unitarios y totales según stock.
+          </p>
+
+          <div class="mt-4 space-y-3 text-sm">
+            <div class="flex items-center justify-between gap-4">
+              <span class="text-unel-humo">Ingredientes por unidad</span>
+              <span data-price-preview-target="summaryIngredientCost" class="font-semibold text-unel-carbon">
+                <%= number_to_currency(product.ingredient_cost, unit: "$", precision: 0, delimiter: ".") %>
+              </span>
+            </div>
+
+            <div class="flex items-center justify-between gap-4">
+              <span class="text-unel-humo">Insumos por unidad</span>
+              <span data-price-preview-target="summarySupplyCost" class="font-semibold text-unel-carbon">
+                <%= number_to_currency(product.supply_cost, unit: "$", precision: 0, delimiter: ".") %>
+              </span>
+            </div>
+
+            <div class="flex items-center justify-between gap-4">
+              <span class="text-unel-humo">Costo unitario</span>
+              <span data-price-preview-target="summaryCost" class="font-semibold text-unel-carbon">
+                <%= number_to_currency(product.calculated_cost, unit: "$", precision: 0, delimiter: ".") %>
+              </span>
+            </div>
+
+            <div class="flex items-center justify-between gap-4">
+              <span class="text-unel-humo">Margen</span>
+              <span data-price-preview-target="summaryMargin" class="font-semibold text-unel-carbon">
+                <%= product.margin || 0 %>%
+              </span>
+            </div>
+
+            <div class="flex items-center justify-between gap-4">
+              <span class="text-unel-humo">Precio sugerido</span>
+              <span data-price-preview-target="summarySuggestedPrice" class="font-semibold text-unel-verde">
+                <%= number_to_currency(product.suggested_price, unit: "$", precision: 0, delimiter: ".") %>
+              </span>
+            </div>
+
+            <div class="flex items-center justify-between gap-4">
+              <span class="text-unel-humo">Precio final</span>
+              <span data-price-preview-target="summaryFinalPrice" class="font-semibold text-unel-carbon">
+                <%= number_to_currency(product.price || 0, unit: "$", precision: 0, delimiter: ".") %>
+              </span>
+            </div>
+
+            <div class="flex items-center justify-between gap-4">
+              <span class="text-unel-humo">Diferencia</span>
+              <span data-price-preview-target="summaryPriceDifference" class="font-semibold text-unel-carbon">
+                <%= number_to_currency(product.unit_price_difference, unit: "$", precision: 0, delimiter: ".") %>
+              </span>
+            </div>
+
+            <div class="flex items-center justify-between gap-4 border-t border-unel-crema-2 pt-3">
+              <span class="text-unel-humo">Stock</span>
+              <span data-price-preview-target="summaryStock" class="font-bold text-unel-verde">
+                <%= product.stock.to_i %> unidades
+              </span>
+            </div>
+
+            <div class="flex items-center justify-between gap-4">
+              <span class="text-unel-humo">Costo total stock</span>
+              <span data-price-preview-target="summaryStockCost" class="font-semibold text-unel-carbon">
+                <%= number_to_currency(product.stock_cost, unit: "$", precision: 0, delimiter: ".") %>
+              </span>
+            </div>
+
+            <div class="flex items-center justify-between gap-4">
+              <span class="text-unel-humo">Precio sugerido total</span>
+              <span data-price-preview-target="summaryStockSuggestedPrice" class="font-semibold text-unel-carbon">
+                <%= number_to_currency(product.suggested_stock_revenue, unit: "$", precision: 0, delimiter: ".") %>
+              </span>
+            </div>
+
+            <div class="flex items-center justify-between gap-4">
+              <span class="text-unel-humo">Precio final total</span>
+              <span data-price-preview-target="summaryStockFinalPrice" class="font-semibold text-unel-carbon">
+                <%= number_to_currency(product.final_stock_revenue, unit: "$", precision: 0, delimiter: ".") %>
+              </span>
+            </div>
+
+            <div class="flex items-center justify-between gap-4">
+              <span class="text-unel-humo">Diferencia total</span>
+              <span data-price-preview-target="summaryStockPriceDifference" class="font-semibold text-unel-carbon">
+                <%= number_to_currency(product.stock_price_difference, unit: "$", precision: 0, delimiter: ".") %>
+              </span>
+            </div>
           </div>
         </div>
 

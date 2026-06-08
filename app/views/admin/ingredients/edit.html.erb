@@ -1,2 +1,27 @@
-<h1>Admin::Ingredients#edit</h1>
-<p>Find me in app/views/admin/ingredients/edit.html.erb</p>
+<% content_for :admin_section_key, "ingredients" %>
+<% content_for :admin_section_inner, "Editar ingrediente" %>
+<% content_for :admin_search_placeholder, "Buscar ingredientes..." %>
+<% content_for :admin_search_path, admin_ingredients_path %>
+
+<section>
+  <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+    <div>
+      <p class="text-sm font-semibold uppercase tracking-wide text-unel-dorado">
+        Ingredientes
+      </p>
+
+      <h1 class="mt-2 text-2xl font-bold text-unel-carbon md:text-3xl">
+        Editar ingrediente
+      </h1>
+
+      <p class="mt-2 max-w-2xl text-sm text-unel-humo">
+        Actualiza los datos base del ingrediente seleccionado.
+      </p>
+    </div>
+
+    <%= link_to "Volver a ingredientes", admin_ingredients_path,
+      class: "rounded-xl border border-unel-crema-2 px-4 py-2 text-center text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado" %>
+  </div>
+
+  <%= render "form", ingredient: @ingredient %>
+</section>

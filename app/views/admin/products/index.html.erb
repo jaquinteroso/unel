@@ -26,7 +26,7 @@
   <% @product_stats.with_indifferent_access.merge(low_stock: low_stock_count) %>
 <% else %>
   <% total_products = products.count %>
-  <% total_cost = products.sum { |product| product.cost.to_f } %>
+  <% total_cost = products.sum { |product| product.respond_to?(:calculated_cost) ? product.calculated_cost.to_f : product.cost.to_f } %>
   <% average_cost = total_products.positive? ? total_cost / total_products : 0 %>
   <% without_final_price = products.count { |product| product.price.blank? || product.price.to_f.zero? } %>
   <% low_stock = low_stock_count %>
@@ -176,7 +176,7 @@
 
           <tbody data-table-sort-target="body" class="divide-y divide-unel-crema-2">
             <% products.each do |product| %>
-              <% cost = product.cost.to_f %>
+              <% cost = product.respond_to?(:calculated_cost) ? product.calculated_cost.to_f : product.cost.to_f %>
               <% margin = product.margin.to_f %>
               <% suggested_price = product.respond_to?(:suggested_price) && product.suggested_price.present? ? product.suggested_price.to_f : cost * (1 + margin / 100.0) %>
               <% final_price = product.price || 0 %>
@@ -185,9 +185,9 @@
               <tr
                 data-table-filter-target="row"
                 data-table-sort-target="row"
-                data-search-text="<%= [product.name, product.cost, product.margin, suggested_price, final_price, stock].join(' ') %>"
+                data-search-text="<%= [product.name, cost, product.margin, suggested_price, final_price, stock].join(' ') %>"
                 data-sort-name="<%= product.name %>"
-                data-sort-cost="<%= product.cost || 0 %>"
+                data-sort-cost="<%= cost %>"
                 data-sort-margin="<%= product.margin || 0 %>"
                 data-sort-suggested-price="<%= suggested_price %>"
                 data-sort-price="<%= final_price %>"
@@ -213,7 +213,9 @@
                   </td>
 
                   <td class="px-6 py-4 text-unel-humo">
-                    <%= number_to_currency(product.cost || 0, unit: "$", precision: 0, delimiter: ".") %>
+                    <div class="font-semibold text-unel-carbon">
+                      <%= number_to_currency(cost, unit: "$", precision: 0, delimiter: ".") %>
+                    </div>
                   </td>
 
                   <td class="px-6 py-4 text-unel-humo">
