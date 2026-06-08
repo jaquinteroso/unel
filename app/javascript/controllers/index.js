@@ -30,3 +30,6 @@ application.register("trix-no-attachments", TrixNoAttachmentsController)
 
 import StockThresholdModalController from "./stock_threshold_modal_controller"
 application.register("stock-threshold-modal", StockThresholdModalController)
+
+import TableSortController from "./table_sort_controller"
+application.register("table-sort", TableSortController)
