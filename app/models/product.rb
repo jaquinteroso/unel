@@ -13,9 +13,16 @@ class Product < ApplicationRecord
   # 2. Revisa la descripción antes de guardar
   before_save :set_default_description
 
+  def calculated_cost
+    recipe_items.includes(:ingredient).sum do |recipe_item|
+      recipe_item.quantity.to_d * recipe_item.ingredient.cost_per_unit.to_d
+    end
+  end
+
   def suggested_price
-    return 0 unless cost && margin 
-    cost * (1 + margin / 100.0)
+    return 0 unless margin
+
+    calculated_cost * (1 + margin.to_d / 100)
   end
 
   private
