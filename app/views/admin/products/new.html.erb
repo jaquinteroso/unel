@@ -74,12 +74,22 @@
 
             <div>
               <%= form.label :image, "Fotografía del producto", class: "block text-sm font-semibold text-unel-carbon" %>
-              <%= form.file_field :image, class: "mt-2 w-full rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-2 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado file:mr-4 file:rounded-lg file:border-0 file:bg-unel-crema file:px-4 file:py-2 file:text-sm file:font-semibold file:text-unel-dorado hover:file:bg-unel-crema-2" %>
+              <%= form.file_field :image,
+                accept: "image/png,image/jpeg,image/jpg,image/webp",
+                class: "mt-2 w-full rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-2 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado file:mr-4 file:rounded-lg file:border-0 file:bg-unel-crema file:px-4 file:py-2 file:text-sm file:font-semibold file:text-unel-dorado hover:file:bg-unel-crema-2" %>
             </div>
 
             <div>
-              <%= form.label :description, "Descripción", class: "block text-sm font-semibold text-unel-carbon" %>
-              <%= form.rich_text_area :description, class: "mt-2 block w-full rounded-xl border border-unel-crema-2 bg-unel-blanco p-4 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado min-h-[150px]" %>
+              <%= form.label :description, "Descripción", class: "block text-sm font-semibold text-unel-carbon mb-2" %>
+
+              <div class="unel-product-description-trix">
+                <%= form.rich_text_area :description,
+                  data: {
+                    controller: "trix-no-attachments",
+                    action: "trix-file-accept->trix-no-attachments#rejectFile"
+                  },
+                  class: "unel-product-description-editor" %>
+              </div>
             </div>
           </div>
         </div>

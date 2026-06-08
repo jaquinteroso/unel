@@ -24,3 +24,12 @@ application.register("recipe-items", RecipeItemsController)
 
 import TableFilterController from "./table_filter_controller"
 application.register("table-filter", TableFilterController)
+
+import TrixNoAttachmentsController from "./trix_no_attachments_controller"
+application.register("trix-no-attachments", TrixNoAttachmentsController)
+
+import StockThresholdModalController from "./stock_threshold_modal_controller"
+application.register("stock-threshold-modal", StockThresholdModalController)
+
+import TableSortController from "./table_sort_controller"
+application.register("table-sort", TableSortController)
