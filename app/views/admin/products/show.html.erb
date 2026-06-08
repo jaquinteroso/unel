@@ -61,16 +61,24 @@
       <h2 class="text-lg font-bold text-unel-carbon">Estructura de Precios</h2>
       <ul class="mt-4 space-y-3 text-sm">
         <li class="flex justify-between">
-          <span class="text-unel-humo">Costo Unitario Base</span>
-          <span class="font-semibold text-unel-carbon"><%= number_to_currency(@product.cost, delimiter: ".", precision: 0, format: "$%n") %></span>
+          <span class="text-unel-humo">Costo Unitario Calculado</span>
+          <span class="font-semibold text-unel-carbon"><%= number_to_currency(@product.calculated_cost, delimiter: ".", precision: 0, format: "$%n") %></span>
         </li>
         <li class="flex justify-between">
           <span class="text-unel-humo">Margen Aplicado</span>
           <span class="font-semibold text-unel-carbon"><%= @product.margin %>%</span>
         </li>
+        <li class="flex justify-between">
+          <span class="text-unel-humo">Precio Sugerido</span>
+          <span class="font-semibold text-unel-carbon"><%= number_to_currency(@product.suggested_price, delimiter: ".", precision: 0, format: "$%n") %></span>
+        </li>
         <li class="flex justify-between border-t border-unel-crema-2 pt-3">
           <span class="text-unel-humo">Precio Final de Venta</span>
           <span class="font-bold text-unel-verde text-lg"><%= number_to_currency(@product.price, delimiter: ".", precision: 0, format: "$%n") %></span>
+        </li>
+        <li class="flex justify-between">
+          <span class="text-unel-humo">Costo Stock Actual</span>
+          <span class="font-semibold text-unel-carbon"><%= number_to_currency(@product.stock_cost, delimiter: ".", precision: 0, format: "$%n") %></span>
         </li>
       </ul>
     </div>
@@ -96,9 +104,9 @@
               <% @product.recipe_items.includes(:ingredient).each do |item| %>
                 <tr class="border-b border-unel-crema-2/50 last:border-0 hover:bg-gray-50 transition">
                   <td class="py-3 text-unel-carbon font-medium"><%= item.ingredient.name %></td>
-                  <td class="py-3 text-unel-carbon"><%= item.quantity %> <%= item.ingredient.unit_measure %></td>
+                  <td class="py-3 text-unel-carbon"><%= item.quantity %> <%= item.quantity_unit || item.ingredient.unit_measure %></td>
                   <td class="py-3 text-unel-carbon">
-                    <% costo_ingrediente = item.quantity * item.ingredient.cost_per_unit rescue 0 %>
+                    <% costo_ingrediente = item.calculated_cost rescue 0 %>
                     <%= number_to_currency(costo_ingrediente, delimiter: ".", precision: 0, format: "$%n") %>
                   </td>
                 </tr>
@@ -111,6 +119,48 @@
           <p class="text-sm font-bold text-unel-carbon">Receta vacía</p>
           <p class="mx-auto mt-2 max-w-md text-sm text-unel-humo">
             Este producto aún no tiene ingredientes asociados. Edita el producto para definir su receta.
+          </p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="rounded-lg border border-unel-crema-2 bg-white shadow-sm">
+    <div class="border-b border-unel-crema-2 px-6 py-4">
+      <h2 class="text-lg font-bold text-unel-carbon">Insumos de Empaque</h2>
+    </div>
+
+    <div class="p-6">
+      <% if @product.product_supplies.any? %>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead>
+              <tr class="border-b border-unel-crema-2 text-unel-humo">
+                <th class="pb-3 font-semibold">Tipo</th>
+                <th class="pb-3 font-semibold">Insumo</th>
+                <th class="pb-3 font-semibold">Cantidad</th>
+                <th class="pb-3 font-semibold">Costo</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @product.product_supplies.includes(:supply).each do |product_supply| %>
+                <tr class="border-b border-unel-crema-2/50 last:border-0 hover:bg-gray-50 transition">
+                  <td class="py-3 text-unel-carbon font-medium"><%= product_supply.role_name %></td>
+                  <td class="py-3 text-unel-carbon"><%= product_supply.supply.display_name %></td>
+                  <td class="py-3 text-unel-carbon"><%= product_supply.quantity %> unidad</td>
+                  <td class="py-3 text-unel-carbon">
+                    <%= number_to_currency(product_supply.calculated_cost, delimiter: ".", precision: 0, format: "$%n") %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="rounded-xl border border-dashed border-unel-crema-2 bg-unel-blanco px-6 py-8 text-center">
+          <p class="text-sm font-bold text-unel-carbon">Sin insumos asociados</p>
+          <p class="mx-auto mt-2 max-w-md text-sm text-unel-humo">
+            Edita el producto para seleccionar frasco, tapa y etiqueta.
           </p>
         </div>
       <% end %>

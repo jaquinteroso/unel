@@ -1,0 +1,22 @@
+<% flash.each do |type, message| %>
+  <% next if message.blank? %>
+  <% success = type.to_s == "notice" %>
+
+  <div
+    data-controller="flash"
+    role="alert"
+    class="mb-6 flex items-center justify-between rounded-xl border p-4 text-sm font-semibold shadow-sm transition-all <%= success ? 'border-green-200 bg-green-50 text-green-700' : 'border-red-200 bg-red-50 text-red-700' %>"
+  >
+    <div><%= message %></div>
+    <button
+      type="button"
+      data-action="click->flash#close"
+      aria-label="Cerrar alerta"
+      class="ml-4 flex shrink-0 rounded-lg p-1 transition focus:outline-none <%= success ? 'text-green-500 hover:bg-green-100 hover:text-green-700' : 'text-red-500 hover:bg-red-100 hover:text-red-700' %>"
+    >
+      <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+      </svg>
+    </button>
+  </div>
+<% end %>

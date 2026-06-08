@@ -1,0 +1,23 @@
+jar:
+  product: one
+  supply: jar
+  role: jar
+  quantity: 1
+
+lid:
+  product: one
+  supply: lid
+  role: lid
+  quantity: 1
+
+label:
+  product: one
+  supply: label
+  role: label
+  quantity: 1
+
+qr_label:
+  product: one
+  supply: qr_label
+  role: label
+  quantity: 1

@@ -1,22 +1,21 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["container", "template"]
+  static targets = ["labelsContainer", "labelTemplate"]
 
   connect() {
-    this.index = this.containerTarget.children.length
+    this.index = this.labelsContainerTarget.children.length + Date.now()
   }
 
-  add() {
-    const content = this.templateTarget.innerHTML.replaceAll("__INDEX__", this.index)
+  addLabel() {
+    const content = this.labelTemplateTarget.innerHTML.replaceAll("__LABEL_INDEX__", this.index)
 
-    this.containerTarget.insertAdjacentHTML("beforeend", content)
+    this.labelsContainerTarget.insertAdjacentHTML("beforeend", content)
     this.index += 1
   }
 
-  remove(event) {
-    const item = event.target.closest("[data-recipe-item]")
-
+  removeLabel(event) {
+    const item = event.target.closest("[data-label-item]")
     if (!item) return
 
     const destroyField = item.querySelector("[data-destroy-field]")

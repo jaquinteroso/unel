@@ -1,75 +1,77 @@
-<% content_for :admin_section_key, "ingredients" %>
-<% content_for :admin_section_inner, "Ingredientes" %>
-<% content_for :admin_search_placeholder, "Buscar ingredientes..." %>
-<% content_for :admin_search_path, admin_ingredients_path %>
+<% content_for :admin_section_key, "supplies" %>
+<% content_for :admin_section_inner, "Insumos" %>
+<% content_for :admin_search_placeholder, "Buscar insumos..." %>
+<% content_for :admin_search_path, admin_supplies_path %>
 
 <section>
   <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
     <div>
       <h1 class="text-2xl font-bold text-unel-carbon md:text-3xl">
-        Ingredientes
+        Insumos de empaque
       </h1>
 
       <p class="mt-2 max-w-2xl text-sm text-unel-humo">
-        Administra los ingredientes base que luego se usan para armar recetas de productos.
+        Administra frascos, tapas y etiquetas usados para calcular el costo unitario real de cada producto.
       </p>
     </div>
 
-    <%= link_to "Nuevo ingrediente", new_admin_ingredient_path,
+    <%= link_to "Nuevo insumo", new_admin_supply_path,
       class: "rounded-xl bg-unel-verde px-4 py-2 text-center text-sm font-semibold text-unel-blanco transition hover:bg-unel-carbon" %>
   </div>
 
   <div class="rounded-lg border border-unel-crema-2 bg-white shadow-sm">
     <div class="border-b border-unel-crema-2 px-4 py-5 sm:px-6">
       <h2 class="text-lg font-bold text-unel-carbon">
-        Ingredientes registrados
+        Insumos registrados
       </h2>
 
       <p class="mt-1 text-sm text-unel-humo">
-        Lista de ingredientes con su unidad de medida y costo por unidad.
+        Lista de insumos con categoría, tamaño y costo por unidad.
       </p>
     </div>
 
-    <% if @ingredients.any? %>
+    <% if @supplies.any? %>
       <div class="overflow-x-auto">
-        <table class="min-w-180 w-full text-left text-sm">
+        <table class="min-w-220 w-full text-left text-sm">
           <thead class="bg-unel-verde text-xs uppercase tracking-wide text-unel-blanco">
             <tr>
               <th class="px-6 py-4 font-semibold">Nombre</th>
-              <th class="px-6 py-4 font-semibold">Unidad de medida</th>
-              <th class="px-6 py-4 font-semibold">Costo por unidad</th>
+              <th class="px-6 py-4 font-semibold">Tipo</th>
+              <th class="px-6 py-4 font-semibold">Tamaño</th>
+              <th class="px-6 py-4 font-semibold">Compra</th>
+              <th class="px-6 py-4 font-semibold">Costo unitario real</th>
               <th class="px-6 py-4 font-semibold">Usado en</th>
               <th class="px-6 py-4 text-right font-semibold">Acciones</th>
             </tr>
           </thead>
 
           <tbody class="divide-y divide-unel-crema-2">
-            <% @ingredients.each do |ingredient| %>
+            <% @supplies.each do |supply| %>
               <tr class="transition hover:bg-unel-crema/50">
-                <td class="px-6 py-4 font-semibold text-unel-negro">
-                  <%= ingredient.name %>
-                </td>
-
+                <td class="px-6 py-4 font-semibold text-unel-negro"><%= supply.name %></td>
+                <td class="px-6 py-4 text-unel-humo"><%= supply.category_name %></td>
+                <td class="px-6 py-4 text-unel-humo"><%= supply.descriptor.presence || "Sin información" %></td>
                 <td class="px-6 py-4 text-unel-humo">
-                  <%= ingredient.unit_measure %>
+                  <% if supply.unit_measure == "pack" %>
+                    Pack de <%= supply.pack_quantity || 0 %>
+                  <% else %>
+                    Unidad
+                  <% end %>
                 </td>
-
                 <td class="px-6 py-4 font-semibold text-unel-verde">
-                  <%= number_to_currency(ingredient.cost_per_unit || 0, unit: "$", precision: 0, delimiter: ".") %>
+                  <%= number_to_currency(supply.effective_unit_cost || 0, unit: "$", precision: 0, delimiter: ".") %>
                 </td>
-
                 <td class="px-6 py-4 text-unel-humo">
-                  <%= pluralize(ingredient.products.distinct.count, "producto", "productos") %>
+                  <%= pluralize(supply.products.distinct.count, "producto", "productos") %>
                 </td>
-
                 <td class="px-6 py-4">
                   <div class="flex items-center justify-end gap-3">
-                    <%= link_to "Editar", edit_admin_ingredient_path(ingredient),
+                    <%= link_to "Editar", edit_admin_supply_path(supply),
                       class: "text-sm font-semibold text-unel-dorado transition hover:text-unel-dorado-2" %>
 
-                    <%= button_to "Eliminar", admin_ingredient_path(ingredient),
+                    <%= button_to "Eliminar", admin_supply_path(supply),
                       method: :delete,
-                      form: { data: { turbo_confirm: "¿Eliminar #{ingredient.name}?" } },
+                      form: { data: { turbo_confirm: "¿Eliminar #{supply.name}?" } },
                       class: "text-sm font-semibold text-red-500 transition hover:text-red-700 cursor-pointer" %>
                   </div>
                 </td>
@@ -81,15 +83,15 @@
     <% else %>
       <div class="px-4 py-12 text-center sm:px-6">
         <p class="text-lg font-bold text-unel-negro">
-          Todavía no hay ingredientes registrados
+          Todavía no hay insumos registrados
         </p>
 
         <p class="mx-auto mt-2 max-w-md text-sm text-unel-humo">
-          Crea el primer ingrediente para comenzar a completar las recetas de productos.
+          Crea frascos, tapas y etiquetas para completar el costo unitario de los productos.
         </p>
 
         <div class="mt-6">
-          <%= link_to "Crear primer ingrediente", new_admin_ingredient_path,
+          <%= link_to "Crear primer insumo", new_admin_supply_path,
             class: "rounded-xl bg-unel-verde px-4 py-2 text-sm font-semibold text-unel-blanco transition hover:bg-unel-carbon" %>
         </div>
       </div>

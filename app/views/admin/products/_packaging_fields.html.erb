@@ -1,0 +1,125 @@
+<div class="rounded-lg border border-unel-crema-2 bg-white shadow-sm" data-controller="product-supplies">
+  <div class="border-b border-unel-crema-2 px-4 py-5 sm:px-6">
+    <h2 class="text-lg font-bold text-unel-carbon">Insumos de empaque</h2>
+    <p class="mt-1 text-sm text-unel-humo">
+      Selecciona un frasco, una tapa y todas las etiquetas que utiliza una unidad del producto.
+    </p>
+  </div>
+
+  <div class="space-y-6 px-4 py-5 sm:px-6">
+    <% if supplies_by_category.values.any?(&:any?) %>
+      <div class="grid gap-4 md:grid-cols-2">
+        <% ["jar", "lid"].each do |role| %>
+          <% product_supply = product.product_supplies.find { |item| item.role == role } %>
+          <% index = product.product_supplies.index(product_supply) %>
+          <% supplies = supplies_by_category[role] || [] %>
+
+          <div data-product-supply class="rounded-xl border border-unel-crema-2 bg-unel-blanco p-4">
+            <% if product_supply.persisted? %>
+              <input type="hidden" name="product[product_supplies_attributes][<%= index %>][id]" value="<%= product_supply.id %>">
+            <% end %>
+            <input type="hidden" name="product[product_supplies_attributes][<%= index %>][role]" value="<%= role %>">
+            <input type="hidden" name="product[product_supplies_attributes][<%= index %>][quantity]" value="1" data-supply-quantity>
+
+            <label class="block text-sm font-semibold text-unel-carbon"><%= ProductSupply::ROLES[role] %></label>
+            <select
+              name="product[product_supplies_attributes][<%= index %>][supply_id]"
+              data-price-preview-target="supplySelect"
+              data-action="change->price-preview#calculate"
+              class="mt-2 w-full rounded-xl border border-unel-crema-2 bg-white px-4 py-3 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado"
+            >
+              <option value="">Selecciona <%= ProductSupply::ROLES[role].downcase %></option>
+              <% supplies.each do |supply| %>
+                <option value="<%= supply.id %>" data-cost="<%= supply.effective_unit_cost %>" <%= "selected" if product_supply.supply_id == supply.id %>>
+                  <%= supply.display_name %>
+                </option>
+              <% end %>
+            </select>
+          </div>
+        <% end %>
+      </div>
+
+      <div>
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 class="text-sm font-bold text-unel-carbon">Etiquetas</h3>
+            <p class="mt-1 text-xs text-unel-humo">Puedes agregar etiquetas frontales, laterales, de tapa, QR u otras.</p>
+          </div>
+
+          <button type="button" data-action="product-supplies#addLabel" class="rounded-xl border border-unel-crema-2 px-4 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado">
+            Agregar etiqueta
+          </button>
+        </div>
+
+        <div data-product-supplies-target="labelsContainer" class="mt-4 space-y-4">
+          <% product.product_supplies.select { |item| item.role == "label" }.each do |product_supply| %>
+            <% index = product.product_supplies.index(product_supply) %>
+            <div data-product-supply data-label-item class="grid gap-4 rounded-xl border border-unel-crema-2 bg-unel-blanco p-4 md:grid-cols-[1fr_auto]">
+              <% if product_supply.persisted? %>
+                <input type="hidden" name="product[product_supplies_attributes][<%= index %>][id]" value="<%= product_supply.id %>">
+              <% end %>
+              <input type="hidden" name="product[product_supplies_attributes][<%= index %>][role]" value="label">
+              <input type="hidden" name="product[product_supplies_attributes][<%= index %>][quantity]" value="1" data-supply-quantity>
+              <% if product_supply.persisted? %>
+                <input type="hidden" name="product[product_supplies_attributes][<%= index %>][_destroy]" value="false" data-destroy-field>
+              <% end %>
+
+              <div>
+                <label class="block text-sm font-semibold text-unel-carbon">Etiqueta</label>
+                <select
+                  name="product[product_supplies_attributes][<%= index %>][supply_id]"
+                  data-price-preview-target="supplySelect"
+                  data-action="change->price-preview#calculate"
+                  class="mt-2 w-full rounded-xl border border-unel-crema-2 bg-white px-4 py-3 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado"
+                >
+                  <option value="">Selecciona una etiqueta</option>
+                  <% (supplies_by_category["label"] || []).each do |supply| %>
+                    <option value="<%= supply.id %>" data-cost="<%= supply.effective_unit_cost %>" <%= "selected" if product_supply.supply_id == supply.id %>>
+                      <%= supply.display_name %>
+                    </option>
+                  <% end %>
+                </select>
+              </div>
+
+              <div class="flex items-end">
+                <button type="button" data-action="product-supplies#removeLabel" class="w-full rounded-xl border border-red-200 px-4 py-3 text-sm font-semibold text-red-500 transition hover:bg-red-50 md:w-auto">
+                  Quitar
+                </button>
+              </div>
+            </div>
+          <% end %>
+        </div>
+
+        <template data-product-supplies-target="labelTemplate">
+          <div data-product-supply data-label-item class="grid gap-4 rounded-xl border border-unel-crema-2 bg-unel-blanco p-4 md:grid-cols-[1fr_auto]">
+            <input type="hidden" name="product[product_supplies_attributes][__LABEL_INDEX__][role]" value="label">
+            <input type="hidden" name="product[product_supplies_attributes][__LABEL_INDEX__][quantity]" value="1" data-supply-quantity>
+            <div>
+              <label class="block text-sm font-semibold text-unel-carbon">Etiqueta</label>
+              <select
+                name="product[product_supplies_attributes][__LABEL_INDEX__][supply_id]"
+                data-price-preview-target="supplySelect"
+                data-action="change->price-preview#calculate"
+                class="mt-2 w-full rounded-xl border border-unel-crema-2 bg-white px-4 py-3 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado"
+              >
+                <option value="">Selecciona una etiqueta</option>
+                <% (supplies_by_category["label"] || []).each do |supply| %>
+                  <option value="<%= supply.id %>" data-cost="<%= supply.effective_unit_cost %>"><%= supply.display_name %></option>
+                <% end %>
+              </select>
+            </div>
+            <div class="flex items-end">
+              <button type="button" data-action="product-supplies#removeLabel" class="w-full rounded-xl border border-red-200 px-4 py-3 text-sm font-semibold text-red-500 transition hover:bg-red-50 md:w-auto">Quitar</button>
+            </div>
+          </div>
+        </template>
+      </div>
+    <% else %>
+      <div class="rounded-xl border border-dashed border-unel-crema-2 bg-unel-blanco px-6 py-8 text-center">
+        <p class="text-sm font-bold text-unel-carbon">Todavía no hay insumos disponibles</p>
+        <p class="mx-auto mt-2 max-w-md text-sm text-unel-humo">Crea frascos, tapas y etiquetas para completar el costo unitario.</p>
+        <%= link_to "Ir a insumos", admin_supplies_path, class: "mt-5 inline-flex rounded-xl border border-unel-crema-2 px-4 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado" %>
+      </div>
+    <% end %>
+  </div>
+</div>

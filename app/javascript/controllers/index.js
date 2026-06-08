@@ -19,6 +19,9 @@ application.register("hello", HelloController)
 import PricePreviewController from "./price_preview_controller"
 application.register("price-preview", PricePreviewController)
 
+import ProductSuppliesController from "./product_supplies_controller"
+application.register("product-supplies", ProductSuppliesController)
+
 import RecipeItemsController from "./recipe_items_controller"
 application.register("recipe-items", RecipeItemsController)
 
@@ -30,6 +33,9 @@ application.register("trix-no-attachments", TrixNoAttachmentsController)
 
 import StockThresholdModalController from "./stock_threshold_modal_controller"
 application.register("stock-threshold-modal", StockThresholdModalController)
+
+import SupplyFormController from "./supply_form_controller"
+application.register("supply-form", SupplyFormController)
 
 import TableSortController from "./table_sort_controller"
 application.register("table-sort", TableSortController)
