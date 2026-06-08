@@ -1,0 +1,27 @@
+<% content_for :admin_section_key, "supplies" %>
+<% content_for :admin_section_inner, "Nuevo insumo" %>
+<% content_for :admin_search_placeholder, "Buscar insumos..." %>
+<% content_for :admin_search_path, admin_supplies_path %>
+
+<section>
+  <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+    <div>
+      <p class="text-sm font-semibold uppercase tracking-wide text-unel-dorado">
+        Insumos de empaque
+      </p>
+
+      <h1 class="mt-2 text-2xl font-bold text-unel-carbon md:text-3xl">
+        Nuevo insumo
+      </h1>
+
+      <p class="mt-2 max-w-2xl text-sm text-unel-humo">
+        Registra un frasco, tapa o etiqueta con su costo unitario.
+      </p>
+    </div>
+
+    <%= link_to "Volver a insumos", admin_supplies_path,
+      class: "rounded-xl border border-unel-crema-2 px-4 py-2 text-center text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado" %>
+  </div>
+
+  <%= render "form", supply: @supply %>
+</section>

@@ -26,4 +26,28 @@ class ProductTest < ActiveSupport::TestCase
 
     assert_equal 7000, product.suggested_price
   end
+
+  test "calculated_cost includes packaging supplies" do
+    product = Product.create!(name: "Mermelada de mora", margin: 40)
+    ingredient = Ingredient.create!(name: "Mora", unit_measure: "kg", cost_per_unit: 2000)
+    jar = Supply.create!(name: "Frasco 250 ml", category: "jar", unit_measure: "unidad", cost_per_unit: 300)
+    lid = Supply.create!(name: "Tapa 63 mm", category: "lid", unit_measure: "unidad", cost_per_unit: 80)
+    label = Supply.create!(name: "Etiqueta mora", category: "label", unit_measure: "unidad", cost_per_unit: 50)
+
+    product.recipe_items.create!(ingredient: ingredient, quantity: 0.5)
+    product.product_supplies.create!(supply: jar, role: "jar", quantity: 1)
+    product.product_supplies.create!(supply: lid, role: "lid", quantity: 1)
+    product.product_supplies.create!(supply: label, role: "label", quantity: 1)
+
+    assert_equal 1430, product.calculated_cost
+  end
+
+  test "stock_cost multiplies calculated cost by stock" do
+    product = Product.create!(name: "Stock mermelada", margin: 40, stock: 20)
+    jar = Supply.create!(name: "Frasco stock", category: "jar", unit_measure: "unidad", cost_per_unit: 300)
+
+    product.product_supplies.create!(supply: jar, role: "jar", quantity: 1)
+
+    assert_equal 6000, product.stock_cost
+  end
 end

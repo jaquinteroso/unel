@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_07_045112) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_08_000200) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -72,6 +72,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_07_045112) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "product_supplies", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "product_id", null: false
+    t.decimal "quantity", default: "1.0", null: false
+    t.string "role", null: false
+    t.bigint "supply_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["product_id", "role"], name: "index_product_supplies_on_product_id_and_role", unique: true
+    t.index ["product_id"], name: "index_product_supplies_on_product_id"
+    t.index ["supply_id"], name: "index_product_supplies_on_supply_id"
+  end
+
   create_table "products", force: :cascade do |t|
     t.integer "cost"
     t.datetime "created_at", null: false
@@ -93,8 +105,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_07_045112) do
     t.index ["product_id"], name: "index_recipe_items_on_product_id"
   end
 
+  create_table "supplies", force: :cascade do |t|
+    t.string "category", null: false
+    t.integer "cost_per_unit", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.string "size_description"
+    t.string "unit_measure", null: false
+    t.datetime "updated_at", null: false
+    t.index ["category"], name: "index_supplies_on_category"
+    t.index ["name", "category"], name: "index_supplies_on_name_and_category", unique: true
+  end
+
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "product_supplies", "products"
+  add_foreign_key "product_supplies", "supplies"
   add_foreign_key "recipe_items", "ingredients"
   add_foreign_key "recipe_items", "products"
 end

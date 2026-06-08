@@ -1,0 +1,74 @@
+<%= form_with model: [:admin, supply], local: true, data: { controller: "disable-enter", action: "keydown->disable-enter#prevent" }, class: "space-y-6" do |form| %>
+  <% if supply.errors.any? %>
+    <div class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 shadow-sm">
+      <h3 class="text-sm font-bold text-red-700">Revisa los siguientes errores:</h3>
+
+      <ul class="mt-2 list-disc pl-5 text-sm font-medium text-red-600">
+        <% supply.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="rounded-lg border border-unel-crema-2 bg-white shadow-sm">
+    <div class="border-b border-unel-crema-2 px-4 py-5 sm:px-6">
+      <h2 class="text-lg font-bold text-unel-carbon">
+        Datos del insumo
+      </h2>
+
+      <p class="mt-1 text-sm text-unel-humo">
+        Estos datos permiten asociar frascos, tapas y etiquetas al costo de cada producto.
+      </p>
+    </div>
+
+    <div class="grid gap-5 px-4 py-5 sm:px-6">
+      <div>
+        <%= form.label :name, "Nombre del insumo *", class: "block text-sm font-semibold text-unel-carbon" %>
+        <%= form.text_field :name,
+          placeholder: "Ej: Frasco vidrio",
+          class: "mt-2 w-full rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-3 text-sm text-unel-carbon outline-none transition placeholder:text-unel-humo focus:border-unel-dorado" %>
+      </div>
+
+      <div>
+        <%= form.label :category, "Tipo de insumo *", class: "block text-sm font-semibold text-unel-carbon" %>
+        <%= form.select :category,
+          Supply::CATEGORIES.map { |value, label| [label, value] },
+          { prompt: "Selecciona un tipo" },
+          class: "mt-2 w-full rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-3 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado" %>
+      </div>
+
+      <div>
+        <%= form.label :size_description, "Tamaño o descripción", class: "block text-sm font-semibold text-unel-carbon" %>
+        <%= form.text_field :size_description,
+          placeholder: "Ej: 250 ml, 63 mm, etiqueta frontal",
+          class: "mt-2 w-full rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-3 text-sm text-unel-carbon outline-none transition placeholder:text-unel-humo focus:border-unel-dorado" %>
+      </div>
+
+      <div>
+        <%= form.label :unit_measure, "Unidad de medida *", class: "block text-sm font-semibold text-unel-carbon" %>
+        <%= form.select :unit_measure,
+          Supply::UNIT_MEASURES.map { |unit_measure| [unit_measure, unit_measure] },
+          { prompt: "Selecciona una unidad" },
+          class: "mt-2 w-full rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-3 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado" %>
+      </div>
+
+      <div>
+        <%= form.label :cost_per_unit, "Costo por unidad *", class: "block text-sm font-semibold text-unel-carbon" %>
+        <%= form.number_field :cost_per_unit,
+          min: 0,
+          step: 1,
+          placeholder: "0",
+          class: "mt-2 w-full rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-3 text-sm text-unel-carbon outline-none transition placeholder:text-unel-humo focus:border-unel-dorado" %>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+    <%= link_to "Cancelar", admin_supplies_path,
+      class: "rounded-xl border border-unel-crema-2 px-4 py-2 text-center text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado" %>
+
+    <%= form.submit supply.persisted? ? "Guardar cambios" : "Crear insumo",
+      class: "rounded-xl bg-unel-verde px-4 py-2 text-sm font-semibold text-unel-blanco transition hover:bg-unel-carbon cursor-pointer" %>
+  </div>
+<% end %>

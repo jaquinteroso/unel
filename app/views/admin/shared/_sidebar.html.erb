@@ -92,6 +92,23 @@
         </span>
       <% end %>
 
+      <%= link_to admin_supplies_path,
+         data: { active_path: admin_supplies_path, admin_sidebar_target: "navItem" },
+         class: "relative mt-2 flex w-full items-center justify-start gap-3 px-4 py-3 text-unel-crema hover:text-unel-dorado transition-all text-sm font-medium" do %>
+
+        <span data-admin-sidebar-target="activeIndicator" class="absolute left-0 hidden h-7 w-1 rounded-full bg-unel-dorado-2"></span>
+
+        <span class="shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5 12 3 3 7.5m18 0-9 4.5m9-4.5v9L12 21m0-9L3 7.5m9 4.5v9M3 7.5v9L12 21" />
+          </svg>
+        </span>
+
+        <span data-admin-sidebar-target="label">
+          Insumos
+        </span>
+      <% end %>
+
       <%= link_to "/admin/inventory_movements",
          data: { active_path: "/admin/inventory_movements", admin_sidebar_target: "navItem" },
          class: "relative mt-2 flex w-full items-center justify-start gap-3 px-4 py-3 text-unel-crema hover:text-unel-dorado transition-all text-sm font-medium" do %>

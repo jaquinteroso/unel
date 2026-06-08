@@ -12,6 +12,7 @@ Rails.application.routes.draw do
     
     resources :products
     resources :ingredients, except: [:show]
+    resources :supplies, except: [:show]
     resources :inventory_movements, only: [:index, :new, :create]
     resources :finances, only: [:index]
     resources :customers, only: [:index, :show]
