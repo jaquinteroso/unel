@@ -11,7 +11,7 @@ Rails.application.routes.draw do
     get 'dashboard', to: 'dashboard#index'
     
     resources :products
-    resources :ingredients
+    resources :ingredients, except: [:show]
     resources :inventory_movements, only: [:index, :new, :create]
     resources :finances, only: [:index]
     resources :customers, only: [:index, :show]
