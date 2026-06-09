@@ -113,8 +113,12 @@ export default class extends Controller {
   convertQuantity(quantity, fromUnit, toUnit) {
     if (!fromUnit || !toUnit) return quantity
     if (fromUnit === toUnit) return quantity
+
     if (fromUnit === "g" && toUnit === "kg") return quantity / 1000
+    if (fromUnit === "kg" && toUnit === "g") return quantity * 1000
+
     if (fromUnit === "ml" && toUnit === "l") return quantity / 1000
+    if (fromUnit === "l" && toUnit === "ml") return quantity * 1000
 
     return quantity
   }

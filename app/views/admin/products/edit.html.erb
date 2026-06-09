@@ -34,7 +34,13 @@
     </div>
   </div>
 
-  <%= form_with model: [:admin, product], local: true, data: { controller: "price-preview disable-enter", action: "keydown->disable-enter#prevent" }, class: "space-y-6" do |form| %>
+  <%= form_with model: [:admin, product],
+    local: true,
+    data: {
+      controller: "price-preview disable-enter",
+      action: "keydown->disable-enter#prevent recipe-items:changed->price-preview#calculate"
+    },
+    class: "space-y-6" do |form| %>
 
     <% if product.errors.any? %>
       <div class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 shadow-sm">
@@ -92,10 +98,21 @@
 
                     <div>
                       <label class="block text-sm font-semibold text-unel-carbon">Ingrediente</label>
-                      <select name="product[recipe_items_attributes][<%= index %>][ingredient_id]" data-action="change->price-preview#calculate" class="mt-2 w-full rounded-xl border border-unel-crema-2 bg-white px-4 py-3 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado">
+                      <select
+                        name="product[recipe_items_attributes][<%= index %>][ingredient_id]"
+                        data-ingredient-select
+                        data-action="change->recipe-items#updateUnitOptions"
+                        class="mt-2 w-full rounded-xl border border-unel-crema-2 bg-white px-4 py-3 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado"
+                      >
                         <option value="">Selecciona un ingrediente</option>
                         <% ingredients.each do |ingredient| %>
-                          <option value="<%= ingredient.id %>" data-cost="<%= ingredient.cost_per_unit || 0 %>" data-unit="<%= ingredient.unit_measure %>" <%= 'selected' if ingredient.id == recipe_item.ingredient_id %>>
+                          <option
+                            value="<%= ingredient.id %>"
+                            data-cost="<%= ingredient.cost_per_unit || 0 %>"
+                            data-unit="<%= ingredient.unit_measure %>"
+                            data-compatible-units="<%= RecipeItem.available_units_for(ingredient.unit_measure).join(',') %>"
+                            <%= 'selected' if ingredient.id == recipe_item.ingredient_id %>
+                          >
                           <%= ingredient.name %> (<%= ingredient.unit_measure %>)
                           </option>
                         <% end %>
@@ -109,7 +126,12 @@
 
                     <div>
                       <label class="block text-sm font-semibold text-unel-carbon">Unidad</label>
-                      <select name="product[recipe_items_attributes][<%= index %>][quantity_unit]" data-action="change->price-preview#calculate" class="mt-2 w-full rounded-xl border border-unel-crema-2 bg-white px-4 py-3 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado">
+                      <select
+                        name="product[recipe_items_attributes][<%= index %>][quantity_unit]"
+                        data-unit-select
+                        data-action="change->price-preview#calculate"
+                        class="mt-2 w-full rounded-xl border border-unel-crema-2 bg-white px-4 py-3 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado disabled:cursor-not-allowed disabled:bg-unel-crema disabled:text-unel-humo"
+                      >
                         <% Ingredient::UNIT_MEASURES.each do |unit_measure| %>
                           <option value="<%= unit_measure %>" <%= "selected" if unit_measure == recipe_item.quantity_unit %>><%= unit_measure %></option>
                         <% end %>
@@ -128,10 +150,22 @@
                 <div data-recipe-item class="grid gap-4 rounded-xl border border-unel-crema-2 bg-unel-blanco p-4 md:grid-cols-[1fr_150px_140px_auto]">
                   <div>
                     <label class="block text-sm font-semibold text-unel-carbon">Ingrediente</label>
-                    <select name="product[recipe_items_attributes][__INDEX__][ingredient_id]" data-action="change->price-preview#calculate" class="mt-2 w-full rounded-xl border border-unel-crema-2 bg-white px-4 py-3 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado">
+                    <select
+                      name="product[recipe_items_attributes][__INDEX__][ingredient_id]"
+                      data-ingredient-select
+                      data-action="change->recipe-items#updateUnitOptions"
+                      class="mt-2 w-full rounded-xl border border-unel-crema-2 bg-white px-4 py-3 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado"
+                    >
                       <option value="">Selecciona un ingrediente</option>
                       <% ingredients.each do |ingredient| %>
-                        <option value="<%= ingredient.id %>" data-cost="<%= ingredient.cost_per_unit || 0 %>" data-unit="<%= ingredient.unit_measure %>"><%= ingredient.name %> (<%= ingredient.unit_measure %>)</option>
+                        <option
+                          value="<%= ingredient.id %>"
+                          data-cost="<%= ingredient.cost_per_unit || 0 %>"
+                          data-unit="<%= ingredient.unit_measure %>"
+                          data-compatible-units="<%= RecipeItem.available_units_for(ingredient.unit_measure).join(',') %>"
+                        >
+                          <%= ingredient.name %> (<%= ingredient.unit_measure %>)
+                        </option>
                       <% end %>
                     </select>
                   </div>
@@ -141,7 +175,12 @@
                   </div>
                   <div>
                     <label class="block text-sm font-semibold text-unel-carbon">Unidad</label>
-                    <select name="product[recipe_items_attributes][__INDEX__][quantity_unit]" data-action="change->price-preview#calculate" class="mt-2 w-full rounded-xl border border-unel-crema-2 bg-white px-4 py-3 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado">
+                    <select
+                      name="product[recipe_items_attributes][__INDEX__][quantity_unit]"
+                      data-unit-select
+                      data-action="change->price-preview#calculate"
+                      class="mt-2 w-full rounded-xl border border-unel-crema-2 bg-white px-4 py-3 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado disabled:cursor-not-allowed disabled:bg-unel-crema disabled:text-unel-humo"
+                    >
                       <% Ingredient::UNIT_MEASURES.each do |unit_measure| %>
                         <option value="<%= unit_measure %>"><%= unit_measure %></option>
                       <% end %>

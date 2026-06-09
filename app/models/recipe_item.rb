@@ -1,9 +1,9 @@
 class RecipeItem < ApplicationRecord
   UNIT_CONVERSIONS = {
     "kg" => { "kg" => 1.to_d, "g" => 0.001.to_d },
-    "g" => { "g" => 1.to_d },
+    "g" => { "g" => 1.to_d, "kg" => 1000.to_d },
     "l" => { "l" => 1.to_d, "ml" => 0.001.to_d },
-    "ml" => { "ml" => 1.to_d },
+    "ml" => { "ml" => 1.to_d, "l" => 1000.to_d },
     "unidad" => { "unidad" => 1.to_d }
   }.freeze
 
