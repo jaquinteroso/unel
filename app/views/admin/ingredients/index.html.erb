@@ -3,6 +3,12 @@
 <% content_for :admin_search_placeholder, "Buscar ingredientes..." %>
 <% content_for :admin_search_path, admin_ingredients_path %>
 
+<% total_ingredients = @ingredients.count %>
+<% total_ingredient_cost = @ingredients.sum { |ingredient| ingredient.cost_per_unit.to_f } %>
+<% average_ingredient_cost = total_ingredients.positive? ? total_ingredient_cost / total_ingredients : 0 %>
+<% used_ingredients = @ingredients.count { |ingredient| ingredient.products.distinct.count.positive? } %>
+<% unused_ingredients = total_ingredients - used_ingredients %>
+
 <section>
   <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
     <div>
@@ -19,7 +25,29 @@
       class: "rounded-xl bg-unel-verde px-4 py-2 text-center text-sm font-semibold text-unel-blanco transition hover:bg-unel-carbon" %>
   </div>
 
-  <div class="rounded-lg border border-unel-crema-2 bg-white shadow-sm">
+  <div class="flex w-full flex-wrap gap-4 xl:flex-nowrap justify-around">
+    <%= render "admin/shared/stat_card",
+      title: "Total ingredientes",
+      value: total_ingredients,
+      description: "Ingredientes registrados" %>
+
+    <%= render "admin/shared/stat_card",
+      title: "Costo promedio",
+      value: number_to_currency(average_ingredient_cost, unit: "$", precision: 0, delimiter: "."),
+      description: "Costo promedio por unidad" %>
+
+    <%= render "admin/shared/stat_card",
+      title: "Usados en recetas",
+      value: used_ingredients,
+      description: "Ingredientes asociados a productos" %>
+
+    <%= render "admin/shared/stat_card",
+      title: "Sin uso",
+      value: unused_ingredients,
+      description: "Ingredientes aún no asociados" %>
+  </div>
+
+  <div class="rounded-lg mt-4 border border-unel-crema-2 bg-white shadow-sm">
     <div class="border-b border-unel-crema-2 px-4 py-5 sm:px-6">
       <h2 class="text-lg font-bold text-unel-carbon">
         Ingredientes registrados

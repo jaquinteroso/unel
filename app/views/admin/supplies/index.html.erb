@@ -3,6 +3,12 @@
 <% content_for :admin_search_placeholder, "Buscar insumos..." %>
 <% content_for :admin_search_path, admin_supplies_path %>
 
+<% total_supplies = @supplies.count %>
+<% total_supply_cost = @supplies.sum { |supply| supply.effective_unit_cost.to_f } %>
+<% average_supply_cost = total_supplies.positive? ? total_supply_cost / total_supplies : 0 %>
+<% used_supplies = @supplies.count { |supply| supply.products.distinct.count.positive? } %>
+<% unused_supplies = total_supplies - used_supplies %>
+
 <section>
   <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
     <div>
@@ -19,7 +25,29 @@
       class: "rounded-xl bg-unel-verde px-4 py-2 text-center text-sm font-semibold text-unel-blanco transition hover:bg-unel-carbon" %>
   </div>
 
-  <div class="rounded-lg border border-unel-crema-2 bg-white shadow-sm">
+  <div class="flex w-full flex-wrap gap-4 xl:flex-nowrap justify-around">
+    <%= render "admin/shared/stat_card",
+      title: "Total insumos",
+      value: total_supplies,
+      description: "Insumos registrados" %>
+
+    <%= render "admin/shared/stat_card",
+      title: "Costo promedio",
+      value: number_to_currency(average_supply_cost, unit: "$", precision: 0, delimiter: "."),
+      description: "Costo unitario real promedio" %>
+
+    <%= render "admin/shared/stat_card",
+      title: "Usados en productos",
+      value: used_supplies,
+      description: "Insumos asociados a productos" %>
+
+    <%= render "admin/shared/stat_card",
+      title: "Sin uso",
+      value: unused_supplies,
+      description: "Insumos aún no asociados" %>
+  </div>
+
+  <div class="rounded-lg mt-4 border border-unel-crema-2 bg-white shadow-sm">
     <div class="border-b border-unel-crema-2 px-4 py-5 sm:px-6">
       <h2 class="text-lg font-bold text-unel-carbon">
         Insumos registrados
