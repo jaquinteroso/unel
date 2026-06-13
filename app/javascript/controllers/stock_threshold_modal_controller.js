@@ -4,12 +4,9 @@ export default class extends Controller {
   static targets = ["modal", "input"]
 
   connect() {
-    console.log("Stock threshold modal conectado")
   }
 
   open() {
-    console.log("Abriendo modal de stock")
-
     if (!this.hasModalTarget) {
       console.error("No se encontró el target modal")
       return
