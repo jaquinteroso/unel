@@ -89,7 +89,7 @@ production:
     <<: *default
     database: unel_production
     username: unel
-    password: <%= ENV["UNEL_DATABASE_PASSWORD"] %>
+    password: <%= ENV["DATABASE_PASSWORD"] %>
   cache:
     <<: *primary_production
     database: unel_production_cache

@@ -36,3 +36,11 @@ Los tipos iniciales de etiqueta son:
 - otra.
 
 Las etiquetas no requieren tamaño. Su clasificación principal es el tipo o ubicación donde se utilizan.
+
+## Decisión: registro público de administradores deshabilitado
+
+Las cuentas administrativas no pueden registrarse desde una ruta pública.
+
+Los administradores oficiales se crean mediante `db/seeds.rb`. En producción, el correo y la contraseña inicial se entregan mediante las variables de entorno `ADMIN_EMAIL` y `ADMIN_PASSWORD`.
+
+Devise conserva únicamente el inicio de sesión y la recuperación de contraseña para cuentas existentes.

@@ -7,7 +7,9 @@ class Product < ApplicationRecord
   has_many :product_supplies, dependent: :destroy
   has_many :supplies, through: :product_supplies
 
-  accepts_nested_attributes_for :recipe_items, allow_destroy: true, reject_if: :all_blank
+  accepts_nested_attributes_for :recipe_items,
+    allow_destroy: true,
+    reject_if: :blank_recipe_item?
   accepts_nested_attributes_for :product_supplies,
     allow_destroy: true,
     reject_if: ->(attributes) { attributes["supply_id"].blank? && attributes["id"].blank? }
@@ -65,6 +67,10 @@ class Product < ApplicationRecord
   end
 
   private
+
+  def blank_recipe_item?(attributes)
+    attributes["ingredient_id"].blank? && attributes["quantity"].blank?
+  end
 
   # Método que pone "Sin descripción" si el usuario lo dejó en blanco
   def set_default_description

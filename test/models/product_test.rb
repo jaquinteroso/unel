@@ -80,4 +80,29 @@ class ProductTest < ActiveSupport::TestCase
     assert product.save
     assert_empty product.product_supplies
   end
+
+  test "ignores a completely blank recipe row" do
+    product = Product.new(
+      name: "Producto sin receta",
+      margin: 30,
+      recipe_items_attributes: {
+        "0" => { ingredient_id: "", quantity: "", quantity_unit: "" }
+      }
+    )
+
+    assert product.save
+    assert_empty product.recipe_items
+  end
+
+  test "validates a partially completed recipe row" do
+    product = Product.new(
+      name: "Producto con receta incompleta",
+      recipe_items_attributes: {
+        "0" => { ingredient_id: "", quantity: "2", quantity_unit: "kg" }
+      }
+    )
+
+    assert_not product.valid?
+    assert product.errors.attribute_names.any? { |attribute| attribute.to_s.include?("ingredient") }
+  end
 end

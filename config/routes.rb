@@ -1,12 +1,12 @@
 Rails.application.routes.draw do
   # 1. AUTENTICACIÓN
-  devise_for :admins
+  devise_for :admins, skip: [:registrations]
 
   # 2. MUNDO PÚBLICO (La Vitrina - Lo que diseña Pedro)
   root "products#index" 
   resources :products, only: [:index, :show]
 
-  # 3. MUNDO PRIVADO (El Panel de UNEL - Donde tú programas)
+  # 3. MUNDO PRIVADO (El Panel de Unel - Donde tú programas)
   namespace :admin do
     get 'dashboard', to: 'dashboard#index'
     

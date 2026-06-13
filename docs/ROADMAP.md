@@ -1,4 +1,4 @@
-# Roadmap — UNEL Conservas
+# Roadmap — Unel Conservas
 
 Este roadmap proviene de la planificación inicial del proyecto. Jorge indicó que el Módulo 1 ya está bastante avanzado y debería estar casi listo, pero falta revisión.
 

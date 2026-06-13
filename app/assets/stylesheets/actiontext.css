@@ -441,7 +441,7 @@ trix-editor .attachment__metadata {
 
 
 
-/* UNEL: solo editor de descripción del producto */
+/* Unel: solo editor de descripción del producto */
 .unel-product-description-trix .trix-button-group--file-tools,
 .unel-product-description-trix [data-trix-action="attachFiles"],
 .unel-product-description-trix .trix-button--icon-attach {

@@ -28,6 +28,10 @@ es:
         supply: "Insumo"
         role: "Tipo"
         quantity: "Cantidad"
+      product/recipe_items:
+        ingredient: "Ingrediente de la receta"
+        quantity: "Cantidad del ingrediente"
+        quantity_unit: "Unidad del ingrediente"
     errors:
       messages:
         record_invalid: "No se pudo guardar el registro: %{errors}"
@@ -47,6 +51,7 @@ es:
     format: "%{attribute} %{message}"
     messages:
       blank: "no puede estar en blanco"
+      required: "debe estar seleccionado"
       inclusion: "no es válido"
       not_a_number: "debe ser un número"
       greater_than: "debe ser mayor que %{count}"
