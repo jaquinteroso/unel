@@ -47,10 +47,10 @@
 
     <% if product.errors.any? %>
       <div class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 shadow-sm">
-        <h3 class="text-sm font-bold text-red-700">Revisa los siguientes errores:</h3>
+        <h3 class="text-sm font-bold text-red-700">No se pudo guardar el producto:</h3>
         <ul class="mt-2 list-disc pl-5 text-sm font-medium text-red-600">
-          <% product.errors.each do |error| %>
-            <li><%= error.message %></li>
+          <% product.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
           <% end %>
         </ul>
       </div>

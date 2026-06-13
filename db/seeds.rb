@@ -1,18 +1,27 @@
-puts "🌱 Plantando semillas..."
+puts "Plantando semillas..."
 
-# Buscamos si ya existe el admin para no crearlo dos veces si corres el comando de nuevo
-admin_email = 'admin@unel.cl'
-admin_password = 'password123'
+# En producción las credenciales deben configurarse en el entorno.
+admin_email = ENV.fetch("ADMIN_EMAIL") do
+  raise "Define ADMIN_EMAIL antes de ejecutar seeds en producción" if Rails.env.production?
+
+  "admin@unel.cl"
+end
 
 if Admin.exists?(email: admin_email)
-  puts "✅ El administrador ya existe."
+  puts "El administrador #{admin_email} ya existe."
 else
+  admin_password = ENV.fetch("ADMIN_PASSWORD") do
+    raise "Define ADMIN_PASSWORD antes de ejecutar seeds en producción" if Rails.env.production?
+
+    "password123"
+  end
+
   Admin.create!(
     email: admin_email,
     password: admin_password,
     password_confirmation: admin_password
   )
-  puts "👑 Cuenta de Admin creada: #{admin_email} / #{admin_password}"
+  puts "Cuenta de administrador creada: #{admin_email}"
 end
 
-puts "🌳 ¡Semillas plantadas con éxito!"
+puts "Semillas plantadas con exito."

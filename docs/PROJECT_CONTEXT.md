@@ -1,8 +1,8 @@
-# Project Context — Auge / UNEL Conservas
+# Project Context — Auge / Unel Conservas
 
 ## Descripción general
 
-Este proyecto corresponde al desarrollo de una aplicación web para UNEL Conservas, trabajada como primer cliente dentro del emprendimiento Auge.
+Este proyecto corresponde al desarrollo de una aplicación web para Unel Conservas, trabajada como primer cliente dentro del emprendimiento Auge.
 
 La aplicación busca ayudar a una pyme de conservas a ordenar áreas clave del negocio: costeo de productos, inventario, finanzas, clientes, ventas y eventualmente una plataforma de pedidos online.
 

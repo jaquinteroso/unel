@@ -1,4 +1,4 @@
-# 🥫 UNEL Conservas - Sistema de Gestión y E-commerce
+# 🥫 Unel Conservas - Sistema de Gestión y E-commerce
 
 Plataforma integral desarrollada para la gestión interna y venta pública de conservas artesanales. El sistema cuenta con una vitrina pública para clientes y un panel de administración privado (SaaS) para gestionar inventario, costeo de recetas, finanzas y ventas.
 

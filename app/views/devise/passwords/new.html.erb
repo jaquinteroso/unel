@@ -1,0 +1,27 @@
+<% content_for :title, "Recuperar contraseña | Unel" %>
+
+<div class="rounded-2xl border border-unel-crema-2 bg-white p-6 shadow-sm sm:p-8">
+  <p class="text-sm font-semibold uppercase tracking-[0.16em] text-unel-dorado">Recuperación de acceso</p>
+  <h1 class="mt-2 text-3xl font-bold text-unel-carbon">Restablecer contraseña</h1>
+  <p class="mt-3 text-sm leading-6 text-unel-humo">Te enviaremos instrucciones al correo asociado a tu cuenta administrativa.</p>
+
+  <%= form_with model: resource, as: resource_name, url: password_path(resource_name), method: :post, class: "mt-8 space-y-5" do |form| %>
+    <%= render "devise/shared/error_messages", resource: resource %>
+
+    <div>
+      <%= form.label :email, "Correo electrónico", class: "block text-sm font-semibold text-unel-carbon" %>
+      <%= form.email_field :email,
+        autofocus: true,
+        autocomplete: "email",
+        required: true,
+        placeholder: "admin@unel.cl",
+        class: "mt-2 w-full rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-3 text-sm text-unel-carbon outline-none transition placeholder:text-unel-humo focus:border-unel-dorado focus:ring-2 focus:ring-unel-dorado/20" %>
+    </div>
+
+    <%= form.submit "Enviar instrucciones", class: "w-full cursor-pointer rounded-xl bg-unel-verde px-5 py-3 text-sm font-bold text-white transition hover:bg-unel-carbon focus:outline-none focus:ring-2 focus:ring-unel-dorado focus:ring-offset-2" %>
+  <% end %>
+</div>
+
+<p class="mt-6 text-center text-sm">
+  <%= link_to "Volver a iniciar sesión", new_session_path(resource_name), class: "font-semibold text-unel-dorado transition hover:text-unel-verde" %>
+</p>
