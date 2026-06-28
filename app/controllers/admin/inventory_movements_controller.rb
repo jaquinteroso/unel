@@ -7,8 +7,6 @@ class Admin::InventoryMovementsController < Admin::ApplicationController
         { product_supplies: :supply }
       )
       .order(:name)
-
-    @low_stock_threshold = 5
   end
 
   def new
