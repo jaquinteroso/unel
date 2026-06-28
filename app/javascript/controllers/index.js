@@ -36,3 +36,6 @@ application.register("supply-form", SupplyFormController)
 
 import TableSortController from "./table_sort_controller"
 application.register("table-sort", TableSortController)
+
+import InventoryMovementFormController from "./inventory_movement_form_controller"
+application.register("inventory-movement-form", InventoryMovementFormController)
