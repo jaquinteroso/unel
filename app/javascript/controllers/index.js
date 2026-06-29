@@ -39,3 +39,6 @@ application.register("table-sort", TableSortController)
 
 import InventoryMovementFormController from "./inventory_movement_form_controller"
 application.register("inventory-movement-form", InventoryMovementFormController)
+
+import TableOverflowController from "./table_overflow_controller"
+application.register("table-overflow", TableOverflowController)

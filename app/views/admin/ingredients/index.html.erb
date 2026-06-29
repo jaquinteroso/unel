@@ -56,14 +56,17 @@
     </div>
 
     <% if @ingredients.any? %>
-      <div class="flex flex-col gap-4 border-b border-unel-crema-2 px-4 py-4 sm:px-6 md:flex-row md:items-center md:justify-between">
-        <div class="flex flex-wrap items-center gap-3">
+      <div class="flex flex-col gap-4 border-b border-unel-crema-2 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
+        <div class="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-between lg:w-auto lg:justify-start">
           <%= link_to "Nuevo ingrediente", new_admin_ingredient_path,
-            class: "rounded-xl bg-unel-verde px-4 py-2 text-center text-sm font-semibold text-unel-blanco transition hover:bg-unel-carbon" %>
+            class: "inline-flex w-full justify-center rounded-xl bg-unel-verde px-4 py-2 text-center text-sm font-semibold text-unel-blanco transition hover:bg-unel-carbon sm:w-auto" %>
+
+          <span data-table-filter-target="resultsCount" class="text-xs text-unel-humo">
+          </span>
         </div>
 
-        <div class="flex w-full flex-col gap-3 sm:flex-row sm:items-center md:w-auto">
-          <div class="flex w-full items-center gap-2 rounded-xl border border-unel-crema-2 px-4 py-2 sm:w-auto">
+        <div class="grid w-full gap-3 lg:flex lg:w-auto lg:items-center">
+          <div class="flex w-full min-w-0 items-center gap-2 rounded-xl border border-unel-crema-2 px-4 py-2 lg:w-60">
             <label for="ingredients_sort" class="shrink-0 text-xs font-semibold text-unel-humo">
               Ordenar por:
             </label>
@@ -72,7 +75,7 @@
               id="ingredients_sort"
               data-table-sort-target="select"
               data-action="change->table-sort#sort"
-              class="w-full bg-transparent text-sm font-semibold text-unel-verde outline-none sm:w-52"
+              class="min-w-0 flex-1 bg-transparent text-sm font-semibold text-unel-verde outline-none"
             >
               <option value="">Orden original</option>
               <option value="name_asc">Nombre A-Z</option>
@@ -84,74 +87,84 @@
             </select>
           </div>
 
-          <div class="w-full rounded-xl bg-unel-crema px-4 py-2 sm:w-auto">
+          <div class="w-full rounded-xl bg-unel-crema px-4 py-2 lg:w-64">
             <input
               type="search"
               placeholder="Buscar ingrediente..."
               data-table-filter-target="input"
               data-action="input->table-filter#filter"
-              class="w-full bg-transparent text-sm text-unel-negro outline-none placeholder:text-unel-humo sm:w-64"
+              class="w-full bg-transparent text-sm text-unel-negro outline-none placeholder:text-unel-humo"
             >
           </div>
         </div>
       </div>
 
-      <div class="overflow-x-auto">
-        <table class="min-w-180 w-full text-left text-sm">
-          <thead class="bg-unel-verde text-xs uppercase tracking-wide text-unel-blanco">
-            <tr>
-              <th class="px-6 py-4 font-semibold">Nombre</th>
-              <th class="px-6 py-4 font-semibold">Unidad de medida</th>
-              <th class="px-6 py-4 font-semibold">Costo por unidad</th>
-              <th class="px-6 py-4 font-semibold">Usado en</th>
-              <th class="px-6 py-4 text-right font-semibold">Acciones</th>
-            </tr>
-          </thead>
+      <div data-controller="table-overflow" class="unel-table-scroll-wrapper">
+        <div data-table-overflow-target="hint" class="unel-scroll-hint">
+          Desliza para ver toda la tabla →
+        </div>
 
-          <tbody data-table-sort-target="body" class="divide-y divide-unel-crema-2">
-            <% @ingredients.each do |ingredient| %>
-              <% used_count = ingredient.products.distinct.count %>
-
-              <tr
-                data-table-filter-target="row"
-                data-table-sort-target="row"
-                data-search-text="<%= [ingredient.name, ingredient.unit_measure, ingredient.cost_per_unit, used_count].join(' ') %>"
-                data-sort-name="<%= ingredient.name %>"
-                data-sort-cost="<%= ingredient.cost_per_unit || 0 %>"
-                data-sort-stock="<%= used_count %>"
-                class="transition hover:bg-unel-crema/50"
-              >
-                <td class="px-6 py-4 font-semibold text-unel-negro">
-                  <%= ingredient.name %>
-                </td>
-
-                <td class="px-6 py-4 text-unel-humo">
-                  <%= ingredient.unit_measure %>
-                </td>
-
-                <td class="px-6 py-4 font-semibold text-unel-verde">
-                  <%= number_to_currency(ingredient.cost_per_unit || 0, unit: "$", precision: 0, delimiter: ".") %>
-                </td>
-
-                <td class="px-6 py-4 text-unel-humo">
-                  <%= pluralize(used_count, "producto", "productos") %>
-                </td>
-
-                <td class="px-6 py-4">
-                  <div class="flex items-center justify-end gap-3">
-                    <%= link_to "Editar", edit_admin_ingredient_path(ingredient),
-                      class: "text-sm font-semibold text-unel-dorado transition hover:text-unel-dorado-2" %>
-
-                    <%= button_to "Eliminar", admin_ingredient_path(ingredient),
-                      method: :delete,
-                      form: { data: { turbo_confirm: "¿Eliminar #{ingredient.name}?" } },
-                      class: "text-sm font-semibold text-red-500 transition hover:text-red-700 cursor-pointer" %>
-                  </div>
-                </td>
+        <div
+          data-table-overflow-target="scroll"
+          data-action="scroll->table-overflow#check"
+          class="overflow-x-auto"
+        >
+          <table class="min-w-180 w-full text-left text-sm">
+            <thead class="bg-unel-verde text-xs uppercase tracking-wide text-unel-blanco">
+              <tr>
+                <th class="px-6 py-4 font-semibold">Nombre</th>
+                <th class="px-6 py-4 font-semibold">Unidad de medida</th>
+                <th class="px-6 py-4 font-semibold">Costo por unidad</th>
+                <th class="px-6 py-4 font-semibold">Usado en</th>
+                <th class="px-6 py-4 text-right font-semibold">Acciones</th>
               </tr>
-            <% end %>
-          </tbody>
-        </table>
+            </thead>
+
+            <tbody data-table-sort-target="body" class="divide-y divide-unel-crema-2">
+              <% @ingredients.each do |ingredient| %>
+                <% used_count = ingredient.products.distinct.count %>
+
+                <tr
+                  data-table-filter-target="row"
+                  data-table-sort-target="row"
+                  data-search-text="<%= [ingredient.name, ingredient.unit_measure, ingredient.cost_per_unit, used_count].join(' ') %>"
+                  data-sort-name="<%= ingredient.name %>"
+                  data-sort-cost="<%= ingredient.cost_per_unit || 0 %>"
+                  data-sort-stock="<%= used_count %>"
+                  class="transition hover:bg-unel-crema/50"
+                >
+                  <td class="px-6 py-4 font-semibold text-unel-negro">
+                    <%= ingredient.name %>
+                  </td>
+
+                  <td class="px-6 py-4 text-unel-humo">
+                    <%= ingredient.unit_measure %>
+                  </td>
+
+                  <td class="px-6 py-4 font-semibold text-unel-verde">
+                    <%= number_to_currency(ingredient.cost_per_unit || 0, unit: "$", precision: 0, delimiter: ".") %>
+                  </td>
+
+                  <td class="px-6 py-4 text-unel-humo">
+                    <%= pluralize(used_count, "producto", "productos") %>
+                  </td>
+
+                  <td class="px-6 py-4">
+                    <div class="flex items-center justify-end gap-3">
+                      <%= link_to "Editar", edit_admin_ingredient_path(ingredient),
+                        class: "text-sm font-semibold text-unel-dorado transition hover:text-unel-dorado-2" %>
+
+                      <%= button_to "Eliminar", admin_ingredient_path(ingredient),
+                        method: :delete,
+                        form: { data: { turbo_confirm: "¿Eliminar #{ingredient.name}?" } },
+                        class: "text-sm font-semibold text-red-500 transition hover:text-red-700 cursor-pointer" %>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <div data-table-filter-target="emptyState" class="hidden border-t border-unel-crema-2 px-4 py-12 text-center sm:px-6">
@@ -183,7 +196,7 @@
 
         <div class="mt-6">
           <%= link_to "Crear primer ingrediente", new_admin_ingredient_path,
-            class: "rounded-xl bg-unel-verde px-4 py-2 text-sm font-semibold text-unel-blanco transition hover:bg-unel-carbon" %>
+            class: "inline-flex w-full justify-center rounded-xl bg-unel-verde px-4 py-2 text-sm font-semibold text-unel-blanco transition hover:bg-unel-carbon sm:w-auto" %>
         </div>
       </div>
     <% end %>

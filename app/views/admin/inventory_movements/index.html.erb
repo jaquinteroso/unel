@@ -269,14 +269,14 @@ end %>
               <div class="flex flex-wrap gap-2">
                 <% if movement_new_path_available %>
                   <%= link_to "Registrar entrada", new_admin_inventory_movement_path(movement_type: "entry", product_id: product.id),
-                    class: "rounded-xl bg-unel-verde px-4 py-2 text-sm font-semibold text-white transition hover:bg-unel-carbon" %>
+                    class: "w-full rounded-xl bg-unel-verde px-4 py-2 text-center text-sm font-semibold text-white transition hover:bg-unel-carbon sm:w-auto"%>
                 <% else %>
                   <%= link_to "Editar stock", edit_admin_product_path(product),
-                    class: "rounded-xl bg-unel-verde px-4 py-2 text-sm font-semibold text-white transition hover:bg-unel-carbon" %>
+                    class: "w-full rounded-xl bg-unel-verde px-4 py-2 text-center text-sm font-semibold text-white transition hover:bg-unel-carbon sm:w-auto"%>
                 <% end %>
 
                 <%= link_to "Ver producto", admin_product_path(product),
-                  class: "rounded-xl border border-unel-crema-2 px-4 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado" %>
+                  class: "w-full rounded-xl border border-unel-crema-2 px-4 py-2 text-center text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado sm:w-auto"%>
               </div>
             </div>
           </div>
@@ -307,10 +307,10 @@ end %>
     <% end %>
   </div>
 
-  <div class="mt-6 grid gap-5 xl:grid-cols-[1.6fr_0.85fr]">
-    <div data-controller="table-filter table-sort" class="rounded-2xl border border-unel-crema-2 bg-white shadow-sm">
+  <div class="mt-6 grid gap-5 xl:grid-cols-[minmax(0,1.6fr)_minmax(18rem,0.85fr)]">
+    <div data-controller="table-filter table-sort" class="min-w-0 rounded-2xl border border-unel-crema-2 bg-white shadow-sm">
       <div class="flex flex-col gap-3 border-b border-unel-crema-2 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
-        <div>
+        <div class="min-w-0">
           <h2 class="text-lg font-bold text-unel-carbon">
             Lista rápida de stock
           </h2>
@@ -321,11 +321,11 @@ end %>
         </div>
 
         <% if products.any? %>
-          <div class="flex w-full flex-col gap-2 sm:flex-row sm:items-center lg:w-auto">
-            <span data-table-filter-target="resultsCount" class="text-xs text-unel-humo">
+          <div class="grid w-full gap-3 sm:grid-cols-2 lg:flex lg:w-auto lg:items-center">
+            <span data-table-filter-target="resultsCount" class="text-xs text-unel-humo sm:col-span-2 lg:col-span-1">
             </span>
 
-            <div class="flex w-full items-center gap-2 rounded-xl border border-unel-crema-2 px-4 py-2 sm:w-auto">
+            <div class="flex w-full min-w-0 items-center gap-2 rounded-xl border border-unel-crema-2 px-4 py-2 lg:w-56">
               <label for="inventory_sort" class="shrink-0 text-xs font-semibold text-unel-humo">
                 Ordenar:
               </label>
@@ -334,7 +334,7 @@ end %>
                 id="inventory_sort"
                 data-table-sort-target="select"
                 data-action="change->table-sort#sort"
-                class="w-full bg-transparent text-sm font-semibold text-unel-verde outline-none sm:w-48"
+                class="min-w-0 flex-1 bg-transparent text-sm font-semibold text-unel-verde outline-none"
               >
                 <option value="stock_asc">Menor stock primero</option>
                 <option value="stock_desc">Mayor stock primero</option>
@@ -343,13 +343,13 @@ end %>
               </select>
             </div>
 
-            <div class="w-full rounded-xl bg-unel-crema px-4 py-2 sm:w-auto">
+            <div class="w-full rounded-xl bg-unel-crema px-4 py-2 lg:w-60">
               <input
                 type="search"
                 placeholder="Buscar producto..."
                 data-table-filter-target="input"
                 data-action="input->table-filter#filter"
-                class="w-full bg-transparent text-sm text-unel-negro outline-none placeholder:text-unel-humo sm:w-56"
+                class="w-full bg-transparent text-sm text-unel-negro outline-none placeholder:text-unel-humo"
               >
             </div>
           </div>
@@ -357,97 +357,107 @@ end %>
       </div>
 
       <% if products.any? %>
-        <div class="overflow-x-auto">
-          <table class="min-w-180 w-full text-left text-sm">
-            <thead class="bg-unel-verde text-xs uppercase tracking-wide text-unel-blanco">
-              <tr>
-                <th class="px-6 py-4 font-semibold">Producto</th>
-                  <th class="px-6 py-4 font-semibold">Stock</th>
-                  <th class="px-6 py-4 font-semibold">Umbral</th>
-                  <th class="px-6 py-4 font-semibold">Estado</th>
-                  <th class="px-6 py-4 text-right font-semibold">Acción rápida</th>
-              </tr>
-            </thead>
+        <div data-controller="table-overflow" class="unel-table-scroll-wrapper">
+          <div data-table-overflow-target="hint" class="unel-scroll-hint">
+            Desliza para ver toda la tabla →
+          </div>
 
-            <tbody data-table-sort-target="body" class="divide-y divide-unel-crema-2">
-              <% products.each do |product| %>
-                <% stock = product.stock.to_i %>
-                <% product_threshold = product_low_stock_threshold.call(product) %>
-
-                <% if stock <= 0 %>
-                  <% status_label = "Agotado" %>
-                  <% status_classes = "border-red-200 bg-red-50 text-red-700" %>
-                <% elsif stock <= product_threshold %>
-                  <% status_label = "Stock bajo" %>
-                  <% status_classes = "border-amber-200 bg-amber-50 text-amber-700" %>
-                <% else %>
-                  <% status_label = "Disponible" %>
-                  <% status_classes = "border-unel-crema-2 bg-white text-unel-verde" %>
-                <% end %>
-
-                <tr
-                  data-table-filter-target="row"
-                  data-table-sort-target="row"
-                  data-search-text="<%= [product.name, status_label, stock, product_threshold].join(' ') %>"
-                  data-sort-name="<%= product.name %>"
-                  data-sort-stock="<%= stock %>"
-                  class="transition hover:bg-unel-crema/50"
-                >
-                  <td class="px-6 py-4">
-                    <div class="flex items-center gap-3">
-                      <% if product.image.attached? %>
-                        <%= image_tag product.image, class: "h-10 w-10 rounded-lg border border-unel-crema-2 object-cover" %>
-                      <% else %>
-                        <div class="flex h-10 w-10 items-center justify-center rounded-lg border border-unel-crema-2 bg-unel-crema text-center text-xs leading-tight text-unel-humo">
-                          Sin foto
-                        </div>
-                      <% end %>
-
-                      <div>
-                        <%= link_to product.name, admin_product_path(product),
-                          class: "font-semibold text-unel-negro transition hover:text-unel-dorado" %>
-
-                        <p class="mt-1 text-xs text-unel-humo">
-                          Producto terminado
-                        </p>
-                      </div>
-                    </div>
-                  </td>
-
-                  <td class="px-6 py-4">
-                    <p class="font-bold text-unel-carbon">
-                      <%= stock %>
-                    </p>
-
-                    <p class="text-xs text-unel-humo">
-                      unidades
-                    </p>
-                  </td>
-                  <td class="px-6 py-4 text-unel-humo">
-                    <%= product_threshold %> unidades
-                  </td>
-
-                  <td class="px-6 py-4">
-                    <span class="inline-flex rounded-full border px-3 py-1 text-xs font-semibold <%= status_classes %>">
-                      <%= status_label %>
-                    </span>
-                  </td>
-
-                  <td class="px-6 py-4">
-                    <div class="flex items-center justify-end gap-3">
-                      <% if movement_new_path_available %>
-                        <%= link_to "Movimiento", new_admin_inventory_movement_path(product_id: product.id),
-                          class: "text-sm font-semibold text-unel-dorado transition hover:text-unel-dorado-2" %>
-                      <% end %>
-
-                      <%= link_to "Editar", edit_admin_product_path(product),
-                        class: "text-sm font-semibold text-unel-humo transition hover:text-unel-dorado" %>
-                    </div>
-                  </td>
+          <div
+            data-table-overflow-target="scroll"
+            data-action="scroll->table-overflow#check"
+            class="overflow-x-auto"
+          >
+            <table class="min-w-180 w-full text-left text-sm">
+              <thead class="bg-unel-verde text-xs uppercase tracking-wide text-unel-blanco">
+                <tr>
+                  <th class="px-6 py-4 font-semibold">Producto</th>
+                    <th class="px-6 py-4 font-semibold">Stock</th>
+                    <th class="px-6 py-4 font-semibold">Umbral</th>
+                    <th class="px-6 py-4 font-semibold">Estado</th>
+                    <th class="px-6 py-4 text-right font-semibold">Acción rápida</th>
                 </tr>
-              <% end %>
-            </tbody>
-          </table>
+              </thead>
+
+              <tbody data-table-sort-target="body" class="divide-y divide-unel-crema-2">
+                <% products.each do |product| %>
+                  <% stock = product.stock.to_i %>
+                  <% product_threshold = product_low_stock_threshold.call(product) %>
+
+                  <% if stock <= 0 %>
+                    <% status_label = "Agotado" %>
+                    <% status_classes = "border-red-200 bg-red-50 text-red-700" %>
+                  <% elsif stock <= product_threshold %>
+                    <% status_label = "Stock bajo" %>
+                    <% status_classes = "border-amber-200 bg-amber-50 text-amber-700" %>
+                  <% else %>
+                    <% status_label = "Disponible" %>
+                    <% status_classes = "border-unel-crema-2 bg-white text-unel-verde" %>
+                  <% end %>
+
+                  <tr
+                    data-table-filter-target="row"
+                    data-table-sort-target="row"
+                    data-search-text="<%= [product.name, status_label, stock, product_threshold].join(' ') %>"
+                    data-sort-name="<%= product.name %>"
+                    data-sort-stock="<%= stock %>"
+                    class="transition hover:bg-unel-crema/50"
+                  >
+                    <td class="px-6 py-4">
+                      <div class="flex items-center gap-3">
+                        <% if product.image.attached? %>
+                          <%= image_tag product.image, class: "h-10 w-10 rounded-lg border border-unel-crema-2 object-cover" %>
+                        <% else %>
+                          <div class="flex h-10 w-10 items-center justify-center rounded-lg border border-unel-crema-2 bg-unel-crema text-center text-xs leading-tight text-unel-humo">
+                            Sin foto
+                          </div>
+                        <% end %>
+
+                        <div>
+                          <%= link_to product.name, admin_product_path(product),
+                            class: "font-semibold text-unel-negro transition hover:text-unel-dorado" %>
+
+                          <p class="mt-1 text-xs text-unel-humo">
+                            Producto terminado
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+
+                    <td class="px-6 py-4">
+                      <p class="font-bold text-unel-carbon">
+                        <%= stock %>
+                      </p>
+
+                      <p class="text-xs text-unel-humo">
+                        unidades
+                      </p>
+                    </td>
+                    <td class="px-6 py-4 text-unel-humo">
+                      <%= product_threshold %> unidades
+                    </td>
+
+                    <td class="px-6 py-4">
+                      <span class="inline-flex rounded-full border px-3 py-1 text-xs font-semibold <%= status_classes %>">
+                        <%= status_label %>
+                      </span>
+                    </td>
+
+                    <td class="px-6 py-4">
+                      <div class="flex items-center justify-end gap-3">
+                        <% if movement_new_path_available %>
+                          <%= link_to "Movimiento", new_admin_inventory_movement_path(product_id: product.id),
+                            class: "text-sm font-semibold text-unel-dorado transition hover:text-unel-dorado-2" %>
+                        <% end %>
+
+                        <%= link_to "Editar", edit_admin_product_path(product),
+                          class: "text-sm font-semibold text-unel-humo transition hover:text-unel-dorado" %>
+                      </div>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
         </div>
 
         <div data-table-filter-target="emptyState" class="hidden border-t border-unel-crema-2 px-4 py-12 text-center sm:px-6">
@@ -485,7 +495,7 @@ end %>
       <% end %>
     </div>
 
-    <div class="rounded-2xl border border-unel-crema-2 bg-white p-5 shadow-sm">
+    <div class="min-w-0 rounded-2xl border border-unel-crema-2 bg-white p-5 shadow-sm">
       <p class="text-sm font-semibold uppercase tracking-wide text-unel-dorado">
         Historial reciente
       </p>
@@ -505,15 +515,15 @@ end %>
 
         <% if movement_new_path_available %>
           <%= link_to "Registrar movimiento", new_admin_inventory_movement_path,
-            class: "mt-4 inline-flex rounded-xl bg-unel-verde px-4 py-2 text-sm font-semibold text-white transition hover:bg-unel-carbon" %>
+            class: "mt-4 inline-flex w-full justify-center rounded-xl bg-unel-verde px-4 py-2 text-sm font-semibold text-white transition hover:bg-unel-carbon sm:w-auto" %>
         <% else %>
           <%= link_to "Editar productos", admin_products_path,
-            class: "mt-4 inline-flex rounded-xl bg-unel-verde px-4 py-2 text-sm font-semibold text-white transition hover:bg-unel-carbon" %>
+            class: "mt-4 inline-flex w-full justify-center rounded-xl bg-unel-verde px-4 py-2 text-sm font-semibold text-white transition hover:bg-unel-carbon sm:w-auto" %>
         <% end %>
       </div>
 
       <div class="mt-4 space-y-2.5">
-        <div class="flex items-center justify-between rounded-xl bg-unel-crema px-4 py-3">
+        <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-unel-crema px-4 py-3">
           <span class="text-sm font-semibold text-unel-carbon">
             Productos disponibles
           </span>
@@ -523,7 +533,7 @@ end %>
           </span>
         </div>
 
-        <div class="flex items-center justify-between rounded-xl bg-red-50 px-4 py-3">
+        <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-red-50 px-4 py-3">
           <span class="text-sm font-semibold text-red-700">
             Sin stock
           </span>
@@ -533,7 +543,7 @@ end %>
           </span>
         </div>
 
-        <div class="flex items-center justify-between rounded-xl bg-amber-50 px-4 py-3">
+        <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-amber-50 px-4 py-3">
           <span class="text-sm font-semibold text-amber-700">
             Por reponer
           </span>

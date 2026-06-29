@@ -103,30 +103,30 @@ end %>
       </p>
     </div>
 
-    <div class="flex flex-col gap-4 border-b border-unel-crema-2 px-4 py-4 sm:px-6 md:flex-row md:items-center md:justify-between">
-      <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+    <div class="flex flex-col gap-4 border-b border-unel-crema-2 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
+      <div class="grid w-full gap-3 sm:grid-cols-2 lg:flex lg:w-auto lg:items-center">
         <%= link_to "Nuevo producto", new_admin_product_path,
-          class: "w-full rounded-xl bg-unel-verde px-4 py-2 text-center text-sm font-semibold text-unel-blanco transition hover:bg-unel-carbon sm:w-auto" %>
+          class: "w-full rounded-xl bg-unel-verde px-4 py-2 text-center text-sm font-semibold text-unel-blanco transition hover:bg-unel-carbon lg:w-auto" %>
 
-        <button type="button" class="w-full rounded-xl border border-unel-crema-2 px-4 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado sm:w-auto">
+        <button type="button" class="w-full rounded-xl border border-unel-crema-2 px-4 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado lg:w-auto">
           Exportar
         </button>
       </div>
 
-      <div class="flex w-full flex-col gap-3 sm:flex-row sm:items-center md:w-auto">
-        <span data-table-filter-target="resultsCount" class="text-xs text-unel-humo">
+      <div class="grid w-full gap-3 sm:grid-cols-2 lg:flex lg:w-auto lg:items-center">
+        <span data-table-filter-target="resultsCount" class="text-xs text-unel-humo sm:col-span-2 lg:col-span-1">
         </span>
 
-
-        <div class="flex w-full items-center gap-2 rounded-xl border border-unel-crema-2 px-4 py-2 sm:w-auto">
-          <label for="products_sort" class="text-xs font-semibold text-unel-humo">
-            Ordenar por:
+        <div class="flex w-full min-w-0 items-center gap-2 rounded-xl border border-unel-crema-2 px-4 py-2 lg:w-64">
+          <label for="products_sort" class="shrink-0 text-xs font-semibold text-unel-humo">
+            Ordenar:
           </label>
+
           <select
             id="products_sort"
             data-table-sort-target="select"
             data-action="change->table-sort#sort"
-            class="w-full bg-transparent text-sm font-semibold text-unel-verde outline-none sm:w-56"
+            class="min-w-0 flex-1 bg-transparent text-sm font-semibold text-unel-verde outline-none"
           >
             <option value="">Orden original</option>
             <option value="name_asc">Nombre A-Z</option>
@@ -144,132 +144,142 @@ end %>
           </select>
         </div>
 
-        <div class="w-full rounded-xl bg-unel-crema px-4 py-2 sm:w-auto">
+        <div class="w-full rounded-xl bg-unel-crema px-4 py-2 lg:w-64">
           <input
             type="search"
             placeholder="Buscar producto..."
             data-table-filter-target="input"
             data-action="input->table-filter#filter"
-            class="w-full bg-transparent text-sm text-unel-negro outline-none placeholder:text-unel-humo sm:w-64"
+            class="w-full bg-transparent text-sm text-unel-negro outline-none placeholder:text-unel-humo"
           >
         </div>
       </div>
     </div>
 
     <% if products.any? %>
-      <div class="overflow-x-auto">
-        <table class="min-w-245 w-full text-left text-sm">
-          <thead class="bg-unel-verde text-xs uppercase tracking-wide text-unel-blanco">
-            <tr>
-              <th class="px-6 py-4 font-semibold w-16">Imagen</th>
-              <th class="px-6 py-4 font-semibold">Producto</th>
-              <th class="px-6 py-4 font-semibold">Costo</th>
-              <th class="px-6 py-4 font-semibold">Margen</th>
-              <th class="px-6 py-4 font-semibold">Precio sugerido</th>
-              <th class="px-6 py-4 font-semibold">Precio final</th>
-              <th class="px-6 py-4 font-semibold">Stock</th>
-              <th class="px-6 py-4 text-right font-semibold">Acciones</th>
-            </tr>
-          </thead>
+      <div data-controller="table-overflow" class="unel-table-scroll-wrapper">
+        <div data-table-overflow-target="hint" class="unel-scroll-hint">
+          Desliza para ver toda la tabla →
+        </div>
 
-          <tbody data-table-sort-target="body" class="divide-y divide-unel-crema-2">
-            <% products.each do |product| %>
-              <% cost = product.respond_to?(:calculated_cost) ? product.calculated_cost.to_f : product.cost.to_f %>
-              <% margin = product.margin.to_f %>
-              <% suggested_price = product.respond_to?(:suggested_price) && product.suggested_price.present? ? product.suggested_price.to_f : cost * (1 + margin / 100.0) %>
-              <% final_price = product.price || 0 %>
-              <% stock = product.stock.to_i %>
-              <% product_threshold = product_low_stock_threshold.call(product) %>
-
-              <tr
-                data-table-filter-target="row"
-                data-table-sort-target="row"
-                data-search-text="<%= [product.name, cost, product.margin, suggested_price, final_price, stock, product_threshold].join(' ') %>"
-                data-sort-name="<%= product.name %>"
-                data-sort-cost="<%= cost %>"
-                data-sort-margin="<%= product.margin || 0 %>"
-                data-sort-suggested-price="<%= suggested_price %>"
-                data-sort-price="<%= final_price %>"
-                data-sort-stock="<%= stock %>"
-                class="transition hover:bg-unel-crema/50"
-                >
-                  <td class="px-6 py-4">
-                    <% if product.respond_to?(:image) && product.image.attached? %>
-                      <%= image_tag product.image, class: "h-10 w-10 rounded-lg object-cover border border-unel-crema-2" %>
-                    <% else %>
-                      <div class="h-10 w-10 rounded-lg bg-unel-crema flex items-center justify-center text-unel-humo text-xs border border-unel-crema-2 text-center leading-tight">
-                        Sin foto
-                      </div>
-                    <% end %>
-                  </td>
-
-                  <td class="px-6 py-4 font-semibold text-unel-negro">
-                    <% if preview_enabled %>
-                      <%= product.name %>
-                    <% else %>
-                      <%= link_to product.name, admin_product_path(product), class: "hover:text-unel-dorado transition" %>
-                    <% end %>
-                  </td>
-
-                  <td class="px-6 py-4 text-unel-humo">
-                    <div class="font-semibold text-unel-carbon">
-                      <%= number_to_currency(cost, unit: "$", precision: 0, delimiter: ".") %>
-                    </div>
-                  </td>
-
-                  <td class="px-6 py-4 text-unel-humo">
-                    <%= product.margin || 0 %>%
-                  </td>
-
-                  <td class="px-6 py-4 font-semibold text-unel-carbon">
-                    <%= number_to_currency(suggested_price, unit: "$", precision: 0, delimiter: ".") %>
-                  </td>
-
-                  <td class="px-6 py-4 font-semibold text-unel-verde">
-                    <%= number_to_currency(final_price, unit: "$", precision: 0, delimiter: ".") %>
-                  </td>
-
-                  <td class="px-6 py-4">
-                    <div class="flex items-center justify-between gap-3">
-                      <% if stock <= 0 %>
-                        <span class="inline-flex rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">
-                          Agotado
-                        </span>
-                      <% elsif stock <= product_threshold %>
-                        <span class="inline-flex rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
-                          Bajo · <%= stock %>
-                        </span>
-                      <% else %>
-                        <span class="inline-flex rounded-full border border-unel-crema-2 bg-white px-3 py-1 text-xs font-semibold text-unel-verde">
-                          <%= stock %> unidades
-                        </span>
-                      <% end %>
-
-                      <span class="inline-flex shrink-0 rounded-full border border-unel-crema-2 bg-unel-crema px-2.5 py-1 text-xs font-medium text-unel-humo">
-                        Umbral: <%= product_threshold %>
-                      </span>
-                    </div>
-                  </td>
-
-                  <td class="px-6 py-4">
-                    <div class="flex items-center justify-end gap-3">
-                      <% if preview_enabled %>
-                        <span class="text-sm font-semibold text-unel-humo">Editar</span>
-                      <% else %>
-                        <%= link_to "Editar", edit_admin_product_path(product),
-                          class: "text-sm font-semibold text-unel-dorado transition hover:text-unel-dorado-2" %>
-
-                        <%= button_to "Eliminar", admin_product_path(product),
-                        method: :delete,
-                        form: { data: { turbo_confirm: "¿Eliminar #{product.name}?" } },
-                        class: "text-sm font-semibold text-red-500 transition hover:text-red-700 cursor-pointer" %>
-                    <% end %>
-                    </div>
-                  </td>
+        <div
+          data-table-overflow-target="scroll"
+          data-action="scroll->table-overflow#check"
+          class="overflow-x-auto"
+        >
+          <table class="min-w-245 w-full text-left text-sm">
+            <thead class="bg-unel-verde text-xs uppercase tracking-wide text-unel-blanco">
+              <tr>
+                <th class="px-6 py-4 font-semibold w-16">Imagen</th>
+                <th class="px-6 py-4 font-semibold">Producto</th>
+                <th class="px-6 py-4 font-semibold">Costo</th>
+                <th class="px-6 py-4 font-semibold">Margen</th>
+                <th class="px-6 py-4 font-semibold">Precio sugerido</th>
+                <th class="px-6 py-4 font-semibold">Precio final</th>
+                <th class="px-6 py-4 font-semibold">Stock</th>
+                <th class="px-6 py-4 text-right font-semibold">Acciones</th>
               </tr>
-            <% end %>
-          </tbody>
-        </table>
+            </thead>
+
+            <tbody data-table-sort-target="body" class="divide-y divide-unel-crema-2">
+              <% products.each do |product| %>
+                <% cost = product.respond_to?(:calculated_cost) ? product.calculated_cost.to_f : product.cost.to_f %>
+                <% margin = product.margin.to_f %>
+                <% suggested_price = product.respond_to?(:suggested_price) && product.suggested_price.present? ? product.suggested_price.to_f : cost * (1 + margin / 100.0) %>
+                <% final_price = product.price || 0 %>
+                <% stock = product.stock.to_i %>
+                <% product_threshold = product_low_stock_threshold.call(product) %>
+
+                <tr
+                  data-table-filter-target="row"
+                  data-table-sort-target="row"
+                  data-search-text="<%= [product.name, cost, product.margin, suggested_price, final_price, stock, product_threshold].join(' ') %>"
+                  data-sort-name="<%= product.name %>"
+                  data-sort-cost="<%= cost %>"
+                  data-sort-margin="<%= product.margin || 0 %>"
+                  data-sort-suggested-price="<%= suggested_price %>"
+                  data-sort-price="<%= final_price %>"
+                  data-sort-stock="<%= stock %>"
+                  class="transition hover:bg-unel-crema/50"
+                  >
+                    <td class="px-6 py-4">
+                      <% if product.respond_to?(:image) && product.image.attached? %>
+                        <%= image_tag product.image, class: "h-10 w-10 rounded-lg object-cover border border-unel-crema-2" %>
+                      <% else %>
+                        <div class="h-10 w-10 rounded-lg bg-unel-crema flex items-center justify-center text-unel-humo text-xs border border-unel-crema-2 text-center leading-tight">
+                          Sin foto
+                        </div>
+                      <% end %>
+                    </td>
+
+                    <td class="px-6 py-4 font-semibold text-unel-negro">
+                      <% if preview_enabled %>
+                        <%= product.name %>
+                      <% else %>
+                        <%= link_to product.name, admin_product_path(product), class: "hover:text-unel-dorado transition" %>
+                      <% end %>
+                    </td>
+
+                    <td class="px-6 py-4 text-unel-humo">
+                      <div class="font-semibold text-unel-carbon">
+                        <%= number_to_currency(cost, unit: "$", precision: 0, delimiter: ".") %>
+                      </div>
+                    </td>
+
+                    <td class="px-6 py-4 text-unel-humo">
+                      <%= product.margin || 0 %>%
+                    </td>
+
+                    <td class="px-6 py-4 font-semibold text-unel-carbon">
+                      <%= number_to_currency(suggested_price, unit: "$", precision: 0, delimiter: ".") %>
+                    </td>
+
+                    <td class="px-6 py-4 font-semibold text-unel-verde">
+                      <%= number_to_currency(final_price, unit: "$", precision: 0, delimiter: ".") %>
+                    </td>
+
+                    <td class="px-6 py-4">
+                      <div class="flex items-center justify-between gap-3">
+                        <% if stock <= 0 %>
+                          <span class="inline-flex rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">
+                            Agotado
+                          </span>
+                        <% elsif stock <= product_threshold %>
+                          <span class="inline-flex rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+                            Bajo · <%= stock %>
+                          </span>
+                        <% else %>
+                          <span class="inline-flex rounded-full border border-unel-crema-2 bg-white px-3 py-1 text-xs font-semibold text-unel-verde">
+                            <%= stock %> unidades
+                          </span>
+                        <% end %>
+
+                        <span class="inline-flex shrink-0 rounded-full border border-unel-crema-2 bg-unel-crema px-2.5 py-1 text-xs font-medium text-unel-humo">
+                          Umbral: <%= product_threshold %>
+                        </span>
+                      </div>
+                    </td>
+
+                    <td class="px-6 py-4">
+                      <div class="flex items-center justify-end gap-3">
+                        <% if preview_enabled %>
+                          <span class="text-sm font-semibold text-unel-humo">Editar</span>
+                        <% else %>
+                          <%= link_to "Editar", edit_admin_product_path(product),
+                            class: "text-sm font-semibold text-unel-dorado transition hover:text-unel-dorado-2" %>
+
+                          <%= button_to "Eliminar", admin_product_path(product),
+                          method: :delete,
+                          form: { data: { turbo_confirm: "¿Eliminar #{product.name}?" } },
+                          class: "text-sm font-semibold text-red-500 transition hover:text-red-700 cursor-pointer" %>
+                      <% end %>
+                      </div>
+                    </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <div data-table-filter-target="emptyState" class="hidden border-t border-unel-crema-2 px-4 py-12 text-center sm:px-6">
