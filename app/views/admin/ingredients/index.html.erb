@@ -44,7 +44,12 @@
       description: "Ingredientes aún no asociados" %>
   </div>
 
-  <div data-controller="table-filter table-sort" class="rounded-lg mt-4 border border-unel-crema-2 bg-white shadow-sm">
+  <div
+    data-controller="table-filter table-sort"
+    data-table-filter-singular-value="ingrediente"
+    data-table-filter-plural-value="ingredientes"
+    class="rounded-lg mt-4 border border-unel-crema-2 bg-white shadow-sm"
+  >
     <div class="border-b border-unel-crema-2 px-4 py-5 sm:px-6">
       <h2 class="text-lg font-bold text-unel-carbon">
         Ingredientes registrados
