@@ -9,7 +9,6 @@
 <% monthly_balance = monthly_income - monthly_expenses %>
 <% pending_debts_count = 0 %>
 <% pending_debts_total = 0 %>
-<% finance_backend_ready = false %>
 
 <section>
   <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -22,12 +21,6 @@
         Revisa ingresos, gastos, balance mensual y compromisos pendientes del negocio.
       </p>
     </div>
-
-    <% unless finance_backend_ready %>
-      <span class="inline-flex w-fit rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
-        Pendiente de conexión backend
-      </span>
-    <% end %>
   </div>
 
   <div class="rounded-2xl border border-unel-crema-2 bg-white shadow-sm">
@@ -47,29 +40,14 @@
       </div>
 
       <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
-        <button
-          type="button"
-          disabled
-          class="inline-flex justify-center rounded-xl bg-unel-verde px-4 py-2 text-sm font-semibold text-white opacity-70"
-        >
-          Registrar ingreso
-        </button>
+        <%= link_to "Registrar ingreso", new_admin_financial_movement_path(movement_type: "income"),
+          class: "inline-flex justify-center rounded-xl bg-unel-verde px-4 py-2 text-sm font-semibold text-white transition hover:bg-unel-carbon" %>
 
-        <button
-          type="button"
-          disabled
-          class="inline-flex justify-center rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 opacity-70"
-        >
-          Registrar gasto
-        </button>
+        <%= link_to "Registrar gasto", new_admin_financial_movement_path(movement_type: "expense"),
+          class: "inline-flex justify-center rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:border-red-300 hover:bg-white" %>
 
-        <button
-          type="button"
-          disabled
-          class="inline-flex justify-center rounded-xl border border-unel-crema-2 px-4 py-2 text-sm font-semibold text-unel-humo opacity-70"
-        >
-          Registrar deuda
-        </button>
+        <%= link_to "Registrar deuda", new_admin_debt_path,
+          class: "inline-flex justify-center rounded-xl border border-unel-crema-2 px-4 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado" %>
       </div>
     </div>
 
@@ -196,7 +174,7 @@
                 </p>
 
                 <p class="mx-auto mt-2 max-w-md text-sm text-unel-humo">
-                  Cuando se conecte el backend, aquí aparecerán ingresos, gastos y pagos realizados durante el mes.
+                  Cuando se registren movimientos, aquí aparecerán ingresos, gastos y pagos realizados durante el mes.
                 </p>
               </td>
             </tr>
@@ -230,13 +208,8 @@
             Aquí se podrán ver proveedores, montos pendientes y fechas de vencimiento.
           </p>
 
-          <button
-            type="button"
-            disabled
-            class="mt-5 inline-flex w-full justify-center rounded-xl bg-unel-verde px-4 py-2 text-sm font-semibold text-white opacity-70 sm:w-auto"
-          >
-            Registrar deuda
-          </button>
+          <%= link_to "Registrar deuda", new_admin_debt_path,
+            class: "mt-5 inline-flex w-full justify-center rounded-xl bg-unel-verde px-4 py-2 text-sm font-semibold text-white transition hover:bg-unel-carbon sm:w-auto" %>
         </div>
 
         <div class="mt-4 space-y-2.5">
