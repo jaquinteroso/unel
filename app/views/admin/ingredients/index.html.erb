@@ -45,9 +45,11 @@
   </div>
 
   <div
-    data-controller="table-filter table-sort"
-    data-table-filter-singular-value="ingrediente"
-    data-table-filter-plural-value="ingredientes"
+    <% if @ingredients.any? %>
+      data-controller="table-filter table-sort"
+      data-table-filter-singular-value="ingrediente"
+      data-table-filter-plural-value="ingredientes"
+    <% end %>
     class="rounded-lg mt-4 border border-unel-crema-2 bg-white shadow-sm"
   >
     <div class="border-b border-unel-crema-2 px-4 py-5 sm:px-6">
