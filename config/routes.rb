@@ -17,7 +17,7 @@ Rails.application.routes.draw do
     resources :finances, only: [ :index ]
     resources :customers, only: [ :index, :show ]
     resources :orders, only: [ :index, :show, :update ]
-    resources :financial_movements, only: [ :new ]
+    resources :financial_movements, only: [ :index, :new ]
     resources :debts, only: [ :index, :new ]
   end
 end

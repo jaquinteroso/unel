@@ -1,0 +1,357 @@
+<% content_for :admin_section_key, "finances" %>
+<% content_for :admin_section_inner, "Deudas" %>
+<% content_for :admin_search_placeholder, "Buscar deudas..." %>
+<% content_for :admin_search_path, admin_debts_path %>
+
+<% debts = (@debts || []).to_a %>
+
+<% debt_attribute = lambda do |debt, attribute, default = nil|
+  debt.respond_to?(attribute) ? debt.public_send(attribute) : default
+end %>
+
+<% debt_total_amount = lambda do |debt|
+  debt_attribute.call(debt, :total_amount, 0).to_f
+end %>
+
+<% debt_paid_amount = lambda do |debt|
+  debt_attribute.call(debt, :paid_amount, 0).to_f
+end %>
+
+<% debt_remaining_amount = lambda do |debt|
+  [debt_total_amount.call(debt) - debt_paid_amount.call(debt), 0].max
+end %>
+
+<% debt_due_date = lambda do |debt|
+  debt_attribute.call(debt, :due_date, nil)
+end %>
+
+<% debt_status = lambda do |debt|
+  debt_attribute.call(debt, :status, "pending").to_s
+end %>
+
+<% debt_paid = lambda do |debt|
+  debt_status.call(debt) == "paid" || debt_remaining_amount.call(debt).zero?
+end %>
+
+<% total_pending = debts.sum { |debt| debt_remaining_amount.call(debt) } %>
+
+<% open_debts = debts.count do |debt|
+  !debt_paid.call(debt) && debt_remaining_amount.call(debt).positive?
+end %>
+
+<% due_soon_debts = debts.count do |debt|
+  due_date = debt_due_date.call(debt)
+
+  due_date.present? &&
+    due_date.respond_to?(:to_date) &&
+    !debt_paid.call(debt) &&
+    due_date.to_date >= Date.current &&
+    due_date.to_date <= Date.current + 7.days
+end %>
+
+<% overdue_debts = debts.count do |debt|
+  due_date = debt_due_date.call(debt)
+
+  due_date.present? &&
+    due_date.respond_to?(:to_date) &&
+    !debt_paid.call(debt) &&
+    due_date.to_date < Date.current
+end %>
+
+<section>
+  <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+    <div>
+      <div class="mb-3">
+        <%= link_to "← Volver a finanzas", admin_finances_path,
+          class: "text-sm font-semibold text-unel-humo transition hover:text-unel-dorado" %>
+      </div>
+
+      <h1 class="text-2xl font-bold text-unel-carbon md:text-3xl">
+        Deudas por pagar
+      </h1>
+
+      <p class="mt-2 max-w-2xl text-sm text-unel-humo">
+        Controla compromisos pendientes, montos pagados, saldos por pagar y fechas de vencimiento.
+      </p>
+    </div>
+
+    <%= link_to "Registrar deuda", new_admin_debt_path,
+      class: "inline-flex w-full justify-center rounded-xl bg-unel-verde px-4 py-2 text-sm font-semibold text-white transition hover:bg-unel-carbon sm:w-auto" %>
+  </div>
+
+  <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div class="rounded-lg border border-unel-crema-2 bg-white p-6 shadow-sm">
+      <p class="text-sm font-medium text-unel-humo">
+        Total pendiente
+      </p>
+
+      <p class="mt-2 text-3xl font-bold text-unel-dorado">
+        <%= number_to_currency(total_pending, unit: "$", precision: 0, delimiter: ".") %>
+      </p>
+
+      <p class="mt-2 text-xs text-unel-humo">
+        Saldo total por pagar.
+      </p>
+    </div>
+
+    <div class="rounded-lg border border-unel-crema-2 bg-white p-6 shadow-sm">
+      <p class="text-sm font-medium text-unel-humo">
+        Deudas abiertas
+      </p>
+
+      <p class="mt-2 text-3xl font-bold text-unel-carbon">
+        <%= open_debts %>
+      </p>
+
+      <p class="mt-2 text-xs text-unel-humo">
+        Pendientes o pagadas parcialmente.
+      </p>
+    </div>
+
+    <div class="rounded-lg border border-unel-crema-2 bg-white p-6 shadow-sm">
+      <p class="text-sm font-medium text-unel-humo">
+        Vencen pronto
+      </p>
+
+      <p class="mt-2 text-3xl font-bold text-amber-700">
+        <%= due_soon_debts %>
+      </p>
+
+      <p class="mt-2 text-xs text-unel-humo">
+        Vencen dentro de 7 días.
+      </p>
+    </div>
+
+    <div class="rounded-lg border border-unel-crema-2 bg-white p-6 shadow-sm">
+      <p class="text-sm font-medium text-unel-humo">
+        Atrasadas
+      </p>
+
+      <p class="mt-2 text-3xl font-bold text-red-600">
+        <%= overdue_debts %>
+      </p>
+
+      <p class="mt-2 text-xs text-unel-humo">
+        Vencidas y no cerradas.
+      </p>
+    </div>
+  </div>
+
+  <div
+    <% if debts.any? %>
+      data-controller="table-filter table-sort"
+      data-table-filter-singular-value="deuda"
+      data-table-filter-plural-value="deudas"
+    <% end %>
+    class="mt-6 rounded-2xl border border-unel-crema-2 bg-white shadow-sm"
+  >
+    <div class="flex flex-col gap-3 border-b border-unel-crema-2 px-4 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
+      <div>
+        <h2 class="text-lg font-bold text-unel-carbon">
+          Registro de deudas
+        </h2>
+
+        <p class="mt-1 text-sm text-unel-humo">
+          Lista de compromisos con acreedor, monto total, saldo pendiente, vencimiento y estado.
+        </p>
+      </div>
+
+      <% if debts.any? %>
+        <div class="grid w-full gap-3 lg:flex lg:w-auto lg:items-center">
+          <span data-table-filter-target="resultsCount" class="text-xs text-unel-humo">
+          </span>
+
+          <div class="flex w-full min-w-0 items-center gap-2 rounded-xl border border-unel-crema-2 px-4 py-2 lg:w-52">
+            <label for="debts_sort" class="shrink-0 text-xs font-semibold text-unel-humo">
+              Ordenar:
+            </label>
+
+            <select
+              id="debts_sort"
+              data-table-sort-target="select"
+              data-action="change->table-sort#sort"
+              class="min-w-0 flex-1 bg-transparent text-sm font-semibold text-unel-verde outline-none"
+            >
+              <option value="">Orden original</option>
+              <option value="due_date_asc">Vence primero</option>
+              <option value="due_date_desc">Vence después</option>
+              <option value="remaining_desc">Mayor saldo</option>
+              <option value="remaining_asc">Menor saldo</option>
+            </select>
+          </div>
+
+          <div class="w-full rounded-xl bg-unel-crema px-4 py-2 lg:w-64">
+            <input
+              type="search"
+              placeholder="Buscar deuda..."
+              data-table-filter-target="input"
+              data-action="input->table-filter#filter"
+              class="w-full bg-transparent text-sm text-unel-negro outline-none placeholder:text-unel-humo"
+            >
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <% if debts.any? %>
+      <div data-controller="table-overflow" class="unel-table-scroll-wrapper">
+        <div data-table-overflow-target="hint" class="unel-scroll-hint">
+          Desliza para ver toda la tabla →
+        </div>
+
+        <div
+          data-table-overflow-target="scroll"
+          data-action="scroll->table-overflow#check"
+          class="overflow-x-auto"
+        >
+          <table class="min-w-240 w-full text-left text-sm">
+            <thead class="bg-unel-verde text-xs uppercase tracking-wide text-unel-blanco">
+              <tr>
+                <th class="px-6 py-4 font-semibold">Acreedor</th>
+                <th class="px-6 py-4 font-semibold">Descripción</th>
+                <th class="px-6 py-4 text-right font-semibold">Monto total</th>
+                <th class="px-6 py-4 text-right font-semibold">Pagado</th>
+                <th class="px-6 py-4 text-right font-semibold">Pendiente</th>
+                <th class="px-6 py-4 font-semibold">Vencimiento</th>
+                <th class="px-6 py-4 font-semibold">Estado</th>
+                <th class="px-6 py-4 text-right font-semibold">Acciones</th>
+              </tr>
+            </thead>
+
+            <tbody data-table-sort-target="body" class="divide-y divide-unel-crema-2">
+              <% debts.each do |debt| %>
+                <% creditor_name = debt_attribute.call(debt, :creditor_name, "Sin acreedor") %>
+                <% description = debt_attribute.call(debt, :description, "Sin descripción") %>
+                <% total_amount = debt_total_amount.call(debt) %>
+                <% paid_amount = debt_paid_amount.call(debt) %>
+                <% remaining_amount = debt_remaining_amount.call(debt) %>
+                <% due_date = debt_due_date.call(debt) %>
+                <% status = debt_status.call(debt) %>
+
+                <% formatted_due_date = if due_date.present? && due_date.respond_to?(:strftime)
+                  due_date.strftime("%d/%m/%Y")
+                elsif due_date.present?
+                  due_date.to_s
+                else
+                  "Sin fecha"
+                end %>
+
+                <% computed_status = if remaining_amount.zero?
+                  "paid"
+                elsif due_date.present? && due_date.respond_to?(:to_date) && due_date.to_date < Date.current
+                  "overdue"
+                else
+                  status
+                end %>
+
+                <% status_label = case computed_status
+                when "paid"
+                  "Pagada"
+                when "partially_paid"
+                  "Pagada parcialmente"
+                when "overdue"
+                  "Atrasada"
+                else
+                  "Pendiente"
+                end %>
+
+                <% status_classes = case computed_status
+                when "paid"
+                  "border-unel-crema-2 bg-white text-unel-verde"
+                when "partially_paid"
+                  "border-amber-200 bg-amber-50 text-amber-700"
+                when "overdue"
+                  "border-red-200 bg-red-50 text-red-700"
+                else
+                  "border-unel-crema-2 bg-unel-crema text-unel-humo"
+                end %>
+
+                <tr
+                  data-table-filter-target="row"
+                  data-table-sort-target="row"
+                  data-search-text="<%= [creditor_name, description, total_amount, paid_amount, remaining_amount, formatted_due_date, status_label].join(' ') %>"
+                  data-sort-due-date="<%= due_date.respond_to?(:to_date) ? due_date.to_date.strftime('%Y%m%d') : 99999999 %>"
+                  data-sort-remaining="<%= remaining_amount %>"
+                  class="transition hover:bg-unel-crema/50"
+                >
+                  <td class="px-6 py-4 font-semibold text-unel-negro">
+                    <%= creditor_name %>
+                  </td>
+
+                  <td class="px-6 py-4 text-unel-humo">
+                    <%= description.presence || "Sin descripción" %>
+                  </td>
+
+                  <td class="px-6 py-4 text-right font-semibold text-unel-carbon">
+                    <%= number_to_currency(total_amount, unit: "$", precision: 0, delimiter: ".") %>
+                  </td>
+
+                  <td class="px-6 py-4 text-right text-unel-humo">
+                    <%= number_to_currency(paid_amount, unit: "$", precision: 0, delimiter: ".") %>
+                  </td>
+
+                  <td class="px-6 py-4 text-right font-bold text-unel-dorado">
+                    <%= number_to_currency(remaining_amount, unit: "$", precision: 0, delimiter: ".") %>
+                  </td>
+
+                  <td class="px-6 py-4 text-unel-humo">
+                    <%= formatted_due_date %>
+                  </td>
+
+                  <td class="px-6 py-4">
+                    <span class="inline-flex rounded-full border px-3 py-1 text-xs font-semibold <%= status_classes %>">
+                      <%= status_label %>
+                    </span>
+                  </td>
+
+                  <td class="px-6 py-4">
+                    <div class="flex items-center justify-end gap-3">
+                      <span class="text-sm font-semibold text-unel-humo">
+                        Editar
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div data-table-filter-target="emptyState" class="hidden border-t border-unel-crema-2 px-4 py-12 text-center sm:px-6">
+        <p class="text-lg font-bold text-unel-negro">
+          No encontramos deudas con esa búsqueda
+        </p>
+
+        <p class="mx-auto mt-2 max-w-md text-sm text-unel-humo">
+          Intenta buscar por acreedor, descripción, monto, vencimiento o estado.
+        </p>
+
+        <button
+          type="button"
+          data-action="table-filter#clear"
+          class="mt-6 rounded-xl border border-unel-crema-2 px-4 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado"
+        >
+          Limpiar búsqueda
+        </button>
+      </div>
+    <% else %>
+      <div class="px-4 py-12 text-center sm:px-6">
+        <div class="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-unel-crema text-lg font-bold text-unel-dorado">
+          !
+        </div>
+
+        <p class="mt-3 text-lg font-bold text-unel-carbon">
+          Todavía no hay deudas registradas
+        </p>
+
+        <p class="mx-auto mt-2 max-w-md text-sm text-unel-humo">
+          Registra la primera deuda para comenzar a controlar saldos pendientes y fechas de vencimiento.
+        </p>
+
+        <%= link_to "Registrar primera deuda", new_admin_debt_path,
+          class: "mt-6 inline-flex w-full justify-center rounded-xl bg-unel-verde px-4 py-2 text-sm font-semibold text-white transition hover:bg-unel-carbon sm:w-auto" %>
+      </div>
+    <% end %>
+  </div>
+</section>
