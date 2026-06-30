@@ -1,2 +1,344 @@
-<h1>Admin::Finances#index</h1>
-<p>Find me in app/views/admin/finances/index.html.erb</p>
+<% content_for :admin_section_key, "finances" %>
+<% content_for :admin_section_inner, "Finanzas" %>
+<% content_for :admin_search_placeholder, "Buscar movimientos financieros..." %>
+<% content_for :admin_search_path, admin_finances_path %>
+
+<% monthly_income = 0 %>
+<% monthly_expenses = 0 %>
+<% monthly_balance = monthly_income - monthly_expenses %>
+<% pending_debts = 0 %>
+<% finance_backend_ready = false %>
+
+<section>
+  <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-unel-carbon md:text-3xl">
+        Finanzas y deudas
+      </h1>
+
+      <p class="mt-2 max-w-2xl text-sm text-unel-humo">
+        Controla ingresos, gastos, deudas y flujo de caja para entender si el negocio está ganando, perdiendo o acumulando compromisos pendientes.
+      </p>
+    </div>
+
+    <span class="inline-flex w-fit rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+      Pendiente de conexión backend
+    </span>
+  </div>
+
+  <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div class="rounded-lg border border-unel-crema-2 bg-white p-6 shadow-sm">
+      <p class="text-sm font-medium text-unel-humo">
+        Ingresos del mes
+      </p>
+
+      <p class="mt-2 text-3xl font-bold text-unel-verde">
+        <%= number_to_currency(monthly_income, unit: "$", precision: 0, delimiter: ".") %>
+      </p>
+
+      <p class="mt-2 text-xs text-unel-humo">
+        Ventas, pagos recibidos y otros ingresos.
+      </p>
+    </div>
+
+    <div class="rounded-lg border border-unel-crema-2 bg-white p-6 shadow-sm">
+      <p class="text-sm font-medium text-unel-humo">
+        Gastos del mes
+      </p>
+
+      <p class="mt-2 text-3xl font-bold text-red-600">
+        <%= number_to_currency(monthly_expenses, unit: "$", precision: 0, delimiter: ".") %>
+      </p>
+
+      <p class="mt-2 text-xs text-unel-humo">
+        Materias primas, insumos, pagos y egresos.
+      </p>
+    </div>
+
+    <div class="rounded-lg border border-unel-crema-2 bg-white p-6 shadow-sm">
+      <p class="text-sm font-medium text-unel-humo">
+        Balance mensual
+      </p>
+
+      <p class="mt-2 text-3xl font-bold <%= monthly_balance.negative? ? "text-red-600" : "text-unel-carbon" %>">
+        <%= number_to_currency(monthly_balance, unit: "$", precision: 0, delimiter: ".") %>
+      </p>
+
+      <p class="mt-2 text-xs text-unel-humo">
+        Diferencia entre ingresos y gastos.
+      </p>
+    </div>
+
+    <div class="rounded-lg border border-unel-crema-2 bg-white p-6 shadow-sm">
+      <p class="text-sm font-medium text-unel-humo">
+        Deudas pendientes
+      </p>
+
+      <p class="mt-2 text-3xl font-bold text-unel-dorado">
+        <%= pending_debts %>
+      </p>
+
+      <p class="mt-2 text-xs text-unel-humo">
+        Compromisos por pagar o regularizar.
+      </p>
+    </div>
+  </div>
+
+  <div class="mt-6 grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
+    <div class="rounded-2xl border border-unel-crema-2 bg-white shadow-sm">
+      <div class="border-b border-unel-crema-2 px-4 py-5 sm:px-6">
+        <p class="text-sm font-semibold uppercase tracking-wide text-unel-dorado">
+          Acciones financieras
+        </p>
+
+        <h2 class="mt-2 text-lg font-bold text-unel-carbon">
+          ¿Qué quieres registrar?
+        </h2>
+
+        <p class="mt-1 text-sm text-unel-humo">
+          Estas acciones quedarán listas para conectarse cuando exista el backend de finanzas.
+        </p>
+      </div>
+
+      <div class="grid gap-3 p-4 sm:p-6 md:grid-cols-3">
+        <button
+          type="button"
+          disabled
+          class="rounded-xl border border-unel-crema-2 bg-unel-crema p-4 text-left opacity-80"
+        >
+          <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-unel-verde text-xl font-bold text-white">
+            +
+          </div>
+
+          <h3 class="mt-3 text-base font-bold text-unel-carbon">
+            Registrar ingreso
+          </h3>
+
+          <p class="mt-1 text-sm text-unel-humo">
+            Ventas, pagos recibidos u otros ingresos del negocio.
+          </p>
+
+          <p class="mt-3 text-xs font-semibold text-amber-700">
+            Pendiente backend
+          </p>
+        </button>
+
+        <button
+          type="button"
+          disabled
+          class="rounded-xl border border-red-100 bg-red-50 p-4 text-left opacity-80"
+        >
+          <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-red-500 text-xl font-bold text-white">
+            −
+          </div>
+
+          <h3 class="mt-3 text-base font-bold text-unel-carbon">
+            Registrar gasto
+          </h3>
+
+          <p class="mt-1 text-sm text-unel-humo">
+            Materias primas, envases, servicios, despacho o pagos operativos.
+          </p>
+
+          <p class="mt-3 text-xs font-semibold text-amber-700">
+            Pendiente backend
+          </p>
+        </button>
+
+        <button
+          type="button"
+          disabled
+          class="rounded-xl border border-amber-100 bg-amber-50 p-4 text-left opacity-80"
+        >
+          <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-unel-dorado text-xl font-bold text-white">
+            !
+          </div>
+
+          <h3 class="mt-3 text-base font-bold text-unel-carbon">
+            Registrar deuda
+          </h3>
+
+          <p class="mt-1 text-sm text-unel-humo">
+            Montos pendientes por pagar, fechas de vencimiento y acreedores.
+          </p>
+
+          <p class="mt-3 text-xs font-semibold text-amber-700">
+            Pendiente backend
+          </p>
+        </button>
+      </div>
+    </div>
+
+    <div class="rounded-2xl border border-unel-crema-2 bg-white p-5 shadow-sm">
+      <p class="text-sm font-semibold uppercase tracking-wide text-unel-dorado">
+        Estado mensual
+      </p>
+
+      <h2 class="mt-2 text-lg font-bold text-unel-carbon">
+        Flujo de caja
+      </h2>
+
+      <p class="mt-2 text-sm text-unel-humo">
+        Cuando se registren ingresos y gastos, aquí se verá rápidamente si el mes va positivo o negativo.
+      </p>
+
+      <div class="mt-5 space-y-3">
+        <div class="rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-3">
+          <div class="flex items-center justify-between gap-3">
+            <span class="text-sm font-semibold text-unel-carbon">
+              Ingresos
+            </span>
+
+            <span class="text-sm font-bold text-unel-verde">
+              <%= number_to_currency(monthly_income, unit: "$", precision: 0, delimiter: ".") %>
+            </span>
+          </div>
+
+          <div class="mt-3 h-2 rounded-full bg-unel-crema">
+            <div class="h-2 rounded-full bg-unel-verde" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <div class="rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-3">
+          <div class="flex items-center justify-between gap-3">
+            <span class="text-sm font-semibold text-unel-carbon">
+              Gastos
+            </span>
+
+            <span class="text-sm font-bold text-red-600">
+              <%= number_to_currency(monthly_expenses, unit: "$", precision: 0, delimiter: ".") %>
+            </span>
+          </div>
+
+          <div class="mt-3 h-2 rounded-full bg-unel-crema">
+            <div class="h-2 rounded-full bg-red-500" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <div class="rounded-xl border border-dashed border-unel-crema-2 bg-unel-crema px-4 py-3">
+          <p class="text-sm font-bold text-unel-carbon">
+            Sin datos financieros todavía
+          </p>
+
+          <p class="mt-1 text-xs text-unel-humo">
+            El balance se calculará automáticamente cuando existan movimientos financieros.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-6 grid gap-5 xl:grid-cols-[1fr_1fr]">
+    <div class="rounded-2xl border border-unel-crema-2 bg-white shadow-sm">
+      <div class="border-b border-unel-crema-2 px-4 py-5 sm:px-6">
+        <p class="text-sm font-semibold uppercase tracking-wide text-unel-dorado">
+          Deudas
+        </p>
+
+        <h2 class="mt-2 text-lg font-bold text-unel-carbon">
+          Compromisos pendientes
+        </h2>
+
+        <p class="mt-1 text-sm text-unel-humo">
+          Pensado para controlar a quién se debe, cuánto falta pagar y cuándo vence.
+        </p>
+      </div>
+
+      <div class="px-4 py-8 text-center sm:px-6">
+        <div class="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-unel-crema text-lg font-bold text-unel-dorado">
+          $
+        </div>
+
+        <p class="mt-3 text-lg font-bold text-unel-carbon">
+          No hay deudas registradas
+        </p>
+
+        <p class="mx-auto mt-2 max-w-md text-sm text-unel-humo">
+          Cuando el backend esté conectado, aquí aparecerán proveedores, cuotas, vencimientos y saldos pendientes.
+        </p>
+      </div>
+    </div>
+
+    <div class="rounded-2xl border border-unel-crema-2 bg-white shadow-sm">
+      <div class="border-b border-unel-crema-2 px-4 py-5 sm:px-6">
+        <p class="text-sm font-semibold uppercase tracking-wide text-unel-dorado">
+          Historial
+        </p>
+
+        <h2 class="mt-2 text-lg font-bold text-unel-carbon">
+          Últimos movimientos financieros
+        </h2>
+
+        <p class="mt-1 text-sm text-unel-humo">
+          Registro rápido de ingresos, gastos y pagos de deudas.
+        </p>
+      </div>
+
+      <div class="px-4 py-8 text-center sm:px-6">
+        <div class="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-unel-crema text-lg font-bold text-unel-verde">
+          +
+        </div>
+
+        <p class="mt-3 text-lg font-bold text-unel-carbon">
+          Historial pendiente
+        </p>
+
+        <p class="mx-auto mt-2 max-w-md text-sm text-unel-humo">
+          Cuando se registren movimientos reales, aquí se verán los últimos ingresos, gastos y pagos realizados.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-6 rounded-2xl border border-unel-crema-2 bg-white p-5 shadow-sm">
+    <p class="text-sm font-semibold uppercase tracking-wide text-unel-dorado">
+      Categorías recomendadas
+    </p>
+
+    <h2 class="mt-2 text-lg font-bold text-unel-carbon">
+      Qué debería controlar una pyme de conservas
+    </h2>
+
+    <div class="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+      <div class="rounded-xl bg-unel-crema px-4 py-3">
+        <p class="text-sm font-bold text-unel-carbon">
+          Materias primas
+        </p>
+
+        <p class="mt-1 text-xs text-unel-humo">
+          Mariscos, pescados, sal, aceite, condimentos y compras directas para producir.
+        </p>
+      </div>
+
+      <div class="rounded-xl bg-unel-crema px-4 py-3">
+        <p class="text-sm font-bold text-unel-carbon">
+          Empaque
+        </p>
+
+        <p class="mt-1 text-xs text-unel-humo">
+          Frascos, tapas, etiquetas, cajas, bolsas y materiales de despacho.
+        </p>
+      </div>
+
+      <div class="rounded-xl bg-unel-crema px-4 py-3">
+        <p class="text-sm font-bold text-unel-carbon">
+          Operación
+        </p>
+
+        <p class="mt-1 text-xs text-unel-humo">
+          Gas, electricidad, transporte, mantención, limpieza y servicios.
+        </p>
+      </div>
+
+      <div class="rounded-xl bg-unel-crema px-4 py-3">
+        <p class="text-sm font-bold text-unel-carbon">
+          Deudas y pagos
+        </p>
+
+        <p class="mt-1 text-xs text-unel-humo">
+          Proveedores, cuotas, adelantos, pagos parciales y vencimientos.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
