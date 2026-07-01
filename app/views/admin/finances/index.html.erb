@@ -3,15 +3,37 @@
 <% content_for :admin_search_placeholder, "Buscar movimientos financieros..." %>
 <% content_for :admin_search_path, admin_finances_path %>
 
+<% finance_preview = Rails.env.development? && params[:preview].present? %>
+
 <% current_period = Date.current.strftime("%m/%Y") %>
-<% monthly_income = 0 %>
-<% monthly_expenses = 0 %>
+<% monthly_income = finance_preview ? 1_485_000 : 0 %>
+<% monthly_expenses = finance_preview ? 920_000 : 0 %>
 <% monthly_balance = monthly_income - monthly_expenses %>
-<% pending_debts_count = 0 %>
-<% pending_debts_total = 0 %>
-<% due_soon_debts = 0 %>
-<% overdue_debts = 0 %>
-<% recent_movements = [] %>
+<% pending_debts_count = finance_preview ? 3 : 0 %>
+<% pending_debts_total = finance_preview ? 430_000 : 0 %>
+<% due_soon_debts = finance_preview ? 1 : 0 %>
+<% overdue_debts = finance_preview ? 1 : 0 %>
+
+<% recent_movements = if finance_preview
+  [
+    { description: "Venta pedido mayorista", category: "ventas", amount: 350_000 },
+    { description: "Compra de frascos", category: "insumos", amount: 180_000 },
+    { description: "Pago transferencia cliente", category: "ventas", amount: 245_000 },
+    { description: "Compra de ingredientes", category: "producción", amount: 95_000 }
+  ]
+else
+  []
+end %>
+
+<% movement_value = lambda do |movement, key, default = nil|
+  if movement.respond_to?(key)
+    movement.public_send(key)
+  elsif movement.respond_to?(:[])
+    movement[key] || movement[key.to_s] || default
+  else
+    default
+  end
+end %>
 
 <% monthly_chart_max = [monthly_income, monthly_expenses, 1].max %>
 <% income_chart_width = monthly_income.positive? ? ((monthly_income.to_f / monthly_chart_max) * 100).round : 0 %>
@@ -449,16 +471,16 @@ end %>
             <div class="flex items-center justify-between gap-4 px-4 py-4 sm:px-6">
               <div>
                 <p class="text-sm font-bold text-unel-carbon">
-                  <%= movement.respond_to?(:description) ? movement.description : "Movimiento financiero" %>
+                  <%= movement_value.call(movement, :description, "Movimiento financiero") %>
                 </p>
 
                 <p class="mt-1 text-xs text-unel-humo">
-                  <%= movement.respond_to?(:category) ? movement.category.to_s.humanize : "Sin categoría" %>
+                  <%= movement_value.call(movement, :category, "Sin categoría").to_s.humanize %>
                 </p>
               </div>
 
               <span class="text-sm font-bold text-unel-carbon">
-                <%= number_to_currency(movement.respond_to?(:amount) ? movement.amount.to_f : 0, unit: "$", precision: 0, delimiter: ".") %>
+                <%= number_to_currency(movement_value.call(movement, :amount, 0).to_f, unit: "$", precision: 0, delimiter: ".") %>
               </span>
             </div>
           <% end %>
