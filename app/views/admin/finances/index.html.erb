@@ -6,7 +6,8 @@
 <% finance_preview = Rails.env.development? && params[:preview].present? %>
 <% preview_mode = params[:preview].to_s %>
 <% negative_preview = finance_preview && preview_mode == "negative" %>
-<% positive_preview = finance_preview && !negative_preview %>
+<% balanced_preview = finance_preview && preview_mode == "balanced" %>
+<% positive_preview = finance_preview && %w[1 positive true].include?(preview_mode) %>
 
 <% current_period = Date.current.strftime("%m/%Y") %>
 
@@ -39,6 +40,20 @@
     { description: "Venta feria local", category: "ventas", amount: 160_000, movement_type: "income" },
     { description: "Compra de tapas y etiquetas", category: "insumos", amount: 265_000, movement_type: "expense" }
   ] %>
+<% elsif balanced_preview %>
+  <% monthly_income = 1_000_000 %>
+  <% monthly_expenses = 1_000_000 %>
+  <% pending_debts_count = 4 %>
+  <% pending_debts_total = 620_000 %>
+  <% due_soon_debts = 0 %>
+  <% overdue_debts = 0 %>
+
+  <% recent_movements = [
+    { description: "Venta pedido especial", category: "ventas", amount: 500_000, movement_type: "income" },
+    { description: "Compra de ingredientes", category: "producción", amount: 420_000, movement_type: "expense" },
+    { description: "Pago cliente frecuente", category: "ventas", amount: 500_000, movement_type: "income" },
+    { description: "Pago de operación mensual", category: "operación", amount: 580_000, movement_type: "expense" }
+  ] %>
 <% else %>
   <% monthly_income = 0 %>
   <% monthly_expenses = 0 %>
@@ -70,6 +85,8 @@ end %>
   "Sin datos"
 elsif monthly_balance.negative?
   "Mes negativo"
+elsif monthly_balance.zero?
+  "Mes equilibrado"
 else
   "Mes positivo"
 end %>
@@ -78,16 +95,10 @@ end %>
   "border-unel-crema-2 bg-unel-crema text-unel-humo"
 elsif monthly_balance.negative?
   "border-red-200 bg-red-50 text-red-700"
+elsif monthly_balance.zero?
+  "border-unel-crema-2 bg-white text-unel-carbon"
 else
   "border-unel-crema-2 bg-white text-unel-verde"
-end %>
-
-<% monthly_result_description = if !month_has_financial_data
-  "Registra ingresos o gastos para calcular el resultado del mes."
-elsif monthly_balance.negative?
-  "Los gastos superan los ingresos registrados."
-else
-  "Los ingresos superan o igualan los gastos registrados."
 end %>
 
 <% balance_gap = monthly_balance.abs %>
@@ -97,6 +108,8 @@ end %>
   "Sin diferencia calculable"
 elsif monthly_balance.negative?
   "Gastos por encima de ingresos"
+elsif monthly_balance.zero?
+  "Ingresos y gastos equilibrados"
 else
   "Ingresos por encima de gastos"
 end %>
@@ -105,6 +118,16 @@ end %>
   "Sin datos"
 else
   number_to_currency(balance_gap, unit: "$", precision: 0, delimiter: ".")
+end %>
+
+<% month_gap_classes = if !month_has_financial_data
+  "text-unel-humo"
+elsif monthly_balance.negative?
+  "text-red-600"
+elsif monthly_balance.zero?
+  "text-unel-carbon"
+else
+  "text-unel-verde"
 end %>
 
 <% expense_ratio_label = if !month_has_financial_data
@@ -124,6 +147,16 @@ elsif due_soon_debts.positive?
 else
   "Bajo control"
 end %>
+
+<% debt_pressure_classes = if overdue_debts.positive?
+  "text-red-600"
+elsif due_soon_debts.positive?
+  "text-amber-700"
+else
+  "text-unel-carbon"
+end %>
+
+<% has_financial_alerts = (monthly_expenses > monthly_income && monthly_expenses.positive?) || due_soon_debts.positive? || overdue_debts.positive? %>
 
 <section>
   <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -245,7 +278,7 @@ end %>
       </span>
     </div>
 
-    <div class="grid gap-5 p-4 sm:p-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+    <div class="p-4 sm:p-6">
       <div class="space-y-6">
         <div>
           <div class="mb-2 flex items-center justify-between gap-3">
@@ -286,18 +319,24 @@ end %>
         </div>
       </div>
 
-      <div class="rounded-xl border border-unel-crema-2 bg-unel-blanco p-4">
-        <h3 class="text-sm font-bold text-unel-carbon">
-          Indicadores rápidos
-        </h3>
+      <div class="mt-6">
+        <div class="mb-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+          <h3 class="text-sm font-bold text-unel-carbon">
+            Indicadores rápidos
+          </h3>
 
-        <div class="mt-4 space-y-3">
+          <p class="text-xs text-unel-humo">
+            Resumen interpretativo del periodo.
+          </p>
+        </div>
+
+        <div class="grid gap-3 md:grid-cols-3">
           <div class="rounded-xl bg-unel-crema px-4 py-3">
             <p class="text-xs font-semibold uppercase tracking-wide text-unel-humo">
               Diferencia del mes
             </p>
 
-            <p class="mt-1 text-sm font-bold <%= monthly_balance.negative? ? "text-red-600" : "text-unel-verde" %>">
+            <p class="mt-1 text-sm font-bold <%= month_gap_classes %>">
               <%= month_gap_value %>
             </p>
 
@@ -329,7 +368,7 @@ end %>
               Presión de deudas
             </p>
 
-            <p class="mt-1 text-sm font-bold <%= overdue_debts.positive? ? "text-red-600" : due_soon_debts.positive? ? "text-amber-700" : "text-unel-carbon" %>">
+            <p class="mt-1 text-sm font-bold <%= debt_pressure_classes %>">
               <%= debt_pressure_label %>
             </p>
 
@@ -399,6 +438,18 @@ end %>
 
             <p class="mt-1 text-xs text-red-600">
               Revisa los compromisos vencidos para regularizarlos.
+            </p>
+          </div>
+        <% end %>
+
+        <% if !has_financial_alerts && month_has_financial_data %>
+          <div class="rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-3">
+            <p class="text-sm font-bold text-unel-carbon">
+              No hay alertas críticas
+            </p>
+
+            <p class="mt-1 text-xs text-unel-humo">
+              El periodo no presenta gastos por encima de ingresos ni deudas próximas o atrasadas.
             </p>
           </div>
         <% end %>
@@ -561,7 +612,7 @@ end %>
       </div>
 
       <% if recent_movements.any? %>
-        <div class="divide-y divide-unel-crema-2">
+        <div class="max-h-80 divide-y divide-unel-crema-2 overflow-y-auto">
           <% recent_movements.first(5).each do |movement| %>
             <% raw_amount = movement_value.call(movement, :amount, 0).to_f %>
             <% movement_type = movement_value.call(movement, :movement_type, movement_value.call(movement, :kind, "")).to_s.downcase %>
@@ -607,7 +658,7 @@ end %>
       <% end %>
     </div>
 
-    <div class="min-w-0 rounded-2xl border border-unel-crema-2 bg-white shadow-sm">
+    <div class="min-w-0 self-start rounded-2xl border border-unel-crema-2 bg-white shadow-sm">
       <div class="border-b border-unel-crema-2 px-4 py-5 sm:px-6">
         <h2 class="text-lg font-bold text-unel-carbon">
           Deudas por pagar
