@@ -4,26 +4,52 @@
 <% content_for :admin_search_path, admin_finances_path %>
 
 <% finance_preview = Rails.env.development? && params[:preview].present? %>
+<% preview_mode = params[:preview].to_s %>
+<% negative_preview = finance_preview && preview_mode == "negative" %>
+<% positive_preview = finance_preview && !negative_preview %>
 
 <% current_period = Date.current.strftime("%m/%Y") %>
-<% monthly_income = finance_preview ? 1_485_000 : 0 %>
-<% monthly_expenses = finance_preview ? 920_000 : 0 %>
-<% monthly_balance = monthly_income - monthly_expenses %>
-<% pending_debts_count = finance_preview ? 3 : 0 %>
-<% pending_debts_total = finance_preview ? 430_000 : 0 %>
-<% due_soon_debts = finance_preview ? 1 : 0 %>
-<% overdue_debts = finance_preview ? 1 : 0 %>
 
-<% recent_movements = if finance_preview
-  [
-    { description: "Venta pedido mayorista", category: "ventas", amount: 350_000 },
-    { description: "Compra de frascos", category: "insumos", amount: 180_000 },
-    { description: "Pago transferencia cliente", category: "ventas", amount: 245_000 },
-    { description: "Compra de ingredientes", category: "producción", amount: 95_000 }
-  ]
-else
-  []
-end %>
+<% if positive_preview %>
+  <% monthly_income = 1_485_000 %>
+  <% monthly_expenses = 920_000 %>
+  <% pending_debts_count = 3 %>
+  <% pending_debts_total = 430_000 %>
+  <% due_soon_debts = 1 %>
+  <% overdue_debts = 1 %>
+
+  <% recent_movements = [
+    { description: "Venta pedido mayorista", category: "ventas", amount: 350_000, movement_type: "income" },
+    { description: "Compra de frascos", category: "insumos", amount: 180_000, movement_type: "expense" },
+    { description: "Pago transferencia cliente", category: "ventas", amount: 245_000, movement_type: "income" },
+    { description: "Compra de ingredientes", category: "producción", amount: 95_000, movement_type: "expense" }
+  ] %>
+<% elsif negative_preview %>
+  <% monthly_income = 780_000 %>
+  <% monthly_expenses = 1_240_000 %>
+  <% pending_debts_count = 6 %>
+  <% pending_debts_total = 1_180_000 %>
+  <% due_soon_debts = 3 %>
+  <% overdue_debts = 2 %>
+
+  <% recent_movements = [
+    { description: "Venta frascos surtidos", category: "ventas", amount: 220_000, movement_type: "income" },
+    { description: "Compra de pescado", category: "materia prima", amount: 410_000, movement_type: "expense" },
+    { description: "Pago electricidad", category: "operación", amount: 185_000, movement_type: "expense" },
+    { description: "Venta feria local", category: "ventas", amount: 160_000, movement_type: "income" },
+    { description: "Compra de tapas y etiquetas", category: "insumos", amount: 265_000, movement_type: "expense" }
+  ] %>
+<% else %>
+  <% monthly_income = 0 %>
+  <% monthly_expenses = 0 %>
+  <% pending_debts_count = 0 %>
+  <% pending_debts_total = 0 %>
+  <% due_soon_debts = 0 %>
+  <% overdue_debts = 0 %>
+  <% recent_movements = [] %>
+<% end %>
+
+<% monthly_balance = monthly_income - monthly_expenses %>
 
 <% movement_value = lambda do |movement, key, default = nil|
   if movement.respond_to?(key)
@@ -62,6 +88,41 @@ elsif monthly_balance.negative?
   "Los gastos superan los ingresos registrados."
 else
   "Los ingresos superan o igualan los gastos registrados."
+end %>
+
+<% balance_gap = monthly_balance.abs %>
+<% expense_ratio = monthly_income.positive? ? ((monthly_expenses.to_f / monthly_income) * 100).round : nil %>
+
+<% month_gap_label = if !month_has_financial_data
+  "Sin diferencia calculable"
+elsif monthly_balance.negative?
+  "Gastos por encima de ingresos"
+else
+  "Ingresos por encima de gastos"
+end %>
+
+<% month_gap_value = if !month_has_financial_data
+  "Sin datos"
+else
+  number_to_currency(balance_gap, unit: "$", precision: 0, delimiter: ".")
+end %>
+
+<% expense_ratio_label = if !month_has_financial_data
+  "Sin datos"
+elsif monthly_income.zero?
+  "Sin ingresos"
+else
+  "#{expense_ratio}%"
+end %>
+
+<% debt_pressure_label = if pending_debts_count.zero?
+  "Sin deudas activas"
+elsif overdue_debts.positive?
+  "Con atrasos"
+elsif due_soon_debts.positive?
+  "Con vencimientos cercanos"
+else
+  "Bajo control"
 end %>
 
 <section>
@@ -184,8 +245,8 @@ end %>
       </span>
     </div>
 
-    <div class="grid gap-5 p-4 sm:p-6 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.45fr)]">
-      <div class="space-y-5">
+    <div class="grid gap-5 p-4 sm:p-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+      <div class="space-y-6">
         <div>
           <div class="mb-2 flex items-center justify-between gap-3">
             <p class="text-sm font-bold text-unel-carbon">
@@ -225,24 +286,58 @@ end %>
         </div>
       </div>
 
-      <div class="rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-4">
-        <p class="text-sm font-bold text-unel-carbon">
-          Lectura del mes
-        </p>
+      <div class="rounded-xl border border-unel-crema-2 bg-unel-blanco p-4">
+        <h3 class="text-sm font-bold text-unel-carbon">
+          Indicadores rápidos
+        </h3>
 
-        <p class="mt-2 text-sm text-unel-humo">
-          <%= monthly_result_description %>
-        </p>
+        <div class="mt-4 space-y-3">
+          <div class="rounded-xl bg-unel-crema px-4 py-3">
+            <p class="text-xs font-semibold uppercase tracking-wide text-unel-humo">
+              Diferencia del mes
+            </p>
 
-        <% if month_has_financial_data %>
-          <p class="mt-3 text-xs text-unel-humo">
-            El detalle exacto de ingresos, gastos y balance está en las tarjetas superiores.
-          </p>
-        <% else %>
-          <p class="mt-3 text-xs text-unel-humo">
-            Cuando existan movimientos, este bloque mostrará la comparación visual del periodo.
-          </p>
-        <% end %>
+            <p class="mt-1 text-sm font-bold <%= monthly_balance.negative? ? "text-red-600" : "text-unel-verde" %>">
+              <%= month_gap_value %>
+            </p>
+
+            <p class="mt-1 text-xs text-unel-humo">
+              <%= month_gap_label %>
+            </p>
+          </div>
+
+          <div class="rounded-xl bg-unel-crema px-4 py-3">
+            <p class="text-xs font-semibold uppercase tracking-wide text-unel-humo">
+              Gasto vs ingreso
+            </p>
+
+            <p class="mt-1 text-sm font-bold text-unel-carbon">
+              <%= expense_ratio_label %>
+            </p>
+
+            <p class="mt-1 text-xs text-unel-humo">
+              <% if month_has_financial_data && monthly_income.positive? %>
+                Los gastos equivalen a <%= expense_ratio %>% de lo ingresado.
+              <% else %>
+                Se calculará cuando existan ingresos y gastos registrados.
+              <% end %>
+            </p>
+          </div>
+
+          <div class="rounded-xl bg-unel-crema px-4 py-3">
+            <p class="text-xs font-semibold uppercase tracking-wide text-unel-humo">
+              Presión de deudas
+            </p>
+
+            <p class="mt-1 text-sm font-bold <%= overdue_debts.positive? ? "text-red-600" : due_soon_debts.positive? ? "text-amber-700" : "text-unel-carbon" %>">
+              <%= debt_pressure_label %>
+            </p>
+
+            <p class="mt-1 text-xs text-unel-humo">
+              <%= pending_debts_count %> deudas activas · <%= due_soon_debts %> por vencer · <%= overdue_debts %> atrasadas
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -468,6 +563,16 @@ end %>
       <% if recent_movements.any? %>
         <div class="divide-y divide-unel-crema-2">
           <% recent_movements.first(5).each do |movement| %>
+            <% raw_amount = movement_value.call(movement, :amount, 0).to_f %>
+            <% movement_type = movement_value.call(movement, :movement_type, movement_value.call(movement, :kind, "")).to_s.downcase %>
+            <% is_expense = if movement_type.present?
+              %w[expense egreso gasto outflow].include?(movement_type)
+            else
+              raw_amount.negative?
+            end %>
+            <% amount_prefix = is_expense ? "−" : "+" %>
+            <% amount_classes = is_expense ? "text-red-600" : "text-unel-verde" %>
+
             <div class="flex items-center justify-between gap-4 px-4 py-4 sm:px-6">
               <div>
                 <p class="text-sm font-bold text-unel-carbon">
@@ -479,8 +584,8 @@ end %>
                 </p>
               </div>
 
-              <span class="text-sm font-bold text-unel-carbon">
-                <%= number_to_currency(movement_value.call(movement, :amount, 0).to_f, unit: "$", precision: 0, delimiter: ".") %>
+              <span class="text-sm font-bold <%= amount_classes %>">
+                <%= amount_prefix %><%= number_to_currency(raw_amount.abs, unit: "$", precision: 0, delimiter: ".") %>
               </span>
             </div>
           <% end %>
