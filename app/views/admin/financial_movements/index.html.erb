@@ -3,11 +3,188 @@
 <% content_for :admin_search_placeholder, "Buscar movimientos financieros..." %>
 <% content_for :admin_search_path, admin_financial_movements_path %>
 
-<% financial_movements = (@financial_movements || []).to_a %>
+<% finance_preview = Rails.env.development? && params[:preview].present? %>
+<% preview_mode = params[:preview].to_s %>
+<% negative_preview = finance_preview && preview_mode == "negative" %>
+<% balanced_preview = finance_preview && preview_mode == "balanced" %>
+<% positive_preview = finance_preview && %w[1 positive true].include?(preview_mode) %>
+<% finances_back_path = finance_preview ? admin_finances_path(preview: preview_mode) : admin_finances_path %>
+
 <% current_period = Date.current.strftime("%m/%Y") %>
 
+<% financial_movements = if positive_preview
+  [
+    {
+      date: Date.current.beginning_of_month + 1.day,
+      movement_type: "income",
+      category: "ventas",
+      description: "Venta pedido mayorista",
+      payment_method: "transferencia",
+      amount: 350_000
+    },
+    {
+      date: Date.current.beginning_of_month + 3.days,
+      movement_type: "expense",
+      category: "insumos",
+      description: "Compra de frascos",
+      payment_method: "transferencia",
+      amount: 180_000
+    },
+    {
+      date: Date.current.beginning_of_month + 6.days,
+      movement_type: "income",
+      category: "ventas",
+      description: "Pago transferencia cliente",
+      payment_method: "transferencia",
+      amount: 245_000
+    },
+    {
+      date: Date.current.beginning_of_month + 8.days,
+      movement_type: "expense",
+      category: "producción",
+      description: "Compra de ingredientes",
+      payment_method: "débito",
+      amount: 95_000
+    },
+    {
+      date: Date.current.beginning_of_month + 12.days,
+      movement_type: "income",
+      category: "ventas online",
+      description: "Ventas por catálogo público",
+      payment_method: "webpay",
+      amount: 520_000
+    },
+    {
+      date: Date.current.beginning_of_month + 15.days,
+      movement_type: "expense",
+      category: "insumos",
+      description: "Compra de etiquetas",
+      payment_method: "transferencia",
+      amount: 210_000
+    },
+    {
+      date: Date.current.beginning_of_month + 18.days,
+      movement_type: "income",
+      category: "feria",
+      description: "Ventas feria local",
+      payment_method: "efectivo",
+      amount: 370_000
+    },
+    {
+      date: Date.current.beginning_of_month + 21.days,
+      movement_type: "expense",
+      category: "operación",
+      description: "Costos de producción mensual",
+      payment_method: "transferencia",
+      amount: 435_000
+    }
+  ]
+elsif negative_preview
+  [
+    {
+      date: Date.current.beginning_of_month + 1.day,
+      movement_type: "income",
+      category: "ventas",
+      description: "Venta frascos surtidos",
+      payment_method: "transferencia",
+      amount: 220_000
+    },
+    {
+      date: Date.current.beginning_of_month + 3.days,
+      movement_type: "expense",
+      category: "materia prima",
+      description: "Compra de pescado",
+      payment_method: "transferencia",
+      amount: 410_000
+    },
+    {
+      date: Date.current.beginning_of_month + 5.days,
+      movement_type: "expense",
+      category: "operación",
+      description: "Pago electricidad",
+      payment_method: "transferencia",
+      amount: 185_000
+    },
+    {
+      date: Date.current.beginning_of_month + 8.days,
+      movement_type: "income",
+      category: "ventas",
+      description: "Venta feria local",
+      payment_method: "efectivo",
+      amount: 160_000
+    },
+    {
+      date: Date.current.beginning_of_month + 11.days,
+      movement_type: "expense",
+      category: "insumos",
+      description: "Compra de tapas y etiquetas",
+      payment_method: "transferencia",
+      amount: 265_000
+    },
+    {
+      date: Date.current.beginning_of_month + 14.days,
+      movement_type: "income",
+      category: "ventas",
+      description: "Pedido cliente frecuente",
+      payment_method: "transferencia",
+      amount: 400_000
+    },
+    {
+      date: Date.current.beginning_of_month + 18.days,
+      movement_type: "expense",
+      category: "operación",
+      description: "Arriendo y gastos operativos",
+      payment_method: "transferencia",
+      amount: 380_000
+    }
+  ]
+elsif balanced_preview
+  [
+    {
+      date: Date.current.beginning_of_month + 2.days,
+      movement_type: "income",
+      category: "ventas",
+      description: "Venta pedido especial",
+      payment_method: "transferencia",
+      amount: 500_000
+    },
+    {
+      date: Date.current.beginning_of_month + 5.days,
+      movement_type: "expense",
+      category: "producción",
+      description: "Compra de ingredientes",
+      payment_method: "transferencia",
+      amount: 420_000
+    },
+    {
+      date: Date.current.beginning_of_month + 10.days,
+      movement_type: "income",
+      category: "ventas",
+      description: "Pago cliente frecuente",
+      payment_method: "transferencia",
+      amount: 500_000
+    },
+    {
+      date: Date.current.beginning_of_month + 16.days,
+      movement_type: "expense",
+      category: "operación",
+      description: "Pago de operación mensual",
+      payment_method: "transferencia",
+      amount: 580_000
+    }
+  ]
+else
+  (@financial_movements || []).to_a
+end %>
+
 <% movement_attribute = lambda do |movement, attribute, default = nil|
-  movement.respond_to?(attribute) ? movement.public_send(attribute) : default
+  if movement.respond_to?(attribute)
+    movement.public_send(attribute)
+  elsif movement.respond_to?(:[])
+    movement[attribute] || movement[attribute.to_s] || default
+  else
+    default
+  end
 end %>
 
 <% movement_amount = lambda do |movement|
@@ -41,7 +218,7 @@ end %>
   <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
     <div>
       <div class="mb-3">
-        <%= link_to "← Volver a finanzas", admin_finances_path,
+        <%= link_to "← Volver a finanzas", finances_back_path,
           class: "text-sm font-semibold text-unel-humo transition hover:text-unel-dorado" %>
       </div>
 
@@ -221,13 +398,13 @@ end %>
                 <% type_label = type == "expense" ? "Gasto" : "Ingreso" %>
                 <% type_classes = type == "expense" ? "border-red-200 bg-red-50 text-red-700" : "border-unel-crema-2 bg-white text-unel-verde" %>
                 <% amount_classes = type == "expense" ? "text-red-600" : "text-unel-verde" %>
-                <% signed_amount = type == "expense" ? -amount : amount %>
+                <% amount_prefix = type == "expense" ? "−" : "+" %>
 
                 <tr
                   data-table-filter-target="row"
                   data-table-sort-target="row"
                   data-search-text="<%= [formatted_date, type_label, category, description, payment_method, amount].join(' ') %>"
-                  data-sort-date="<%= date.respond_to?(:to_date) ? date.to_date.strftime('%Y%m%d') : 0 %>"
+                  data-sort-date="<%= date.respond_to?(:to_date) ? date.to_date.strftime('%Y%m%d') : "" %>"
                   data-sort-amount="<%= amount %>"
                   class="transition hover:bg-unel-crema/50"
                 >
@@ -254,7 +431,7 @@ end %>
                   </td>
 
                   <td class="px-6 py-4 text-right font-bold <%= amount_classes %>">
-                    <%= number_to_currency(signed_amount, unit: "$", precision: 0, delimiter: ".") %>
+                    <%= amount_prefix %><%= number_to_currency(amount.abs, unit: "$", precision: 0, delimiter: ".") %>
                   </td>
 
                   <td class="px-6 py-4">

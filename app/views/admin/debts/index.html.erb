@@ -3,10 +3,138 @@
 <% content_for :admin_search_placeholder, "Buscar deudas..." %>
 <% content_for :admin_search_path, admin_debts_path %>
 
-<% debts = (@debts || []).to_a %>
+<% finance_preview = Rails.env.development? && params[:preview].present? %>
+<% preview_mode = params[:preview].to_s %>
+<% negative_preview = finance_preview && preview_mode == "negative" %>
+<% balanced_preview = finance_preview && preview_mode == "balanced" %>
+<% positive_preview = finance_preview && %w[1 positive true].include?(preview_mode) %>
+<% finances_back_path = finance_preview ? admin_finances_path(preview: preview_mode) : admin_finances_path %>
+
+<% debts = if positive_preview
+  [
+    {
+      creditor_name: "Envases del Sur",
+      description: "Compra de frascos para producción",
+      total_amount: 180_000,
+      paid_amount: 0,
+      due_date: Date.current + 5.days,
+      status: "pending"
+    },
+    {
+      creditor_name: "Proveedor ingredientes",
+      description: "Saldo parcial de ingredientes",
+      total_amount: 200_000,
+      paid_amount: 50_000,
+      due_date: Date.current - 3.days,
+      status: "partially_paid"
+    },
+    {
+      creditor_name: "Imprenta local",
+      description: "Etiquetas y material impreso",
+      total_amount: 100_000,
+      paid_amount: 0,
+      due_date: Date.current + 20.days,
+      status: "pending"
+    }
+  ]
+elsif negative_preview
+  [
+    {
+      creditor_name: "Proveedor de pescado",
+      description: "Materia prima pendiente de pago",
+      total_amount: 250_000,
+      paid_amount: 0,
+      due_date: Date.current - 5.days,
+      status: "pending"
+    },
+    {
+      creditor_name: "Servicios eléctricos",
+      description: "Cuenta de electricidad atrasada",
+      total_amount: 180_000,
+      paid_amount: 0,
+      due_date: Date.current - 2.days,
+      status: "pending"
+    },
+    {
+      creditor_name: "Envases del Sur",
+      description: "Compra de frascos y tapas",
+      total_amount: 220_000,
+      paid_amount: 0,
+      due_date: Date.current + 3.days,
+      status: "pending"
+    },
+    {
+      creditor_name: "Imprenta local",
+      description: "Etiquetas de nueva producción",
+      total_amount: 160_000,
+      paid_amount: 0,
+      due_date: Date.current + 6.days,
+      status: "pending"
+    },
+    {
+      creditor_name: "Distribuidor mayorista",
+      description: "Saldo por insumos de embalaje",
+      total_amount: 190_000,
+      paid_amount: 50_000,
+      due_date: Date.current + 7.days,
+      status: "partially_paid"
+    },
+    {
+      creditor_name: "Arriendo taller",
+      description: "Compromiso mensual del espacio de producción",
+      total_amount: 230_000,
+      paid_amount: 0,
+      due_date: Date.current + 18.days,
+      status: "pending"
+    }
+  ]
+elsif balanced_preview
+  [
+    {
+      creditor_name: "Proveedor de envases",
+      description: "Saldo por compra de frascos",
+      total_amount: 120_000,
+      paid_amount: 0,
+      due_date: Date.current + 15.days,
+      status: "pending"
+    },
+    {
+      creditor_name: "Proveedor ingredientes",
+      description: "Compra programada de materia prima",
+      total_amount: 250_000,
+      paid_amount: 0,
+      due_date: Date.current + 22.days,
+      status: "pending"
+    },
+    {
+      creditor_name: "Imprenta local",
+      description: "Etiquetas pendientes de pago",
+      total_amount: 150_000,
+      paid_amount: 0,
+      due_date: Date.current + 30.days,
+      status: "pending"
+    },
+    {
+      creditor_name: "Transporte local",
+      description: "Despachos acumulados del mes",
+      total_amount: 100_000,
+      paid_amount: 0,
+      due_date: Date.current + 40.days,
+      status: "pending"
+    }
+  ]
+else
+  (@debts || []).to_a
+end %>
 
 <% debt_attribute = lambda do |debt, attribute, default = nil|
-  debt.respond_to?(attribute) ? debt.public_send(attribute) : default
+  if debt.respond_to?(attribute)
+    debt.public_send(attribute)
+  elsif debt.respond_to?(:[])
+    debt[attribute] || debt[attribute.to_s] || default
+  else
+    default
+  end
 end %>
 
 <% debt_total_amount = lambda do |debt|
@@ -62,7 +190,7 @@ end %>
   <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
     <div>
       <div class="mb-3">
-        <%= link_to "← Volver a finanzas", admin_finances_path,
+        <%= link_to "← Volver a finanzas", finances_back_path,
           class: "text-sm font-semibold text-unel-humo transition hover:text-unel-dorado" %>
       </div>
 
@@ -244,6 +372,15 @@ end %>
                   status
                 end %>
 
+                <% is_due_soon = due_date.present? &&
+                  due_date.respond_to?(:to_date) &&
+                  !debt_paid.call(debt) &&
+                  remaining_amount.positive? &&
+                  due_date.to_date >= Date.current &&
+                  due_date.to_date <= Date.current + 7.days %>
+
+                <% due_soon_label = is_due_soon ? "Vence pronto" : nil %>
+
                 <% status_label = case computed_status
                 when "paid"
                   "Pagada"
@@ -269,8 +406,8 @@ end %>
                 <tr
                   data-table-filter-target="row"
                   data-table-sort-target="row"
-                  data-search-text="<%= [creditor_name, description, total_amount, paid_amount, remaining_amount, formatted_due_date, status_label].join(' ') %>"
-                  data-sort-due-date="<%= due_date.respond_to?(:to_date) ? due_date.to_date.strftime('%Y%m%d') : 99999999 %>"
+                  data-search-text="<%= [creditor_name, description, total_amount, paid_amount, remaining_amount, formatted_due_date, status_label, due_soon_label].compact.join(' ') %>"
+                  data-sort-due-date="<%= due_date.respond_to?(:to_date) ? due_date.to_date.strftime('%Y%m%d') : "" %>"
                   data-sort-remaining="<%= remaining_amount %>"
                   class="transition hover:bg-unel-crema/50"
                 >
@@ -299,9 +436,17 @@ end %>
                   </td>
 
                   <td class="px-6 py-4">
-                    <span class="inline-flex rounded-full border px-3 py-1 text-xs font-semibold <%= status_classes %>">
-                      <%= status_label %>
-                    </span>
+                    <div class="flex flex-wrap gap-2">
+                      <span class="inline-flex rounded-full border px-3 py-1 text-xs font-semibold <%= status_classes %>">
+                        <%= status_label %>
+                      </span>
+
+                      <% if is_due_soon %>
+                        <span class="inline-flex rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+                          Vence pronto
+                        </span>
+                      <% end %>
+                    </div>
                   </td>
 
                   <td class="px-6 py-4">
