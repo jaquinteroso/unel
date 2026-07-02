@@ -1,7 +1,10 @@
+<% preview_mode = params[:preview].to_s %>
+<% debts_back_path = params[:preview].present? ? admin_debts_path(preview: preview_mode) : admin_debts_path %>
+
 <% content_for :admin_section_key, "finances" %>
 <% content_for :admin_section_inner, "Nueva deuda" %>
 <% content_for :admin_search_placeholder, "Buscar deudas..." %>
-<% content_for :admin_search_path, admin_finances_path %>
+<% content_for :admin_search_path, debts_back_path %>
 
 <% debt_create_ready = respond_to?(:admin_debts_path) && controller.class.action_methods.include?("create") %>
 <% debt_form_path = debt_create_ready ? admin_debts_path : "#" %>
@@ -10,7 +13,7 @@
   <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
     <div>
       <div class="mb-3">
-        <%= link_to "← Volver a finanzas", admin_finances_path,
+        <%= link_to "← Volver a deudas", debts_back_path,
           class: "text-sm font-semibold text-unel-humo transition hover:text-unel-dorado" %>
       </div>
 
@@ -154,7 +157,7 @@
         </div>
 
         <div class="flex flex-col-reverse gap-3 border-t border-unel-crema-2 pt-5 sm:flex-row sm:items-center sm:justify-between">
-          <%= link_to "Cancelar", admin_finances_path,
+          <%= link_to "Cancelar", debts_back_path,
             class: "inline-flex w-full justify-center rounded-xl border border-unel-crema-2 px-4 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado sm:w-auto" %>
 
           <button

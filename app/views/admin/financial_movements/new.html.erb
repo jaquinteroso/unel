@@ -1,7 +1,10 @@
+<% preview_mode = params[:preview].to_s %>
+<% financial_movements_back_path = params[:preview].present? ? admin_financial_movements_path(preview: preview_mode) : admin_financial_movements_path %>
+
 <% content_for :admin_section_key, "finances" %>
 <% content_for :admin_section_inner, "Nuevo movimiento financiero" %>
 <% content_for :admin_search_placeholder, "Buscar movimientos financieros..." %>
-<% content_for :admin_search_path, admin_finances_path %>
+<% content_for :admin_search_path, financial_movements_back_path %>
 
 <% movement_type = @movement_type.presence || "income" %>
 <% is_income = movement_type == "income" %>
@@ -17,7 +20,7 @@
   <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
     <div>
       <div class="mb-3">
-        <%= link_to "← Volver a finanzas", admin_finances_path,
+        <%= link_to "← Volver a movimientos", financial_movements_back_path,
           class: "text-sm font-semibold text-unel-humo transition hover:text-unel-dorado" %>
       </div>
 
@@ -161,7 +164,7 @@
         </div>
 
         <div class="flex flex-col-reverse gap-3 border-t border-unel-crema-2 pt-5 sm:flex-row sm:items-center sm:justify-between">
-          <%= link_to "Cancelar", admin_finances_path,
+          <%= link_to "Cancelar", financial_movements_back_path,
             class: "inline-flex w-full justify-center rounded-xl border border-unel-crema-2 px-4 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado sm:w-auto" %>
 
           <button
