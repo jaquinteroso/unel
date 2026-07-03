@@ -5,18 +5,22 @@
 
 <% customers_preview = Rails.env.development? && params[:preview].present? %>
 <% preview_mode = params[:preview].to_s %>
+<% status_filter = params[:status].to_s %>
 
-<% customers = if customers_preview
+<% all_customers = if customers_preview
   [
     {
       id: 1,
       name: "María González",
       email: "maria.gonzalez@example.com",
       phone: "+56 9 8123 4567",
+      address: "Av. Los Pescadores 1240, Puerto Montt",
       segment: "Cliente frecuente",
       status: "active",
       orders_count: 8,
       total_spent: 420_000,
+      receivable_amount: 0,
+      receivable_since: nil,
       last_order_date: Date.current - 3.days,
       notes: "Compra regularmente productos surtidos."
     },
@@ -25,10 +29,13 @@
       name: "Carlos Rojas",
       email: "carlos.rojas@example.com",
       phone: "+56 9 7345 1122",
+      address: "Camino El Tepual 830, Puerto Montt",
       segment: "Mayorista",
       status: "pending_order",
       orders_count: 4,
       total_spent: 680_000,
+      receivable_amount: 120_000,
+      receivable_since: Date.current - 12.days,
       last_order_date: Date.current - 1.day,
       notes: "Tiene un pedido pendiente de confirmación."
     },
@@ -37,10 +44,13 @@
       name: "Ana Pérez",
       email: "ana.perez@example.com",
       phone: "+56 9 6543 7788",
+      address: "Los Arrayanes 442, Puerto Varas",
       segment: "Nuevo cliente",
       status: "new",
       orders_count: 1,
       total_spent: 38_000,
+      receivable_amount: 0,
+      receivable_since: nil,
       last_order_date: Date.current - 7.days,
       notes: "Primera compra realizada por catálogo."
     },
@@ -49,10 +59,13 @@
       name: "Restaurante Puerto Sur",
       email: "compras@puertosur.cl",
       phone: "+56 65 234 8890",
+      address: "Costanera 215, Puerto Montt",
       segment: "Empresa",
       status: "active",
       orders_count: 12,
       total_spent: 1_240_000,
+      receivable_amount: 260_000,
+      receivable_since: Date.current - 34.days,
       last_order_date: Date.current - 5.days,
       notes: "Cliente empresa con compras recurrentes."
     },
@@ -61,10 +74,13 @@
       name: "Javiera Soto",
       email: "javiera.soto@example.com",
       phone: "+56 9 9988 7766",
+      address: "Pasaje Las Nalcas 91, Frutillar",
       segment: "Cliente ocasional",
       status: "inactive",
       orders_count: 2,
       total_spent: 82_000,
+      receivable_amount: 0,
+      receivable_since: nil,
       last_order_date: Date.current - 75.days,
       notes: "Sin pedidos recientes."
     },
@@ -73,10 +89,13 @@
       name: "Daniel Muñoz",
       email: "daniel.munoz@example.com",
       phone: "+56 9 4567 2211",
+      address: "Ruta V-505 km 6, Puerto Varas",
       segment: "Cliente frecuente",
       status: "active",
       orders_count: 6,
       total_spent: 310_000,
+      receivable_amount: 0,
+      receivable_since: nil,
       last_order_date: Date.current - 14.days,
       notes: "Prefiere contacto por WhatsApp."
     }
@@ -117,323 +136,640 @@ end %>
   customer_attribute.call(customer, :total_spent, 0).to_f
 end %>
 
+<% customer_receivable_amount = lambda do |customer|
+  customer_attribute.call(customer, :receivable_amount, 0).to_f
+end %>
+
+<% customer_receivable_since = lambda do |customer|
+  customer_attribute.call(customer, :receivable_since, nil)
+end %>
+
 <% customer_last_order_date = lambda do |customer|
   customer_attribute.call(customer, :last_order_date, nil)
 end %>
 
-<% total_customers = customers.count %>
+<% customer_path_for = lambda do |customer, fallback_id|
+  customer_id = customer_attribute.call(customer, :id, fallback_id)
 
-<% active_customers = customers.count do |customer|
+  customers_preview ? admin_customer_path(customer_id, preview: preview_mode) : admin_customer_path(customer_id)
+end %>
+
+<% orders_path_for = lambda do |customer, fallback_id|
+  customer_id = customer_attribute.call(customer, :id, fallback_id)
+
+  customers_preview ? admin_orders_path(customer_id: customer_id, preview: preview_mode) : admin_orders_path(customer_id: customer_id)
+end %>
+
+<% customer_attention_reason = lambda do |customer|
+  status = customer_status.call(customer)
+  last_order_date = customer_last_order_date.call(customer)
+  receivable_amount = customer_receivable_amount.call(customer)
+  receivable_since = customer_receivable_since.call(customer)
+
+  if receivable_amount.positive? &&
+    receivable_since.present? &&
+    receivable_since.respond_to?(:to_date) &&
+    receivable_since.to_date < Date.current - 30.days
+    "Cuenta por cobrar vencida"
+  elsif receivable_amount.positive?
+    "Cuenta por cobrar"
+  elsif status == "pending_order"
+    "Pedido pendiente"
+  elsif status == "inactive"
+    "Cliente inactivo"
+  elsif last_order_date.present? &&
+    last_order_date.respond_to?(:to_date) &&
+    last_order_date.to_date < Date.current - 45.days
+    "Sin compra reciente"
+  else
+    nil
+  end
+end %>
+
+<% customers = all_customers %>
+
+<% total_customers = all_customers.count %>
+
+<% active_customers = all_customers.count do |customer|
   customer_status.call(customer) == "active"
 end %>
 
-<% pending_order_customers = customers.count do |customer|
+<% pending_order_customers = all_customers.count do |customer|
   customer_status.call(customer) == "pending_order"
 end %>
 
-<% total_spent = customers.sum do |customer|
-  customer_total_spent.call(customer)
+<% new_customers = all_customers.count do |customer|
+  customer_status.call(customer) == "new"
+end %>
+
+<% inactive_customers = all_customers.count do |customer|
+  customer_status.call(customer) == "inactive"
+end %>
+
+<% customers_with_debt = all_customers.count do |customer|
+  customer_receivable_amount.call(customer).positive?
+end %>
+
+<% total_spent = all_customers.sum { |customer| customer_total_spent.call(customer) } %>
+<% total_orders = all_customers.sum { |customer| customer_orders_count.call(customer) } %>
+<% total_receivable = all_customers.sum { |customer| customer_receivable_amount.call(customer) } %>
+<% average_spent = total_customers.positive? ? total_spent / total_customers : 0 %>
+
+<% needs_attention_customers = all_customers.select do |customer|
+  customer_attention_reason.call(customer).present?
+end %>
+
+<% top_customer = all_customers.max_by { |customer| customer_total_spent.call(customer) } %>
+
+<% filter_options = [
+  { value: "all", label: "Todos", count: total_customers },
+  { value: "active", label: "Activos", count: active_customers },
+  { value: "pending_order", label: "Pendientes", count: pending_order_customers },
+  { value: "new", label: "Nuevos", count: new_customers },
+  { value: "inactive", label: "Inactivos", count: inactive_customers },
+  { value: "debt", label: "Por cobrar", count: customers_with_debt },
+  { value: "attention", label: "Atención", count: needs_attention_customers.count }
+] %>
+
+<% current_filter_value = status_filter.presence || "all" %>
+<% current_filter_option = filter_options.find { |option| option[:value] == current_filter_value } || filter_options.first %>
+
+<% initial_filter_classes = lambda do |filter_value|
+  if current_filter_value == filter_value
+    "border-unel-verde bg-unel-verde text-white"
+  else
+    "border-unel-crema-2 bg-white text-unel-humo hover:border-unel-dorado hover:text-unel-dorado"
+  end
 end %>
 
 <section>
   <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
     <div>
+      <p class="mb-3 text-sm font-semibold uppercase tracking-wide text-unel-dorado">
+        Clientes y ventas
+      </p>
+
       <h1 class="text-2xl font-bold text-unel-carbon md:text-3xl">
-        Clientes
+        Cartera de clientes
       </h1>
 
       <p class="mt-2 max-w-2xl text-sm text-unel-humo">
-        Revisa tus clientes, su información de contacto, historial de pedidos y nivel de actividad comercial.
+        Gestiona clientes, revisa contacto, dirección, notas, actividad comercial y cuentas por cobrar.
       </p>
     </div>
 
     <span class="inline-flex w-fit rounded-full border border-unel-crema-2 bg-unel-crema px-3 py-1 text-xs font-semibold text-unel-humo">
-      Clientes y ventas
+      CRM comercial
     </span>
   </div>
 
-  <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-    <div class="rounded-lg border border-unel-crema-2 bg-white p-6 shadow-sm">
-      <p class="text-sm font-medium text-unel-humo">
-        Total clientes
-      </p>
+  <div class="rounded-3xl border border-unel-crema-2 bg-white shadow-sm">
+    <div class="p-5 sm:p-6">
+      <div class="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+        <div class="min-w-0">
+          <p class="text-sm font-semibold uppercase tracking-wide text-unel-dorado">
+            Resumen operativo
+          </p>
 
-      <p class="mt-2 text-3xl font-bold text-unel-carbon">
-        <%= total_customers %>
-      </p>
+          <h2 class="mt-2 text-2xl font-bold text-unel-carbon md:text-3xl">
+            <%= total_customers %> clientes registrados
+          </h2>
 
-      <p class="mt-2 text-xs text-unel-humo">
-        Clientes registrados en el sistema.
-      </p>
-    </div>
+          <p class="mt-2 max-w-2xl text-sm leading-relaxed text-unel-humo">
+            Revisa el estado general de la cartera y usa los filtros de la lista para trabajar por segmento.
+          </p>
+        </div>
 
-    <div class="rounded-lg border border-unel-crema-2 bg-white p-6 shadow-sm">
-      <p class="text-sm font-medium text-unel-humo">
-        Clientes activos
-      </p>
+        <div class="grid shrink-0 gap-3 sm:grid-cols-3 xl:w-[34rem]">
+          <div class="rounded-2xl bg-unel-crema px-4 py-3">
+            <p class="text-xs font-semibold uppercase tracking-wide text-unel-humo">
+              Compras
+            </p>
 
-      <p class="mt-2 text-3xl font-bold text-unel-verde">
-        <%= active_customers %>
-      </p>
+            <p class="mt-1 text-xl font-bold text-unel-dorado">
+              <%= number_to_currency(total_spent, unit: "$", precision: 0, delimiter: ".") %>
+            </p>
+          </div>
 
-      <p class="mt-2 text-xs text-unel-humo">
-        Clientes con actividad reciente.
-      </p>
-    </div>
+          <div class="rounded-2xl bg-unel-crema px-4 py-3">
+            <p class="text-xs font-semibold uppercase tracking-wide text-unel-humo">
+              Pedidos
+            </p>
 
-    <div class="rounded-lg border border-unel-crema-2 bg-white p-6 shadow-sm">
-      <p class="text-sm font-medium text-unel-humo">
-        Con pedido pendiente
-      </p>
+            <p class="mt-1 text-xl font-bold text-unel-carbon">
+              <%= total_orders %>
+            </p>
+          </div>
 
-      <p class="mt-2 text-3xl font-bold text-amber-700">
-        <%= pending_order_customers %>
-      </p>
+          <div class="rounded-2xl border <%= total_receivable.positive? ? "border-amber-200 bg-amber-50" : "border-unel-crema-2 bg-unel-crema" %> px-4 py-3">
+            <p class="text-xs font-semibold uppercase tracking-wide <%= total_receivable.positive? ? "text-amber-700" : "text-unel-humo" %>">
+              Por cobrar
+            </p>
 
-      <p class="mt-2 text-xs text-unel-humo">
-        Clientes que requieren seguimiento.
-      </p>
-    </div>
+            <p class="mt-1 text-xl font-bold <%= total_receivable.positive? ? "text-amber-700" : "text-unel-carbon" %>">
+              <%= number_to_currency(total_receivable, unit: "$", precision: 0, delimiter: ".") %>
+            </p>
+          </div>
+        </div>
+      </div>
 
-    <div class="rounded-lg border border-unel-crema-2 bg-white p-6 shadow-sm">
-      <p class="text-sm font-medium text-unel-humo">
-        Total comprado
-      </p>
+      <div class="mt-5 grid gap-3 md:grid-cols-3">
+        <div class="rounded-2xl border border-unel-crema-2 bg-unel-blanco px-4 py-3">
+          <p class="text-xs font-semibold uppercase tracking-wide text-unel-humo">
+            Ticket por cliente
+          </p>
 
-      <p class="mt-2 text-3xl font-bold text-unel-dorado">
-        <%= number_to_currency(total_spent, unit: "$", precision: 0, delimiter: ".") %>
-      </p>
+          <p class="mt-1 text-lg font-bold text-unel-carbon">
+            <%= number_to_currency(average_spent, unit: "$", precision: 0, delimiter: ".") %>
+          </p>
+        </div>
 
-      <p class="mt-2 text-xs text-unel-humo">
-        Suma histórica asociada a clientes.
-      </p>
+        <% if top_customer.present? %>
+          <% top_customer_name = customer_name.call(top_customer) %>
+          <% top_customer_spent = customer_total_spent.call(top_customer) %>
+          <% top_customer_orders = customer_orders_count.call(top_customer) %>
+          <% top_customer_id = customer_attribute.call(top_customer, :id, 1) %>
+          <% top_customer_path = customers_preview ? admin_customer_path(top_customer_id, preview: preview_mode) : admin_customer_path(top_customer_id) %>
+
+          <div class="rounded-2xl border border-unel-crema-2 bg-unel-blanco px-4 py-3">
+            <p class="text-xs font-semibold uppercase tracking-wide text-unel-humo">
+              Mejor cliente
+            </p>
+
+            <div class="mt-1 flex items-center justify-between gap-3">
+              <div class="min-w-0">
+                <p class="truncate text-sm font-bold text-unel-carbon">
+                  <%= top_customer_name %>
+                </p>
+
+                <p class="mt-0.5 text-xs text-unel-humo">
+                  <%= top_customer_orders %> pedidos · <%= number_to_currency(top_customer_spent, unit: "$", precision: 0, delimiter: ".") %>
+                </p>
+              </div>
+
+              <%= link_to "Ver", top_customer_path,
+                class: "shrink-0 text-xs font-bold text-unel-dorado transition hover:text-unel-carbon" %>
+            </div>
+          </div>
+        <% else %>
+          <div class="rounded-2xl border border-unel-crema-2 bg-unel-blanco px-4 py-3">
+            <p class="text-xs font-semibold uppercase tracking-wide text-unel-humo">
+              Mejor cliente
+            </p>
+
+            <p class="mt-1 text-sm font-bold text-unel-carbon">
+              Sin datos
+            </p>
+          </div>
+        <% end %>
+
+        <div class="rounded-2xl border <%= needs_attention_customers.any? ? "border-amber-200 bg-amber-50" : "border-unel-crema-2 bg-unel-blanco" %> px-4 py-3">
+          <p class="text-xs font-semibold uppercase tracking-wide <%= needs_attention_customers.any? ? "text-amber-700" : "text-unel-humo" %>">
+            Prioridad
+          </p>
+
+          <p class="mt-1 text-sm font-bold text-unel-carbon">
+            <%= needs_attention_customers.any? ? "#{needs_attention_customers.count} clientes requieren revisión" : "Sin alertas de seguimiento" %>
+          </p>
+        </div>
+      </div>
     </div>
   </div>
 
   <div
+    id="customers-list"
     <% if customers.any? %>
-      data-controller="table-filter table-sort"
-      data-table-filter-singular-value="cliente"
-      data-table-filter-plural-value="clientes"
+      data-controller="customer-filter table-sort"
+      data-customer-filter-initial-status-value="<%= current_filter_value %>"
+      data-customer-filter-singular-value="cliente"
+      data-customer-filter-plural-value="clientes"
     <% end %>
-    class="mt-6 rounded-2xl border border-unel-crema-2 bg-white shadow-sm"
+    class="mt-6 rounded-3xl border border-unel-crema-2 bg-white shadow-sm"
   >
-    <div class="flex flex-col gap-3 border-b border-unel-crema-2 px-4 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
-      <div>
-        <h2 class="text-lg font-bold text-unel-carbon">
-          Registro de clientes
-        </h2>
+    <div class="border-b border-unel-crema-2 px-4 py-4 sm:px-6">
+      <div class="flex flex-col gap-4">
+        <div class="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
+          <div>
+            <h2 class="text-lg font-bold text-unel-carbon">
+              Clientes de la cartera
+            </h2>
 
-        <p class="mt-1 text-sm text-unel-humo">
-          Lista de clientes con contacto, actividad, compras acumuladas y estado actual.
-        </p>
-      </div>
-
-      <% if customers.any? %>
-        <div class="grid w-full gap-3 lg:flex lg:w-auto lg:items-center">
-          <span data-table-filter-target="resultsCount" class="text-xs text-unel-humo">
-          </span>
-
-          <div class="flex w-full min-w-0 items-center gap-2 rounded-xl border border-unel-crema-2 px-4 py-2 lg:w-56">
-            <label for="customers_sort" class="shrink-0 text-xs font-semibold text-unel-humo">
-              Ordenar:
-            </label>
-
-            <select
-              id="customers_sort"
-              data-table-sort-target="select"
-              data-action="change->table-sort#sort"
-              class="min-w-0 flex-1 bg-transparent text-sm font-semibold text-unel-verde outline-none"
-            >
-              <option value="">Orden original</option>
-              <option value="name_asc">Nombre A-Z</option>
-              <option value="name_desc">Nombre Z-A</option>
-              <option value="last_order_desc">Último pedido reciente</option>
-              <option value="last_order_asc">Último pedido antiguo</option>
-              <option value="orders_count_desc">Más pedidos</option>
-              <option value="total_spent_desc">Mayor compra acumulada</option>
-            </select>
+            <p class="mt-1 max-w-2xl text-sm text-unel-humo">
+              Filtra por estado, deuda o seguimiento. Después busca, ordena y entra a la ficha comercial.
+            </p>
           </div>
 
-          <div class="w-full rounded-xl bg-unel-crema px-4 py-2 lg:w-64">
-            <input
-              type="search"
-              placeholder="Buscar cliente..."
-              data-table-filter-target="input"
-              data-action="input->table-filter#filter"
-              class="w-full bg-transparent text-sm text-unel-negro outline-none placeholder:text-unel-humo"
-            >
+          <% if customers.any? %>
+            <div class="flex flex-wrap items-center gap-2 xl:justify-end">
+              <span data-customer-filter-target="resultsCount" class="text-xs text-unel-humo"></span>
+
+              <span class="inline-flex rounded-full border border-unel-crema-2 bg-unel-crema px-3 py-1 text-xs font-semibold text-unel-humo">
+                Vista:
+                <span data-customer-filter-target="activeLabel" class="ml-1">
+                  <%= current_filter_option[:label] %>
+                </span>
+              </span>
+            </div>
+          <% end %>
+        </div>
+
+        <div class="rounded-2xl border border-unel-crema-2 bg-unel-blanco p-3">
+          <div class="grid gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(20rem,auto)] xl:items-center">
+            <div>
+              <div class="mb-2 flex flex-wrap items-center gap-2">
+                <span class="text-xs font-semibold uppercase tracking-wide text-unel-humo">
+                  Filtros rápidos
+                </span>
+
+                <button
+                  type="button"
+                  data-action="customer-filter#clearFilters"
+                  class="text-xs font-bold text-unel-dorado transition hover:text-unel-carbon"
+                >
+                  Limpiar
+                </button>
+              </div>
+
+              <div class="flex flex-wrap gap-2" aria-label="Filtros de clientes">
+                <% filter_options.each do |option| %>
+                  <button
+                    type="button"
+                    data-customer-filter-target="filterButton"
+                    data-action="customer-filter#setFilter"
+                    data-filter-value="<%= option[:value] %>"
+                    data-filter-label="<%= option[:label] %>"
+                    class="inline-flex rounded-full border px-3 py-1.5 text-xs font-semibold transition <%= initial_filter_classes.call(option[:value]) %>"
+                  >
+                    <%= option[:label] %> · <%= option[:count] %>
+                  </button>
+                <% end %>
+              </div>
+            </div>
+
+            <% if customers.any? %>
+              <div class="grid gap-2 sm:grid-cols-2 xl:w-[36rem]">
+                <div class="flex min-w-0 items-center gap-2 rounded-xl border border-unel-crema-2 bg-white px-4 py-2">
+                  <label for="customers_sort" class="shrink-0 text-xs font-semibold text-unel-humo">
+                    Ordenar:
+                  </label>
+
+                  <select
+                    id="customers_sort"
+                    data-table-sort-target="select"
+                    data-action="change->table-sort#sort"
+                    class="min-w-0 flex-1 bg-transparent text-sm font-semibold text-unel-verde outline-none"
+                  >
+                    <option value="">Orden original</option>
+                    <option value="name_asc">Nombre A-Z</option>
+                    <option value="name_desc">Nombre Z-A</option>
+                    <option value="last_order_desc">Último pedido reciente</option>
+                    <option value="last_order_asc">Último pedido antiguo</option>
+                    <option value="orders_count_desc">Más pedidos</option>
+                    <option value="total_spent_desc">Mayor compra acumulada</option>
+                    <option value="receivable_amount_desc">Mayor deuda</option>
+                  </select>
+                </div>
+
+                <div class="rounded-xl bg-unel-crema px-4 py-2">
+                  <input
+                    type="search"
+                    placeholder="Buscar cliente..."
+                    data-customer-filter-target="input"
+                    data-action="input->customer-filter#filter"
+                    class="w-full bg-transparent text-sm text-unel-negro outline-none placeholder:text-unel-humo"
+                  >
+                </div>
+              </div>
+            <% end %>
           </div>
         </div>
-      <% end %>
+      </div>
     </div>
 
     <% if customers.any? %>
-      <div data-controller="table-overflow" class="unel-table-scroll-wrapper">
-        <div data-table-overflow-target="hint" class="unel-scroll-hint">
-          Desliza para ver toda la tabla →
-        </div>
+      <div data-table-sort-target="body" class="grid items-start gap-4 p-4 sm:p-6 lg:grid-cols-2 2xl:grid-cols-3">
+        <% customers.each_with_index do |customer, index| %>
+          <% name = customer_name.call(customer, "Cliente ##{index + 1}") %>
+          <% email = customer_attribute.call(customer, :email, nil) %>
+          <% phone = customer_attribute.call(customer, :phone, nil) %>
+          <% address = customer_attribute.call(customer, :address, nil) %>
+          <% segment = customer_attribute.call(customer, :segment, "Sin segmento") %>
+          <% status = customer_status.call(customer) %>
+          <% orders_count = customer_orders_count.call(customer) %>
+          <% total_customer_spent = customer_total_spent.call(customer) %>
+          <% receivable_amount = customer_receivable_amount.call(customer) %>
+          <% receivable_since = customer_receivable_since.call(customer) %>
+          <% last_order_date = customer_last_order_date.call(customer) %>
+          <% notes = customer_attribute.call(customer, :notes, nil) %>
+          <% customer_show_path = customer_path_for.call(customer, index + 1) %>
+          <% customer_orders_path = orders_path_for.call(customer, index + 1) %>
+          <% attention_reason = customer_attention_reason.call(customer) %>
 
-        <div
-          data-table-overflow-target="scroll"
-          data-action="scroll->table-overflow#check"
-          class="overflow-x-auto"
-        >
-          <table class="min-w-240 w-full text-left text-sm">
-            <thead class="bg-unel-verde text-xs uppercase tracking-wide text-unel-blanco">
-              <tr>
-                <th class="px-6 py-4 font-semibold">Cliente</th>
-                <th class="px-6 py-4 font-semibold">Contacto</th>
-                <th class="px-6 py-4 font-semibold">Segmento</th>
-                <th class="px-6 py-4 text-right font-semibold">Pedidos</th>
-                <th class="px-6 py-4 text-right font-semibold">Total comprado</th>
-                <th class="px-6 py-4 font-semibold">Último pedido</th>
-                <th class="px-6 py-4 font-semibold">Estado</th>
-                <th class="px-6 py-4 text-right font-semibold">Acciones</th>
-              </tr>
-            </thead>
+          <% has_email = email.present? %>
+          <% has_phone = phone.present? %>
+          <% phone_href = has_phone ? phone.to_s.gsub(/[^\d+]/, "") : nil %>
 
-            <tbody data-table-sort-target="body" class="divide-y divide-unel-crema-2">
-              <% customers.each_with_index do |customer, index| %>
-                <% name = customer_name.call(customer, "Cliente ##{index + 1}") %>
-                <% email = customer_attribute.call(customer, :email, "Sin email") %>
-                <% phone = customer_attribute.call(customer, :phone, "Sin teléfono") %>
-                <% segment = customer_attribute.call(customer, :segment, "Sin segmento") %>
-                <% status = customer_status.call(customer) %>
-                <% orders_count = customer_orders_count.call(customer) %>
-                <% total_customer_spent = customer_total_spent.call(customer) %>
-                <% last_order_date = customer_last_order_date.call(customer) %>
-                <% customer_id = customer_attribute.call(customer, :id, index + 1) %>
-                <% customer_show_path = customers_preview ? admin_customer_path(customer_id, preview: preview_mode) : admin_customer_path(customer_id) %>
+          <% formatted_last_order_date = if last_order_date.present? && last_order_date.respond_to?(:strftime)
+            last_order_date.strftime("%d/%m/%Y")
+          elsif last_order_date.present?
+            last_order_date.to_s
+          else
+            "Sin pedidos"
+          end %>
 
-                <% formatted_last_order_date = if last_order_date.present? && last_order_date.respond_to?(:strftime)
-                  last_order_date.strftime("%d/%m/%Y")
-                elsif last_order_date.present?
-                  last_order_date.to_s
-                else
-                  "Sin pedidos"
-                end %>
+          <% formatted_receivable_since = if receivable_since.present? && receivable_since.respond_to?(:strftime)
+            receivable_since.strftime("%d/%m/%Y")
+          elsif receivable_since.present?
+            receivable_since.to_s
+          else
+            nil
+          end %>
 
-                <% status_label = case status
-                when "active"
-                  "Activo"
-                when "pending_order"
-                  "Pedido pendiente"
-                when "new"
-                  "Nuevo"
-                when "inactive"
-                  "Inactivo"
-                else
-                  status.to_s.humanize
-                end %>
+          <% receivable_overdue = receivable_since.present? &&
+            receivable_since.respond_to?(:to_date) &&
+            receivable_since.to_date < Date.current - 30.days %>
 
-                <% status_classes = case status
-                when "active"
-                  "border-unel-crema-2 bg-white text-unel-verde"
-                when "pending_order"
-                  "border-amber-200 bg-amber-50 text-amber-700"
-                when "new"
-                  "border-unel-crema-2 bg-unel-crema text-unel-carbon"
-                when "inactive"
-                  "border-unel-crema-2 bg-white text-unel-humo"
-                else
-                  "border-unel-crema-2 bg-unel-crema text-unel-humo"
-                end %>
+          <% status_label = case status
+          when "active"
+            "Activo"
+          when "pending_order"
+            "Pedido pendiente"
+          when "new"
+            "Nuevo"
+          when "inactive"
+            "Inactivo"
+          else
+            status.to_s.humanize
+          end %>
 
-                <tr
-                  data-table-filter-target="row"
-                  data-table-sort-target="row"
-                  data-search-text="<%= [name, email, phone, segment, status_label, orders_count, total_customer_spent, formatted_last_order_date].join(' ') %>"
-                  data-sort-name="<%= name %>"
-                  data-sort-last-order="<%= last_order_date.respond_to?(:to_date) ? last_order_date.to_date.strftime('%Y%m%d') : "" %>"
-                  data-sort-orders-count="<%= orders_count %>"
-                  data-sort-total-spent="<%= total_customer_spent %>"
-                  class="transition hover:bg-unel-crema/50"
-                >
-                  <td class="px-6 py-4">
-                    <p class="font-semibold text-unel-carbon">
-                      <%= name %>
-                    </p>
+          <% status_classes = case status
+          when "active"
+            "border-unel-crema-2 bg-white text-unel-verde"
+          when "pending_order"
+            "border-amber-200 bg-amber-50 text-amber-700"
+          when "new"
+            "border-unel-crema-2 bg-unel-crema text-unel-carbon"
+          when "inactive"
+            "border-unel-crema-2 bg-white text-unel-humo"
+          else
+            "border-unel-crema-2 bg-unel-crema text-unel-humo"
+          end %>
 
-                    <p class="mt-1 text-xs text-unel-humo">
-                      ID cliente: <%= customer_id %>
-                    </p>
-                  </td>
+          <% attention_title = attention_reason.present? ? "Acción sugerida" : "Estado comercial" %>
+          <% attention_text = attention_reason.presence || "Sin seguimiento urgente" %>
 
-                  <td class="px-6 py-4">
-                    <p class="text-sm font-medium text-unel-carbon">
-                      <%= email.presence || "Sin email" %>
-                    </p>
+          <% attention_box_classes = if attention_reason.present?
+            "border-amber-200 bg-amber-50"
+          else
+            "border-unel-crema-2 bg-white"
+          end %>
 
-                    <p class="mt-1 text-xs text-unel-humo">
-                      <%= phone.presence || "Sin teléfono" %>
-                    </p>
-                  </td>
+          <% attention_label_classes = if attention_reason.present?
+            "text-amber-700"
+          else
+            "text-unel-humo"
+          end %>
 
-                  <td class="px-6 py-4 text-unel-humo">
+          <% receivable_box_classes = if receivable_amount.positive?
+            receivable_overdue ? "border-red-200 bg-red-50" : "border-amber-200 bg-amber-50"
+          else
+            "border-unel-crema-2 bg-white"
+          end %>
+
+          <% receivable_label_classes = if receivable_amount.positive?
+            receivable_overdue ? "text-red-700" : "text-amber-700"
+          else
+            "text-unel-humo"
+          end %>
+
+          <% receivable_value_classes = if receivable_amount.positive?
+            receivable_overdue ? "text-red-700" : "text-amber-700"
+          else
+            "text-unel-carbon"
+          end %>
+
+          <article
+            data-customer-filter-target="row"
+            data-table-sort-target="row"
+            data-customer-status="<%= status %>"
+            data-customer-has-debt="<%= receivable_amount.positive? %>"
+            data-customer-needs-attention="<%= attention_reason.present? %>"
+            data-search-text="<%= [name, email, phone, address, segment, status_label, orders_count, total_customer_spent, receivable_amount, formatted_receivable_since, formatted_last_order_date, notes, attention_reason].compact.join(' ') %>"
+            data-sort-name="<%= name %>"
+            data-sort-last-order="<%= last_order_date.respond_to?(:to_date) ? last_order_date.to_date.strftime('%Y%m%d') : "" %>"
+            data-sort-orders-count="<%= orders_count %>"
+            data-sort-total-spent="<%= total_customer_spent %>"
+            data-sort-receivable-amount="<%= receivable_amount %>"
+            class="group flex flex-col rounded-3xl border border-unel-crema-2 bg-unel-blanco p-5 transition hover:border-unel-dorado hover:bg-white hover:shadow-sm"
+          >
+            <div class="flex items-start justify-between gap-4">
+              <div class="flex min-w-0 items-start gap-3">
+                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-unel-verde text-lg font-bold text-white transition group-hover:bg-unel-carbon">
+                  <%= name.first.to_s.upcase %>
+                </div>
+
+                <div class="min-w-0">
+                  <h3 class="truncate text-base font-bold text-unel-carbon">
+                    <%= name %>
+                  </h3>
+
+                  <p class="mt-1 text-xs font-semibold uppercase tracking-wide text-unel-dorado">
                     <%= segment.presence || "Sin segmento" %>
-                  </td>
+                  </p>
+                </div>
+              </div>
 
-                  <td class="px-6 py-4 text-right font-semibold text-unel-carbon">
-                    <%= orders_count %>
-                  </td>
+              <span class="shrink-0 rounded-full border px-3 py-1 text-xs font-semibold <%= status_classes %>">
+                <%= status_label %>
+              </span>
+            </div>
 
-                  <td class="px-6 py-4 text-right font-bold text-unel-dorado">
-                    <%= number_to_currency(total_customer_spent, unit: "$", precision: 0, delimiter: ".") %>
-                  </td>
+            <div class="mt-4 rounded-2xl border px-4 py-3 <%= attention_box_classes %>">
+              <p class="text-xs font-semibold uppercase tracking-wide <%= attention_label_classes %>">
+                <%= attention_title %>
+              </p>
 
-                  <td class="px-6 py-4 text-unel-humo">
+              <p class="mt-1 text-sm font-bold text-unel-carbon">
+                <%= attention_text %>
+              </p>
+            </div>
+
+            <div class="mt-4 rounded-2xl bg-white px-4 py-3">
+              <div class="space-y-2">
+                <p class="truncate text-sm font-medium text-unel-carbon">
+                  <%= has_email ? email : "Sin email registrado" %>
+                </p>
+
+                <p class="text-sm text-unel-humo">
+                  <%= has_phone ? phone : "Sin teléfono registrado" %>
+                </p>
+
+                <p class="text-sm text-unel-humo">
+                  <%= address.presence || "Sin dirección registrada" %>
+                </p>
+
+                <% if notes.present? %>
+                  <p class="border-t border-unel-crema-2 pt-2 text-xs leading-relaxed text-unel-humo">
+                    <%= notes %>
+                  </p>
+                <% end %>
+              </div>
+            </div>
+
+            <div class="mt-4 grid gap-3 sm:grid-cols-2">
+              <div class="rounded-2xl bg-unel-crema px-3 py-2.5">
+                <p class="text-xs font-semibold text-unel-humo">
+                  Pedidos
+                </p>
+
+                <p class="mt-1 text-lg font-bold text-unel-carbon">
+                  <%= orders_count %>
+                </p>
+              </div>
+
+              <div class="rounded-2xl bg-unel-crema px-3 py-2.5">
+                <p class="text-xs font-semibold text-unel-humo">
+                  Total comprado
+                </p>
+
+                <p class="mt-1 text-lg font-bold text-unel-dorado">
+                  <%= number_to_currency(total_customer_spent, unit: "$", precision: 0, delimiter: ".") %>
+                </p>
+              </div>
+            </div>
+
+            <div class="mt-4 grid gap-2">
+              <div class="rounded-2xl border border-unel-crema-2 bg-white px-4 py-2.5">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <span class="text-xs font-semibold text-unel-humo">
+                    Último pedido
+                  </span>
+
+                  <span class="text-sm font-bold text-unel-carbon">
                     <%= formatted_last_order_date %>
-                  </td>
+                  </span>
+                </div>
+              </div>
 
-                  <td class="px-6 py-4">
-                    <span class="inline-flex rounded-full border px-3 py-1 text-xs font-semibold <%= status_classes %>">
-                      <%= status_label %>
-                    </span>
-                  </td>
+              <div class="rounded-2xl border px-4 py-2.5 <%= receivable_box_classes %>">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <span class="text-xs font-semibold <%= receivable_label_classes %>">
+                    Cuenta por cobrar
+                  </span>
 
-                  <td class="px-6 py-4">
-                    <div class="flex items-center justify-end gap-3">
-                      <%= link_to "Ver detalle", customer_show_path,
-                        class: "text-sm font-semibold text-unel-humo transition hover:text-unel-dorado" %>
-                    </div>
-                  </td>
-                </tr>
-              <% end %>
-            </tbody>
-          </table>
-        </div>
+                  <span class="text-sm font-bold <%= receivable_value_classes %>">
+                    <%= receivable_amount.positive? ? number_to_currency(receivable_amount, unit: "$", precision: 0, delimiter: ".") : "Sin deuda" %>
+                  </span>
+                </div>
+
+                <% if receivable_amount.positive? && formatted_receivable_since.present? %>
+                  <p class="mt-1 text-xs <%= receivable_overdue ? "text-red-600" : "text-amber-700" %>">
+                    Desde <%= formatted_receivable_since %><%= receivable_overdue ? " · vencida" : "" %>
+                  </p>
+                <% end %>
+              </div>
+            </div>
+
+            <div class="mt-4">
+              <div class="grid gap-2 sm:grid-cols-3">
+                <%= link_to "Ver ficha", customer_show_path,
+                  class: "inline-flex justify-center rounded-xl bg-unel-verde px-3 py-2 text-sm font-semibold text-white transition hover:bg-unel-carbon sm:col-span-3" %>
+
+                <% if has_email %>
+                  <%= link_to "Email", "mailto:#{email}",
+                    class: "inline-flex justify-center rounded-xl border border-unel-crema-2 bg-white px-3 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado" %>
+                <% else %>
+                  <span class="inline-flex justify-center rounded-xl border border-unel-crema-2 bg-white px-3 py-2 text-sm font-semibold text-unel-humo opacity-50">
+                    Email
+                  </span>
+                <% end %>
+
+                <% if has_phone %>
+                  <%= link_to "Llamar", "tel:#{phone_href}",
+                    class: "inline-flex justify-center rounded-xl border border-unel-crema-2 bg-white px-3 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado" %>
+                <% else %>
+                  <span class="inline-flex justify-center rounded-xl border border-unel-crema-2 bg-white px-3 py-2 text-sm font-semibold text-unel-humo opacity-50">
+                    Llamar
+                  </span>
+                <% end %>
+
+                <%= link_to "Pedidos", customer_orders_path,
+                  class: "inline-flex justify-center rounded-xl border border-unel-crema-2 bg-white px-3 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado" %>
+              </div>
+            </div>
+          </article>
+        <% end %>
       </div>
 
-      <div data-table-filter-target="emptyState" class="hidden border-t border-unel-crema-2 px-4 py-12 text-center sm:px-6">
+      <div data-customer-filter-target="emptyState" class="hidden border-t border-unel-crema-2 px-4 py-12 text-center sm:px-6">
         <p class="text-lg font-bold text-unel-negro">
           No encontramos clientes con esa búsqueda
         </p>
 
         <p class="mx-auto mt-2 max-w-md text-sm text-unel-humo">
-          Intenta buscar por nombre, contacto, segmento, estado o compras.
+          Intenta buscar por nombre, teléfono, dirección, estado, nota o deuda.
         </p>
 
         <button
           type="button"
-          data-action="table-filter#clear"
+          data-action="customer-filter#clearSearch"
           class="mt-6 rounded-xl border border-unel-crema-2 px-4 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado"
         >
           Limpiar búsqueda
         </button>
       </div>
     <% else %>
-      <div class="px-4 py-12 text-center sm:px-6">
-        <div class="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-unel-crema text-lg font-bold text-unel-verde">
+      <div class="px-4 py-14 text-center sm:px-6">
+        <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-unel-crema text-lg font-bold text-unel-verde">
           C
         </div>
 
-        <p class="mt-3 text-lg font-bold text-unel-carbon">
-          Todavía no hay clientes registrados
+        <p class="mt-4 text-lg font-bold text-unel-carbon">
+          No hay clientes para mostrar
         </p>
 
         <p class="mx-auto mt-2 max-w-md text-sm text-unel-humo">
-          Cuando existan clientes, aparecerán aquí junto a su información de contacto, compras y actividad.
+          Registra clientes cuando exista el backend correspondiente.
         </p>
       </div>
     <% end %>

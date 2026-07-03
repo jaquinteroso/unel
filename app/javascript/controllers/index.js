@@ -42,3 +42,6 @@ application.register("inventory-movement-form", InventoryMovementFormController)
 
 import TableOverflowController from "./table_overflow_controller"
 application.register("table-overflow", TableOverflowController)
+
+import CustomerFilterController from "./customer_filter_controller"
+application.register("customer-filter", CustomerFilterController)
