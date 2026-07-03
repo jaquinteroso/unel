@@ -7,6 +7,10 @@ class Admin::FinancialMovementsController < Admin::ApplicationController
     @movement_type = normalized_movement_type(params[:movement_type])
   end
 
+  def edit
+    @movement_type = normalized_movement_type(params[:movement_type])
+  end
+
   private
 
   def normalized_movement_type(value)

@@ -1,0 +1,281 @@
+<% preview_mode = params[:preview].to_s %>
+<% finance_preview = Rails.env.development? && params[:preview].present? %>
+<% debts_back_path = finance_preview ? admin_debts_path(preview: preview_mode) : admin_debts_path %>
+
+<% preview_debts = if finance_preview && %w[1 positive true].include?(preview_mode)
+  [
+    { id: 1, creditor_name: "Envases del Sur", description: "Compra de frascos para producción", total_amount: 180_000, paid_amount: 0, due_date: Date.current + 5.days, status: "pending", notes: "Vence pronto. Priorizar pago si hay caja disponible." },
+    { id: 2, creditor_name: "Proveedor ingredientes", description: "Saldo parcial de ingredientes", total_amount: 200_000, paid_amount: 50_000, due_date: Date.current - 3.days, status: "partially_paid", notes: "Deuda parcialmente pagada y atrasada." },
+    { id: 3, creditor_name: "Imprenta local", description: "Etiquetas y material impreso", total_amount: 100_000, paid_amount: 0, due_date: Date.current + 20.days, status: "pending", notes: "Pago pendiente sin urgencia inmediata." }
+  ]
+elsif finance_preview && preview_mode == "negative"
+  [
+    { id: 1, creditor_name: "Proveedor de pescado", description: "Materia prima pendiente de pago", total_amount: 250_000, paid_amount: 0, due_date: Date.current - 5.days, status: "pending", notes: "Deuda atrasada de materia prima." },
+    { id: 2, creditor_name: "Servicios eléctricos", description: "Cuenta de electricidad atrasada", total_amount: 180_000, paid_amount: 0, due_date: Date.current - 2.days, status: "pending", notes: "Regularizar pronto para evitar problemas operativos." },
+    { id: 3, creditor_name: "Envases del Sur", description: "Compra de frascos y tapas", total_amount: 220_000, paid_amount: 0, due_date: Date.current + 3.days, status: "pending", notes: "Vence pronto." },
+    { id: 4, creditor_name: "Imprenta local", description: "Etiquetas de nueva producción", total_amount: 160_000, paid_amount: 0, due_date: Date.current + 6.days, status: "pending", notes: "Vence dentro de la semana." },
+    { id: 5, creditor_name: "Distribuidor mayorista", description: "Saldo por insumos de embalaje", total_amount: 190_000, paid_amount: 50_000, due_date: Date.current + 7.days, status: "partially_paid", notes: "Pagada parcialmente y próxima a vencer." },
+    { id: 6, creditor_name: "Arriendo taller", description: "Compromiso mensual del espacio de producción", total_amount: 230_000, paid_amount: 0, due_date: Date.current + 18.days, status: "pending", notes: "Compromiso mensual." }
+  ]
+elsif finance_preview && preview_mode == "balanced"
+  [
+    { id: 1, creditor_name: "Proveedor de envases", description: "Saldo por compra de frascos", total_amount: 120_000, paid_amount: 0, due_date: Date.current + 15.days, status: "pending", notes: "Deuda controlada." },
+    { id: 2, creditor_name: "Proveedor ingredientes", description: "Compra programada de materia prima", total_amount: 250_000, paid_amount: 0, due_date: Date.current + 22.days, status: "pending", notes: "Sin urgencia inmediata." },
+    { id: 3, creditor_name: "Imprenta local", description: "Etiquetas pendientes de pago", total_amount: 150_000, paid_amount: 0, due_date: Date.current + 30.days, status: "pending", notes: "Pago planificado." },
+    { id: 4, creditor_name: "Transporte local", description: "Despachos acumulados del mes", total_amount: 100_000, paid_amount: 0, due_date: Date.current + 40.days, status: "pending", notes: "Deuda sin vencimiento cercano." }
+  ]
+else
+  []
+end %>
+
+<% preview_debt = preview_debts.find { |debt| debt[:id].to_s == params[:id].to_s } %>
+<% debt_record = @debt.presence || preview_debt || {} %>
+
+<% debt_field = lambda do |key, default = nil|
+  if debt_record.respond_to?(key)
+    debt_record.public_send(key)
+  elsif debt_record.respond_to?(:[])
+    debt_record[key] || debt_record[key.to_s] || default
+  else
+    default
+  end
+end %>
+
+<% creditor_name_value = debt_field.call(:creditor_name, nil) %>
+<% total_amount_value = debt_field.call(:total_amount, nil) %>
+<% paid_amount_value = debt_field.call(:paid_amount, 0) %>
+<% due_date_value = debt_field.call(:due_date, nil) %>
+<% status_value = debt_field.call(:status, "pending") %>
+<% description_value = debt_field.call(:description, nil) %>
+<% notes_value = debt_field.call(:notes, nil) %>
+
+<% debt_update_ready = respond_to?(:admin_debt_path) && controller.class.action_methods.include?("update") %>
+<% debt_form_path = debt_update_ready ? admin_debt_path(params[:id]) : "#" %>
+
+<% content_for :admin_section_key, "finances" %>
+<% content_for :admin_section_inner, "Editar deuda" %>
+<% content_for :admin_search_placeholder, "Buscar deudas..." %>
+<% content_for :admin_search_path, debts_back_path %>
+
+<section>
+  <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+    <div>
+      <div class="mb-3">
+        <%= link_to "← Volver a deudas", debts_back_path,
+          class: "text-sm font-semibold text-unel-humo transition hover:text-unel-dorado" %>
+      </div>
+
+      <h1 class="text-2xl font-bold text-unel-carbon md:text-3xl">
+        Editar deuda
+      </h1>
+
+      <p class="mt-2 max-w-2xl text-sm text-unel-humo">
+        Corrige compromisos pendientes de pago, montos, vencimientos y saldos por pagar.
+      </p>
+    </div>
+
+    <span class="inline-flex w-fit rounded-full border border-unel-crema-2 bg-unel-crema px-3 py-1 text-xs font-semibold text-unel-humo">
+      Finanzas
+    </span>
+  </div>
+
+  <div class="grid gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(20rem,0.85fr)]">
+    <div class="rounded-2xl border border-unel-crema-2 bg-white shadow-sm">
+      <div class="border-b border-unel-crema-2 px-4 py-5 sm:px-6">
+        <h2 class="text-lg font-bold text-unel-carbon">
+          Datos de la deuda
+        </h2>
+
+        <p class="mt-1 text-sm text-unel-humo">
+          Actualiza la información necesaria para saber a quién se debe, cuánto falta pagar y cuándo vence.
+        </p>
+      </div>
+
+      <%= form_with scope: :debt,
+        url: debt_form_path,
+        method: :patch,
+        local: true,
+        class: "space-y-6 px-4 py-5 sm:px-6" do |form| %>
+
+        <div>
+          <%= form.label :creditor_name, "A quién se debe", class: "block text-sm font-semibold text-unel-carbon" %>
+
+          <%= form.text_field :creditor_name,
+            value: creditor_name_value,
+            placeholder: "Ej: Proveedor de frascos, proveedor de mariscos, transporte...",
+            class: "mt-2 w-full rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-3 text-sm text-unel-carbon outline-none transition placeholder:text-unel-humo focus:border-unel-dorado" %>
+
+          <p class="mt-2 text-xs text-unel-humo">
+            Puede ser un proveedor, persona, servicio o institución.
+          </p>
+        </div>
+
+        <div class="grid gap-4 md:grid-cols-2">
+          <div>
+            <%= form.label :total_amount, "Monto total", class: "block text-sm font-semibold text-unel-carbon" %>
+
+            <div class="mt-2 flex overflow-hidden rounded-xl border border-unel-crema-2 bg-unel-blanco focus-within:border-unel-dorado">
+              <span class="flex items-center border-r border-unel-crema-2 bg-unel-crema px-4 text-sm font-bold text-unel-humo">
+                $
+              </span>
+
+              <%= form.number_field :total_amount,
+                min: 0,
+                step: 1,
+                value: total_amount_value,
+                placeholder: "Ej: 120000",
+                class: "w-full bg-transparent px-4 py-3 text-sm text-unel-carbon outline-none placeholder:text-unel-humo" %>
+            </div>
+
+            <p class="mt-2 text-xs text-unel-humo">
+              Monto original de la deuda.
+            </p>
+          </div>
+
+          <div>
+            <%= form.label :paid_amount, "Monto pagado", class: "block text-sm font-semibold text-unel-carbon" %>
+
+            <div class="mt-2 flex overflow-hidden rounded-xl border border-unel-crema-2 bg-unel-blanco focus-within:border-unel-dorado">
+              <span class="flex items-center border-r border-unel-crema-2 bg-unel-crema px-4 text-sm font-bold text-unel-humo">
+                $
+              </span>
+
+              <%= form.number_field :paid_amount,
+                min: 0,
+                step: 1,
+                value: paid_amount_value,
+                placeholder: "Ej: 30000",
+                class: "w-full bg-transparent px-4 py-3 text-sm text-unel-carbon outline-none placeholder:text-unel-humo" %>
+            </div>
+
+            <p class="mt-2 text-xs text-unel-humo">
+              Si no se ha pagado nada, deja este valor en cero.
+            </p>
+          </div>
+        </div>
+
+        <div class="grid gap-4 md:grid-cols-2">
+          <div>
+            <%= form.label :due_date, "Fecha de vencimiento", class: "block text-sm font-semibold text-unel-carbon" %>
+
+            <%= form.date_field :due_date,
+              value: due_date_value,
+              class: "mt-2 w-full rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-3 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado" %>
+
+            <p class="mt-2 text-xs text-unel-humo">
+              Fecha límite o compromiso de pago.
+            </p>
+          </div>
+
+          <div>
+            <%= form.label :status, "Estado", class: "block text-sm font-semibold text-unel-carbon" %>
+
+            <%= form.select :status,
+              options_for_select([
+                ["Pendiente", "pending"],
+                ["Pagada parcialmente", "partially_paid"],
+                ["Pagada", "paid"],
+                ["Atrasada", "overdue"]
+              ], status_value),
+              {},
+              class: "mt-2 w-full rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-3 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado" %>
+
+            <p class="mt-2 text-xs text-unel-humo">
+              Permite distinguir deudas pendientes, parciales, pagadas o atrasadas.
+            </p>
+          </div>
+        </div>
+
+        <div>
+          <%= form.label :description, "Descripción", class: "block text-sm font-semibold text-unel-carbon" %>
+
+          <%= form.text_field :description,
+            value: description_value,
+            placeholder: "Ej: Compra de tapas para producción de junio",
+            class: "mt-2 w-full rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-3 text-sm text-unel-carbon outline-none transition placeholder:text-unel-humo focus:border-unel-dorado" %>
+
+          <p class="mt-2 text-xs text-unel-humo">
+            Breve explicación del origen de la deuda.
+          </p>
+        </div>
+
+        <div>
+          <%= form.label :notes, "Notas internas", class: "block text-sm font-semibold text-unel-carbon" %>
+
+          <%= form.text_area :notes,
+            rows: 4,
+            value: notes_value,
+            placeholder: "Condiciones de pago, contacto, comprobante, cuotas u observaciones.",
+            class: "mt-2 w-full resize-none rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-3 text-sm text-unel-carbon outline-none transition placeholder:text-unel-humo focus:border-unel-dorado" %>
+        </div>
+
+        <div class="flex flex-col-reverse gap-3 border-t border-unel-crema-2 pt-5 sm:flex-row sm:items-center sm:justify-between">
+          <%= link_to "Cancelar", debts_back_path,
+            class: "inline-flex w-full justify-center rounded-xl border border-unel-crema-2 px-4 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado sm:w-auto" %>
+
+          <button
+            type="submit"
+            <%= "disabled" unless debt_update_ready %>
+            class="inline-flex w-full justify-center rounded-xl bg-unel-verde px-4 py-2 text-sm font-semibold text-white transition hover:bg-unel-carbon disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+          >
+            Guardar cambios
+          </button>
+        </div>
+      <% end %>
+    </div>
+
+    <aside class="space-y-5">
+      <div class="rounded-2xl border border-unel-crema-2 bg-white p-5 shadow-sm">
+        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-unel-dorado text-xl font-bold text-white pb-1">
+          !
+        </div>
+
+        <h2 class="mt-4 text-lg font-bold text-unel-carbon">
+          Edición de deuda
+        </h2>
+
+        <p class="mt-2 text-sm text-unel-humo">
+          Actualizar una deuda permitirá corregir saldos, vencimientos y estados cuando cambie el compromiso.
+        </p>
+      </div>
+
+      <div class="rounded-2xl border border-unel-crema-2 bg-white p-5 shadow-sm">
+        <h2 class="text-lg font-bold text-unel-carbon">
+          Datos importantes
+        </h2>
+
+        <div class="mt-4 space-y-3">
+          <div class="rounded-xl bg-unel-crema px-4 py-3">
+            <p class="text-sm font-bold text-unel-carbon">
+              Saldo pendiente
+            </p>
+
+            <p class="mt-1 text-xs text-unel-humo">
+              Si cambias el monto total o pagado, cambiará el saldo pendiente.
+            </p>
+          </div>
+
+          <div class="rounded-xl bg-unel-crema px-4 py-3">
+            <p class="text-sm font-bold text-unel-carbon">
+              Vencimiento
+            </p>
+
+            <p class="mt-1 text-xs text-unel-humo">
+              Si la fecha queda dentro de 7 días, aparecerá como deuda próxima a vencer.
+            </p>
+          </div>
+
+          <div class="rounded-xl bg-unel-crema px-4 py-3">
+            <p class="text-sm font-bold text-unel-carbon">
+              Estado
+            </p>
+
+            <p class="mt-1 text-xs text-unel-humo">
+              Ayuda a separar pendientes, pagadas parcialmente, pagadas y atrasadas.
+            </p>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</section>

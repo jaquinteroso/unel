@@ -347,7 +347,7 @@ end %>
             </thead>
 
             <tbody data-table-sort-target="body" class="divide-y divide-unel-crema-2">
-              <% debts.each do |debt| %>
+              <% debts.each_with_index do |debt, index| %>
                 <% creditor_name = debt_attribute.call(debt, :creditor_name, "Sin acreedor") %>
                 <% description = debt_attribute.call(debt, :description, "Sin descripción") %>
                 <% total_amount = debt_total_amount.call(debt) %>
@@ -355,6 +355,8 @@ end %>
                 <% remaining_amount = debt_remaining_amount.call(debt) %>
                 <% due_date = debt_due_date.call(debt) %>
                 <% status = debt_status.call(debt) %>
+                <% debt_id = debt_attribute.call(debt, :id, index + 1) %>
+                <% debt_edit_path = finance_preview ? edit_admin_debt_path(debt_id, preview: preview_mode) : edit_admin_debt_path(debt_id) %>
 
                 <% formatted_due_date = if due_date.present? && due_date.respond_to?(:strftime)
                   due_date.strftime("%d/%m/%Y")
@@ -451,9 +453,8 @@ end %>
 
                   <td class="px-6 py-4">
                     <div class="flex items-center justify-end gap-3">
-                      <span class="text-sm font-semibold text-unel-humo">
-                        Editar
-                      </span>
+                      <%= link_to "Editar", debt_edit_path,
+                        class: "text-sm font-semibold text-unel-humo transition hover:text-unel-dorado" %>
                     </div>
                   </td>
                 </tr>

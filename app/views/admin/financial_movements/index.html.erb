@@ -379,13 +379,15 @@ end %>
             </thead>
 
             <tbody data-table-sort-target="body" class="divide-y divide-unel-crema-2">
-              <% financial_movements.each do |movement| %>
+              <% financial_movements.each_with_index do |movement, index| %>
                 <% type = movement_type.call(movement) %>
                 <% amount = movement_amount.call(movement) %>
                 <% date = movement_date.call(movement) %>
                 <% category = movement_attribute.call(movement, :category, "Sin categoría") %>
                 <% description = movement_attribute.call(movement, :description, "Sin descripción") %>
                 <% payment_method = movement_attribute.call(movement, :payment_method, "Sin método") %>
+                <% movement_id = movement_attribute.call(movement, :id, index + 1) %>
+                <% movement_edit_path = finance_preview ? edit_admin_financial_movement_path(movement_id, movement_type: type, preview: preview_mode) : edit_admin_financial_movement_path(movement_id, movement_type: type) %>
 
                 <% formatted_date = if date.present? && date.respond_to?(:strftime)
                   date.strftime("%d/%m/%Y")
@@ -436,9 +438,8 @@ end %>
 
                   <td class="px-6 py-4">
                     <div class="flex items-center justify-end gap-3">
-                      <span class="text-sm font-semibold text-unel-humo">
-                        Editar
-                      </span>
+                      <%= link_to "Editar", movement_edit_path,
+                        class: "text-sm font-semibold text-unel-humo transition hover:text-unel-dorado" %>
                     </div>
                   </td>
                 </tr>

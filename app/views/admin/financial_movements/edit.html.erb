@@ -1,0 +1,291 @@
+<% preview_mode = params[:preview].to_s %>
+<% finance_preview = Rails.env.development? && params[:preview].present? %>
+<% financial_movements_back_path = finance_preview ? admin_financial_movements_path(preview: preview_mode) : admin_financial_movements_path %>
+
+<% preview_movements = if finance_preview && %w[1 positive true].include?(preview_mode)
+  [
+    { id: 1, date: Date.current.beginning_of_month + 1.day, movement_type: "income", category: "sale", description: "Venta pedido mayorista", payment_method: "bank_transfer", amount: 350_000, notes: "Pedido grande registrado como ingreso del mes." },
+    { id: 2, date: Date.current.beginning_of_month + 3.days, movement_type: "expense", category: "packaging", description: "Compra de frascos", payment_method: "bank_transfer", amount: 180_000, notes: "Compra de insumos de empaque." },
+    { id: 3, date: Date.current.beginning_of_month + 6.days, movement_type: "income", category: "customer_payment", description: "Pago transferencia cliente", payment_method: "bank_transfer", amount: 245_000, notes: "Pago recibido por transferencia." },
+    { id: 4, date: Date.current.beginning_of_month + 8.days, movement_type: "expense", category: "raw_material", description: "Compra de ingredientes", payment_method: "card", amount: 95_000, notes: "Ingredientes para producción semanal." },
+    { id: 5, date: Date.current.beginning_of_month + 12.days, movement_type: "income", category: "sale", description: "Ventas por catálogo público", payment_method: "card", amount: 520_000, notes: "Ventas simuladas del canal online." },
+    { id: 6, date: Date.current.beginning_of_month + 15.days, movement_type: "expense", category: "packaging", description: "Compra de etiquetas", payment_method: "bank_transfer", amount: 210_000, notes: "Etiquetas para nuevos lotes." },
+    { id: 7, date: Date.current.beginning_of_month + 18.days, movement_type: "income", category: "sale", description: "Ventas feria local", payment_method: "cash", amount: 370_000, notes: "Ingreso por ventas presenciales." },
+    { id: 8, date: Date.current.beginning_of_month + 21.days, movement_type: "expense", category: "services", description: "Costos de producción mensual", payment_method: "bank_transfer", amount: 435_000, notes: "Costos operativos asociados al periodo." }
+  ]
+elsif finance_preview && preview_mode == "negative"
+  [
+    { id: 1, date: Date.current.beginning_of_month + 1.day, movement_type: "income", category: "sale", description: "Venta frascos surtidos", payment_method: "bank_transfer", amount: 220_000, notes: "Ingreso menor al esperado." },
+    { id: 2, date: Date.current.beginning_of_month + 3.days, movement_type: "expense", category: "raw_material", description: "Compra de pescado", payment_method: "bank_transfer", amount: 410_000, notes: "Compra importante de materia prima." },
+    { id: 3, date: Date.current.beginning_of_month + 5.days, movement_type: "expense", category: "services", description: "Pago electricidad", payment_method: "bank_transfer", amount: 185_000, notes: "Gasto operacional del mes." },
+    { id: 4, date: Date.current.beginning_of_month + 8.days, movement_type: "income", category: "sale", description: "Venta feria local", payment_method: "cash", amount: 160_000, notes: "Ingreso por venta presencial." },
+    { id: 5, date: Date.current.beginning_of_month + 11.days, movement_type: "expense", category: "packaging", description: "Compra de tapas y etiquetas", payment_method: "bank_transfer", amount: 265_000, notes: "Insumos de empaque." },
+    { id: 6, date: Date.current.beginning_of_month + 14.days, movement_type: "income", category: "customer_payment", description: "Pedido cliente frecuente", payment_method: "bank_transfer", amount: 400_000, notes: "Pago recibido de cliente habitual." },
+    { id: 7, date: Date.current.beginning_of_month + 18.days, movement_type: "expense", category: "services", description: "Arriendo y gastos operativos", payment_method: "bank_transfer", amount: 380_000, notes: "Gastos fijos del periodo." }
+  ]
+elsif finance_preview && preview_mode == "balanced"
+  [
+    { id: 1, date: Date.current.beginning_of_month + 2.days, movement_type: "income", category: "sale", description: "Venta pedido especial", payment_method: "bank_transfer", amount: 500_000, notes: "Ingreso del escenario equilibrado." },
+    { id: 2, date: Date.current.beginning_of_month + 5.days, movement_type: "expense", category: "raw_material", description: "Compra de ingredientes", payment_method: "bank_transfer", amount: 420_000, notes: "Gasto de producción del periodo." },
+    { id: 3, date: Date.current.beginning_of_month + 10.days, movement_type: "income", category: "customer_payment", description: "Pago cliente frecuente", payment_method: "bank_transfer", amount: 500_000, notes: "Segundo ingreso del mes." },
+    { id: 4, date: Date.current.beginning_of_month + 16.days, movement_type: "expense", category: "services", description: "Pago de operación mensual", payment_method: "bank_transfer", amount: 580_000, notes: "Gasto que equilibra el resultado del mes." }
+  ]
+else
+  []
+end %>
+
+<% preview_movement = preview_movements.find { |movement| movement[:id].to_s == params[:id].to_s } %>
+<% movement_record = @financial_movement.presence || preview_movement || {} %>
+
+<% movement_field = lambda do |key, default = nil|
+  if movement_record.respond_to?(key)
+    movement_record.public_send(key)
+  elsif movement_record.respond_to?(:[])
+    movement_record[key] || movement_record[key.to_s] || default
+  else
+    default
+  end
+end %>
+
+<% movement_type = movement_field.call(:movement_type, @movement_type.presence || params[:movement_type].presence || "income").to_s %>
+<% is_income = movement_type == "income" %>
+<% movement_title = is_income ? "Editar ingreso" : "Editar gasto" %>
+<% movement_description = is_income ? "Corrige la información de un ingreso registrado." : "Corrige la información de un gasto registrado." %>
+<% movement_badge_classes = is_income ? "border-unel-crema-2 bg-unel-crema text-unel-verde" : "border-red-200 bg-red-50 text-red-700" %>
+<% movement_icon = is_income ? "+" : "−" %>
+
+<% movement_date_value = movement_field.call(:date, Date.current) %>
+<% movement_amount_value = movement_field.call(:amount, nil) %>
+<% movement_category_value = movement_field.call(:category, nil) %>
+<% movement_payment_method_value = movement_field.call(:payment_method, nil) %>
+<% movement_description_value = movement_field.call(:description, nil) %>
+<% movement_notes_value = movement_field.call(:notes, nil) %>
+
+<% category_options = is_income ?
+  [
+    ["Venta", "sale"],
+    ["Pago de cliente", "customer_payment"],
+    ["Transferencia recibida", "received_transfer"],
+    ["Otro ingreso", "other_income"]
+  ] :
+  [
+    ["Materia prima", "raw_material"],
+    ["Insumos de empaque", "packaging"],
+    ["Transporte", "transport"],
+    ["Servicios", "services"],
+    ["Mantención", "maintenance"],
+    ["Publicidad", "marketing"],
+    ["Otro gasto", "other_expense"]
+  ] %>
+
+<% financial_movement_update_ready = respond_to?(:admin_financial_movement_path) && controller.class.action_methods.include?("update") %>
+<% financial_movement_form_path = financial_movement_update_ready ? admin_financial_movement_path(params[:id]) : "#" %>
+
+<% content_for :admin_section_key, "finances" %>
+<% content_for :admin_section_inner, movement_title %>
+<% content_for :admin_search_placeholder, "Buscar movimientos financieros..." %>
+<% content_for :admin_search_path, financial_movements_back_path %>
+
+<section>
+  <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+    <div>
+      <div class="mb-3">
+        <%= link_to "← Volver a movimientos", financial_movements_back_path,
+          class: "text-sm font-semibold text-unel-humo transition hover:text-unel-dorado" %>
+      </div>
+
+      <h1 class="text-2xl font-bold text-unel-carbon md:text-3xl">
+        <%= movement_title %>
+      </h1>
+
+      <p class="mt-2 max-w-2xl text-sm text-unel-humo">
+        <%= movement_description %>
+      </p>
+    </div>
+
+    <span class="inline-flex w-fit rounded-full border px-3 py-1 text-xs font-semibold <%= movement_badge_classes %>">
+      <%= is_income ? "Ingreso" : "Gasto" %>
+    </span>
+  </div>
+
+  <div class="grid gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(20rem,0.85fr)]">
+    <div class="rounded-2xl border border-unel-crema-2 bg-white shadow-sm">
+      <div class="border-b border-unel-crema-2 px-4 py-5 sm:px-6">
+        <h2 class="text-lg font-bold text-unel-carbon">
+          Datos del movimiento
+        </h2>
+
+        <p class="mt-1 text-sm text-unel-humo">
+          Revisa y corrige la información básica del movimiento financiero.
+        </p>
+      </div>
+
+      <%= form_with scope: :financial_movement,
+        url: financial_movement_form_path,
+        method: :patch,
+        local: true,
+        class: "space-y-6 px-4 py-5 sm:px-6" do |form| %>
+
+        <%= form.hidden_field :movement_type, value: movement_type %>
+
+        <div class="grid gap-4 md:grid-cols-2">
+          <div>
+            <%= form.label :date, "Fecha", class: "block text-sm font-semibold text-unel-carbon" %>
+
+            <%= form.date_field :date,
+              value: movement_date_value,
+              class: "mt-2 w-full rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-3 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado" %>
+
+            <p class="mt-2 text-xs text-unel-humo">
+              Fecha en que ocurrió el ingreso o gasto.
+            </p>
+          </div>
+
+          <div>
+            <%= form.label :amount, "Monto", class: "block text-sm font-semibold text-unel-carbon" %>
+
+            <div class="mt-2 flex overflow-hidden rounded-xl border border-unel-crema-2 bg-unel-blanco focus-within:border-unel-dorado">
+              <span class="flex items-center border-r border-unel-crema-2 bg-unel-crema px-4 text-sm font-bold text-unel-humo">
+                $
+              </span>
+
+              <%= form.number_field :amount,
+                min: 0,
+                step: 1,
+                value: movement_amount_value,
+                placeholder: "Ej: 25000",
+                class: "w-full bg-transparent px-4 py-3 text-sm text-unel-carbon outline-none placeholder:text-unel-humo" %>
+            </div>
+
+            <p class="mt-2 text-xs text-unel-humo">
+              Monto total del movimiento, sin puntos ni símbolos.
+            </p>
+          </div>
+        </div>
+
+        <div class="grid gap-4 md:grid-cols-2">
+          <div>
+            <%= form.label :category, "Categoría", class: "block text-sm font-semibold text-unel-carbon" %>
+
+            <%= form.select :category,
+              options_for_select(category_options, movement_category_value),
+              { prompt: "Selecciona una categoría" },
+              class: "mt-2 w-full rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-3 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado" %>
+
+            <p class="mt-2 text-xs text-unel-humo">
+              Sirve para entender en qué entra o sale el dinero.
+            </p>
+          </div>
+
+          <div>
+            <%= form.label :payment_method, "Método de pago", class: "block text-sm font-semibold text-unel-carbon" %>
+
+            <%= form.select :payment_method,
+              options_for_select([
+                ["Transferencia", "bank_transfer"],
+                ["Efectivo", "cash"],
+                ["Tarjeta", "card"],
+                ["Otro", "other"]
+              ], movement_payment_method_value),
+              { prompt: "Selecciona método" },
+              class: "mt-2 w-full rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-3 text-sm text-unel-carbon outline-none transition focus:border-unel-dorado" %>
+
+            <p class="mt-2 text-xs text-unel-humo">
+              Ayuda a revisar cómo se pagó o recibió el dinero.
+            </p>
+          </div>
+        </div>
+
+        <div>
+          <%= form.label :description, "Descripción", class: "block text-sm font-semibold text-unel-carbon" %>
+
+          <%= form.text_field :description,
+            value: movement_description_value,
+            placeholder: is_income ? "Ej: Venta de conservas a cliente" : "Ej: Compra de frascos para producción",
+            class: "mt-2 w-full rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-3 text-sm text-unel-carbon outline-none transition placeholder:text-unel-humo focus:border-unel-dorado" %>
+
+          <p class="mt-2 text-xs text-unel-humo">
+            Escribe una descripción corta y clara del movimiento.
+          </p>
+        </div>
+
+        <div>
+          <%= form.label :notes, "Notas internas", class: "block text-sm font-semibold text-unel-carbon" %>
+
+          <%= form.text_area :notes,
+            rows: 4,
+            value: movement_notes_value,
+            placeholder: "Información adicional, comprobante, proveedor, cliente o detalle relevante.",
+            class: "mt-2 w-full resize-none rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-3 text-sm text-unel-carbon outline-none transition placeholder:text-unel-humo focus:border-unel-dorado" %>
+        </div>
+
+        <div class="flex flex-col-reverse gap-3 border-t border-unel-crema-2 pt-5 sm:flex-row sm:items-center sm:justify-between">
+          <%= link_to "Cancelar", financial_movements_back_path,
+            class: "inline-flex w-full justify-center rounded-xl border border-unel-crema-2 px-4 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado sm:w-auto" %>
+
+          <button
+            type="submit"
+            <%= "disabled" unless financial_movement_update_ready %>
+            class="inline-flex w-full justify-center rounded-xl bg-unel-verde px-4 py-2 text-sm font-semibold text-white transition hover:bg-unel-carbon disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+          >
+            Guardar cambios
+          </button>
+        </div>
+      <% end %>
+    </div>
+
+    <aside class="space-y-5">
+      <div class="rounded-2xl border border-unel-crema-2 bg-white p-5 shadow-sm">
+        <div class="flex h-10 w-10 items-center justify-center rounded-xl <%= is_income ? "bg-unel-verde" : "bg-red-500" %> text-xl font-bold text-white pb-1">
+          <%= movement_icon %>
+        </div>
+
+        <h2 class="mt-4 text-lg font-bold text-unel-carbon">
+          <%= is_income ? "Ingreso" : "Gasto" %>
+        </h2>
+
+        <p class="mt-2 text-sm text-unel-humo">
+          <%= is_income ? "Actualizar este registro cambiará los ingresos del periodo seleccionado." : "Actualizar este registro cambiará los gastos del periodo seleccionado." %>
+        </p>
+      </div>
+
+      <div class="rounded-2xl border border-unel-crema-2 bg-white p-5 shadow-sm">
+        <h2 class="text-lg font-bold text-unel-carbon">
+          Qué se actualizará
+        </h2>
+
+        <div class="mt-4 space-y-3">
+          <div class="rounded-xl bg-unel-crema px-4 py-3">
+            <p class="text-sm font-bold text-unel-carbon">
+              Balance mensual
+            </p>
+
+            <p class="mt-1 text-xs text-unel-humo">
+              Si cambias monto o fecha, puede cambiar el resumen del mes.
+            </p>
+          </div>
+
+          <div class="rounded-xl bg-unel-crema px-4 py-3">
+            <p class="text-sm font-bold text-unel-carbon">
+              Categoría y método
+            </p>
+
+            <p class="mt-1 text-xs text-unel-humo">
+              Permite mantener ordenado el historial financiero.
+            </p>
+          </div>
+
+          <div class="rounded-xl bg-unel-crema px-4 py-3">
+            <p class="text-sm font-bold text-unel-carbon">
+              Historial financiero
+            </p>
+
+            <p class="mt-1 text-xs text-unel-humo">
+              El registro editado seguirá apareciendo en la tabla de movimientos.
+            </p>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</section>
