@@ -1,2 +1,441 @@
-<h1>Admin::Customers#index</h1>
-<p>Find me in app/views/admin/customers/index.html.erb</p>
+<% content_for :admin_section_key, "customers" %>
+<% content_for :admin_section_inner, "Clientes" %>
+<% content_for :admin_search_placeholder, "Buscar clientes..." %>
+<% content_for :admin_search_path, admin_customers_path %>
+
+<% customers_preview = Rails.env.development? && params[:preview].present? %>
+<% preview_mode = params[:preview].to_s %>
+
+<% customers = if customers_preview
+  [
+    {
+      id: 1,
+      name: "María González",
+      email: "maria.gonzalez@example.com",
+      phone: "+56 9 8123 4567",
+      segment: "Cliente frecuente",
+      status: "active",
+      orders_count: 8,
+      total_spent: 420_000,
+      last_order_date: Date.current - 3.days,
+      notes: "Compra regularmente productos surtidos."
+    },
+    {
+      id: 2,
+      name: "Carlos Rojas",
+      email: "carlos.rojas@example.com",
+      phone: "+56 9 7345 1122",
+      segment: "Mayorista",
+      status: "pending_order",
+      orders_count: 4,
+      total_spent: 680_000,
+      last_order_date: Date.current - 1.day,
+      notes: "Tiene un pedido pendiente de confirmación."
+    },
+    {
+      id: 3,
+      name: "Ana Pérez",
+      email: "ana.perez@example.com",
+      phone: "+56 9 6543 7788",
+      segment: "Nuevo cliente",
+      status: "new",
+      orders_count: 1,
+      total_spent: 38_000,
+      last_order_date: Date.current - 7.days,
+      notes: "Primera compra realizada por catálogo."
+    },
+    {
+      id: 4,
+      name: "Restaurante Puerto Sur",
+      email: "compras@puertosur.cl",
+      phone: "+56 65 234 8890",
+      segment: "Empresa",
+      status: "active",
+      orders_count: 12,
+      total_spent: 1_240_000,
+      last_order_date: Date.current - 5.days,
+      notes: "Cliente empresa con compras recurrentes."
+    },
+    {
+      id: 5,
+      name: "Javiera Soto",
+      email: "javiera.soto@example.com",
+      phone: "+56 9 9988 7766",
+      segment: "Cliente ocasional",
+      status: "inactive",
+      orders_count: 2,
+      total_spent: 82_000,
+      last_order_date: Date.current - 75.days,
+      notes: "Sin pedidos recientes."
+    },
+    {
+      id: 6,
+      name: "Daniel Muñoz",
+      email: "daniel.munoz@example.com",
+      phone: "+56 9 4567 2211",
+      segment: "Cliente frecuente",
+      status: "active",
+      orders_count: 6,
+      total_spent: 310_000,
+      last_order_date: Date.current - 14.days,
+      notes: "Prefiere contacto por WhatsApp."
+    }
+  ]
+else
+  (@customers || []).to_a
+end %>
+
+<% customer_attribute = lambda do |customer, attribute, default = nil|
+  if customer.respond_to?(attribute)
+    customer.public_send(attribute)
+  elsif customer.respond_to?(:[])
+    customer[attribute] || customer[attribute.to_s] || default
+  else
+    default
+  end
+end %>
+
+<% customer_name = lambda do |customer, fallback = "Cliente sin nombre"|
+  customer_attribute.call(customer, :name, nil).presence ||
+    customer_attribute.call(customer, :full_name, nil).presence ||
+    [
+      customer_attribute.call(customer, :first_name, nil),
+      customer_attribute.call(customer, :last_name, nil)
+    ].compact.join(" ").presence ||
+    fallback
+end %>
+
+<% customer_status = lambda do |customer|
+  customer_attribute.call(customer, :status, "active").to_s
+end %>
+
+<% customer_orders_count = lambda do |customer|
+  customer_attribute.call(customer, :orders_count, 0).to_i
+end %>
+
+<% customer_total_spent = lambda do |customer|
+  customer_attribute.call(customer, :total_spent, 0).to_f
+end %>
+
+<% customer_last_order_date = lambda do |customer|
+  customer_attribute.call(customer, :last_order_date, nil)
+end %>
+
+<% total_customers = customers.count %>
+
+<% active_customers = customers.count do |customer|
+  customer_status.call(customer) == "active"
+end %>
+
+<% pending_order_customers = customers.count do |customer|
+  customer_status.call(customer) == "pending_order"
+end %>
+
+<% total_spent = customers.sum do |customer|
+  customer_total_spent.call(customer)
+end %>
+
+<section>
+  <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-unel-carbon md:text-3xl">
+        Clientes
+      </h1>
+
+      <p class="mt-2 max-w-2xl text-sm text-unel-humo">
+        Revisa tus clientes, su información de contacto, historial de pedidos y nivel de actividad comercial.
+      </p>
+    </div>
+
+    <span class="inline-flex w-fit rounded-full border border-unel-crema-2 bg-unel-crema px-3 py-1 text-xs font-semibold text-unel-humo">
+      Clientes y ventas
+    </span>
+  </div>
+
+  <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div class="rounded-lg border border-unel-crema-2 bg-white p-6 shadow-sm">
+      <p class="text-sm font-medium text-unel-humo">
+        Total clientes
+      </p>
+
+      <p class="mt-2 text-3xl font-bold text-unel-carbon">
+        <%= total_customers %>
+      </p>
+
+      <p class="mt-2 text-xs text-unel-humo">
+        Clientes registrados en el sistema.
+      </p>
+    </div>
+
+    <div class="rounded-lg border border-unel-crema-2 bg-white p-6 shadow-sm">
+      <p class="text-sm font-medium text-unel-humo">
+        Clientes activos
+      </p>
+
+      <p class="mt-2 text-3xl font-bold text-unel-verde">
+        <%= active_customers %>
+      </p>
+
+      <p class="mt-2 text-xs text-unel-humo">
+        Clientes con actividad reciente.
+      </p>
+    </div>
+
+    <div class="rounded-lg border border-unel-crema-2 bg-white p-6 shadow-sm">
+      <p class="text-sm font-medium text-unel-humo">
+        Con pedido pendiente
+      </p>
+
+      <p class="mt-2 text-3xl font-bold text-amber-700">
+        <%= pending_order_customers %>
+      </p>
+
+      <p class="mt-2 text-xs text-unel-humo">
+        Clientes que requieren seguimiento.
+      </p>
+    </div>
+
+    <div class="rounded-lg border border-unel-crema-2 bg-white p-6 shadow-sm">
+      <p class="text-sm font-medium text-unel-humo">
+        Total comprado
+      </p>
+
+      <p class="mt-2 text-3xl font-bold text-unel-dorado">
+        <%= number_to_currency(total_spent, unit: "$", precision: 0, delimiter: ".") %>
+      </p>
+
+      <p class="mt-2 text-xs text-unel-humo">
+        Suma histórica asociada a clientes.
+      </p>
+    </div>
+  </div>
+
+  <div
+    <% if customers.any? %>
+      data-controller="table-filter table-sort"
+      data-table-filter-singular-value="cliente"
+      data-table-filter-plural-value="clientes"
+    <% end %>
+    class="mt-6 rounded-2xl border border-unel-crema-2 bg-white shadow-sm"
+  >
+    <div class="flex flex-col gap-3 border-b border-unel-crema-2 px-4 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
+      <div>
+        <h2 class="text-lg font-bold text-unel-carbon">
+          Registro de clientes
+        </h2>
+
+        <p class="mt-1 text-sm text-unel-humo">
+          Lista de clientes con contacto, actividad, compras acumuladas y estado actual.
+        </p>
+      </div>
+
+      <% if customers.any? %>
+        <div class="grid w-full gap-3 lg:flex lg:w-auto lg:items-center">
+          <span data-table-filter-target="resultsCount" class="text-xs text-unel-humo">
+          </span>
+
+          <div class="flex w-full min-w-0 items-center gap-2 rounded-xl border border-unel-crema-2 px-4 py-2 lg:w-56">
+            <label for="customers_sort" class="shrink-0 text-xs font-semibold text-unel-humo">
+              Ordenar:
+            </label>
+
+            <select
+              id="customers_sort"
+              data-table-sort-target="select"
+              data-action="change->table-sort#sort"
+              class="min-w-0 flex-1 bg-transparent text-sm font-semibold text-unel-verde outline-none"
+            >
+              <option value="">Orden original</option>
+              <option value="name_asc">Nombre A-Z</option>
+              <option value="name_desc">Nombre Z-A</option>
+              <option value="last_order_desc">Último pedido reciente</option>
+              <option value="last_order_asc">Último pedido antiguo</option>
+              <option value="orders_count_desc">Más pedidos</option>
+              <option value="total_spent_desc">Mayor compra acumulada</option>
+            </select>
+          </div>
+
+          <div class="w-full rounded-xl bg-unel-crema px-4 py-2 lg:w-64">
+            <input
+              type="search"
+              placeholder="Buscar cliente..."
+              data-table-filter-target="input"
+              data-action="input->table-filter#filter"
+              class="w-full bg-transparent text-sm text-unel-negro outline-none placeholder:text-unel-humo"
+            >
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <% if customers.any? %>
+      <div data-controller="table-overflow" class="unel-table-scroll-wrapper">
+        <div data-table-overflow-target="hint" class="unel-scroll-hint">
+          Desliza para ver toda la tabla →
+        </div>
+
+        <div
+          data-table-overflow-target="scroll"
+          data-action="scroll->table-overflow#check"
+          class="overflow-x-auto"
+        >
+          <table class="min-w-240 w-full text-left text-sm">
+            <thead class="bg-unel-verde text-xs uppercase tracking-wide text-unel-blanco">
+              <tr>
+                <th class="px-6 py-4 font-semibold">Cliente</th>
+                <th class="px-6 py-4 font-semibold">Contacto</th>
+                <th class="px-6 py-4 font-semibold">Segmento</th>
+                <th class="px-6 py-4 text-right font-semibold">Pedidos</th>
+                <th class="px-6 py-4 text-right font-semibold">Total comprado</th>
+                <th class="px-6 py-4 font-semibold">Último pedido</th>
+                <th class="px-6 py-4 font-semibold">Estado</th>
+                <th class="px-6 py-4 text-right font-semibold">Acciones</th>
+              </tr>
+            </thead>
+
+            <tbody data-table-sort-target="body" class="divide-y divide-unel-crema-2">
+              <% customers.each_with_index do |customer, index| %>
+                <% name = customer_name.call(customer, "Cliente ##{index + 1}") %>
+                <% email = customer_attribute.call(customer, :email, "Sin email") %>
+                <% phone = customer_attribute.call(customer, :phone, "Sin teléfono") %>
+                <% segment = customer_attribute.call(customer, :segment, "Sin segmento") %>
+                <% status = customer_status.call(customer) %>
+                <% orders_count = customer_orders_count.call(customer) %>
+                <% total_customer_spent = customer_total_spent.call(customer) %>
+                <% last_order_date = customer_last_order_date.call(customer) %>
+                <% customer_id = customer_attribute.call(customer, :id, index + 1) %>
+                <% customer_show_path = customers_preview ? admin_customer_path(customer_id, preview: preview_mode) : admin_customer_path(customer_id) %>
+
+                <% formatted_last_order_date = if last_order_date.present? && last_order_date.respond_to?(:strftime)
+                  last_order_date.strftime("%d/%m/%Y")
+                elsif last_order_date.present?
+                  last_order_date.to_s
+                else
+                  "Sin pedidos"
+                end %>
+
+                <% status_label = case status
+                when "active"
+                  "Activo"
+                when "pending_order"
+                  "Pedido pendiente"
+                when "new"
+                  "Nuevo"
+                when "inactive"
+                  "Inactivo"
+                else
+                  status.to_s.humanize
+                end %>
+
+                <% status_classes = case status
+                when "active"
+                  "border-unel-crema-2 bg-white text-unel-verde"
+                when "pending_order"
+                  "border-amber-200 bg-amber-50 text-amber-700"
+                when "new"
+                  "border-unel-crema-2 bg-unel-crema text-unel-carbon"
+                when "inactive"
+                  "border-unel-crema-2 bg-white text-unel-humo"
+                else
+                  "border-unel-crema-2 bg-unel-crema text-unel-humo"
+                end %>
+
+                <tr
+                  data-table-filter-target="row"
+                  data-table-sort-target="row"
+                  data-search-text="<%= [name, email, phone, segment, status_label, orders_count, total_customer_spent, formatted_last_order_date].join(' ') %>"
+                  data-sort-name="<%= name %>"
+                  data-sort-last-order="<%= last_order_date.respond_to?(:to_date) ? last_order_date.to_date.strftime('%Y%m%d') : "" %>"
+                  data-sort-orders-count="<%= orders_count %>"
+                  data-sort-total-spent="<%= total_customer_spent %>"
+                  class="transition hover:bg-unel-crema/50"
+                >
+                  <td class="px-6 py-4">
+                    <p class="font-semibold text-unel-carbon">
+                      <%= name %>
+                    </p>
+
+                    <p class="mt-1 text-xs text-unel-humo">
+                      ID cliente: <%= customer_id %>
+                    </p>
+                  </td>
+
+                  <td class="px-6 py-4">
+                    <p class="text-sm font-medium text-unel-carbon">
+                      <%= email.presence || "Sin email" %>
+                    </p>
+
+                    <p class="mt-1 text-xs text-unel-humo">
+                      <%= phone.presence || "Sin teléfono" %>
+                    </p>
+                  </td>
+
+                  <td class="px-6 py-4 text-unel-humo">
+                    <%= segment.presence || "Sin segmento" %>
+                  </td>
+
+                  <td class="px-6 py-4 text-right font-semibold text-unel-carbon">
+                    <%= orders_count %>
+                  </td>
+
+                  <td class="px-6 py-4 text-right font-bold text-unel-dorado">
+                    <%= number_to_currency(total_customer_spent, unit: "$", precision: 0, delimiter: ".") %>
+                  </td>
+
+                  <td class="px-6 py-4 text-unel-humo">
+                    <%= formatted_last_order_date %>
+                  </td>
+
+                  <td class="px-6 py-4">
+                    <span class="inline-flex rounded-full border px-3 py-1 text-xs font-semibold <%= status_classes %>">
+                      <%= status_label %>
+                    </span>
+                  </td>
+
+                  <td class="px-6 py-4">
+                    <div class="flex items-center justify-end gap-3">
+                      <%= link_to "Ver detalle", customer_show_path,
+                        class: "text-sm font-semibold text-unel-humo transition hover:text-unel-dorado" %>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div data-table-filter-target="emptyState" class="hidden border-t border-unel-crema-2 px-4 py-12 text-center sm:px-6">
+        <p class="text-lg font-bold text-unel-negro">
+          No encontramos clientes con esa búsqueda
+        </p>
+
+        <p class="mx-auto mt-2 max-w-md text-sm text-unel-humo">
+          Intenta buscar por nombre, contacto, segmento, estado o compras.
+        </p>
+
+        <button
+          type="button"
+          data-action="table-filter#clear"
+          class="mt-6 rounded-xl border border-unel-crema-2 px-4 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado"
+        >
+          Limpiar búsqueda
+        </button>
+      </div>
+    <% else %>
+      <div class="px-4 py-12 text-center sm:px-6">
+        <div class="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-unel-crema text-lg font-bold text-unel-verde">
+          C
+        </div>
+
+        <p class="mt-3 text-lg font-bold text-unel-carbon">
+          Todavía no hay clientes registrados
+        </p>
+
+        <p class="mx-auto mt-2 max-w-md text-sm text-unel-humo">
+          Cuando existan clientes, aparecerán aquí junto a su información de contacto, compras y actividad.
+        </p>
+      </div>
+    <% end %>
+  </div>
+</section>
