@@ -457,18 +457,26 @@ end %>
     "Sin acción urgente"
   end %>
 
-  <% next_action_label = case order_status
-  when "pending_confirmation"
+  <% primary_action_label = if order_status == "delivered" && balance_amount.zero?
+    "Venta finalizada"
+  elsif order_status == "delivered" && balance_amount.positive?
+    "Registrar pago"
+  elsif payment_overdue
+    "Registrar pago"
+  elsif order_status == "pending_confirmation"
     "Marcar en preparación"
-  when "in_production"
+  elsif order_status == "in_production"
     "Marcar lista para entregar"
-  when "ready"
+  elsif order_status == "ready"
     "Marcar como entregada"
-  when "delivered"
-    "Venta entregada"
   else
     "Actualizar estado"
   end %>
+
+  <% primary_action_disabled = order_status == "delivered" && balance_amount.zero? %>
+  <% payment_action_disabled = balance_amount.zero? %>
+  <% payment_action_label = balance_amount.positive? ? "Registrar pago" : "Pago registrado" %>
+  <% show_payment_action = balance_amount.positive? && primary_action_label != payment_action_label %>
 
   <% payment_percentage = total_amount.positive? ? [[(paid_amount / total_amount) * 100, 100].min, 0].max : 0 %>
   <% total_units = items.sum { |item| item_attribute.call(item, :quantity, 0).to_i } %>
@@ -535,7 +543,7 @@ end %>
                 </h2>
 
                 <p class="mt-2 max-w-2xl text-sm leading-relaxed text-unel-humo">
-                  Revisa productos, entrega y pago antes de avanzar la venta al siguiente estado.
+                  Estado, pago y entrega de esta venta.
                 </p>
               </div>
 
@@ -547,9 +555,10 @@ end %>
 
                 <button
                   type="button"
-                  class="inline-flex justify-center rounded-xl bg-unel-verde px-4 py-2 text-sm font-semibold text-white transition hover:bg-unel-carbon"
+                  <%= "disabled" if primary_action_disabled %>
+                  class="inline-flex justify-center rounded-xl px-4 py-2 text-sm font-semibold transition <%= primary_action_disabled ? "cursor-not-allowed bg-unel-crema text-unel-humo" : "bg-unel-verde text-white hover:bg-unel-carbon" %>"
                 >
-                  <%= next_action_label %>
+                  <%= primary_action_label %>
                 </button>
               </div>
             </div>
@@ -633,7 +642,7 @@ end %>
                     </p>
 
                     <p class="mt-1 text-sm text-unel-humo">
-                      <%= [item_format, item_sku].compact.join(" · ").presence || "Sin formato informado" %>
+                      <%= [item_format, item_sku, (item_unit_price.positive? ? "#{number_to_currency(item_unit_price, unit: "$", precision: 0, delimiter: ".")} c/u" : nil)].compact.join(" · ").presence || "Sin formato informado" %>
                     </p>
                   </div>
 
@@ -679,7 +688,7 @@ end %>
             </h2>
 
             <p class="mt-1 text-sm text-unel-humo">
-              Información necesaria para cerrar la venta sin perder saldos, fechas ni coordinación.
+              Resumen de coordinación, pago y entrega.
             </p>
           </div>
 
@@ -743,7 +752,7 @@ end %>
             </h2>
 
             <p class="mt-1 text-sm text-unel-humo">
-              Registro visual de eventos relevantes asociados a esta venta.
+              Eventos relevantes asociados a esta venta.
             </p>
           </div>
 
@@ -915,17 +924,20 @@ end %>
           <div class="mt-4 grid gap-2">
             <button
               type="button"
-              class="inline-flex justify-center rounded-xl bg-unel-verde px-4 py-2 text-sm font-semibold text-white transition hover:bg-unel-carbon"
+              <%= "disabled" if primary_action_disabled %>
+              class="inline-flex justify-center rounded-xl px-4 py-2 text-sm font-semibold transition <%= primary_action_disabled ? "cursor-not-allowed bg-unel-crema text-unel-humo" : "bg-unel-verde text-white hover:bg-unel-carbon" %>"
             >
-              <%= next_action_label %>
+              <%= primary_action_label %>
             </button>
 
-            <button
-              type="button"
-              class="inline-flex justify-center rounded-xl border border-unel-crema-2 bg-white px-4 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado"
-            >
-              Registrar pago
-            </button>
+            <% if show_payment_action %>
+                <button
+                    type="button"
+                    class="inline-flex justify-center rounded-xl border border-unel-crema-2 bg-white px-4 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado"
+                >
+                    <%= payment_action_label %>
+                </button>
+            <% end %>
 
             <button
               type="button"
