@@ -242,6 +242,15 @@ end %>
   end
 end %>
 
+<% summary_message = if total_customers.positive?
+  "Revisa el estado general de la cartera y usa los filtros de la lista para trabajar por segmento."
+else
+  "Cuando existan clientes, aquí podrás revisar compras, pedidos, seguimiento comercial y cuentas por cobrar en un solo lugar."
+end %>
+
+<% empty_orders_path = customers_preview ? admin_orders_path(preview: preview_mode) : admin_orders_path %>
+<% empty_products_path = admin_products_path %>
+
 <section>
   <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
     <div>
@@ -276,7 +285,7 @@ end %>
           </h2>
 
           <p class="mt-2 max-w-2xl text-sm leading-relaxed text-unel-humo">
-            Revisa el estado general de la cartera y usa los filtros de la lista para trabajar por segmento.
+            <%= summary_message %>
           </p>
         </div>
 
@@ -759,18 +768,72 @@ end %>
         </button>
       </div>
     <% else %>
-      <div class="px-4 py-14 text-center sm:px-6">
-        <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-unel-crema text-lg font-bold text-unel-verde">
-          C
+      <div class="border-t border-unel-crema-2 px-4 py-14 sm:px-6">
+        <div class="mx-auto max-w-3xl overflow-hidden rounded-3xl border border-unel-crema-2 bg-unel-blanco text-left">
+          <div class="border-b border-unel-crema-2 bg-white px-5 py-5 sm:px-6">
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <p class="text-sm font-semibold uppercase tracking-wide text-unel-dorado">
+                  Sin clientes registrados
+                </p>
+
+                <h3 class="mt-2 text-xl font-bold text-unel-carbon">
+                  Las fichas de clientes aparecerán aquí
+                </h3>
+
+                <p class="mt-2 max-w-2xl text-sm leading-relaxed text-unel-humo">
+                  Cuando un cliente compre, haga un pedido o quede registrado en el flujo comercial, la app reunirá sus datos, historial y seguimiento en una ficha lista para gestionar.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid gap-3 p-5 sm:grid-cols-3 sm:p-6">
+            <div class="rounded-2xl border border-unel-crema-2 bg-white px-4 py-4">
+              <p class="text-sm font-bold text-unel-carbon">
+                1. El cliente compra o consulta
+              </p>
+
+              <p class="mt-1 text-xs leading-relaxed text-unel-humo">
+                Puede llegar desde un pedido, una compra o un contacto comercial registrado.
+              </p>
+            </div>
+
+            <div class="rounded-2xl border border-unel-crema-2 bg-white px-4 py-4">
+              <p class="text-sm font-bold text-unel-carbon">
+                2. La app arma la ficha
+              </p>
+
+              <p class="mt-1 text-xs leading-relaxed text-unel-humo">
+                La información queda agrupada por cliente con contacto, pedidos, deuda y actividad.
+              </p>
+            </div>
+
+            <div class="rounded-2xl border border-unel-crema-2 bg-white px-4 py-4">
+              <p class="text-sm font-bold text-unel-carbon">
+                3. El vendedor hace seguimiento
+              </p>
+
+              <p class="mt-1 text-xs leading-relaxed text-unel-humo">
+                El usuario revisa saldos, clientes inactivos, pedidos pendientes y próximas acciones.
+              </p>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-4 border-t border-unel-crema-2 bg-white px-5 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
+            <p class="max-w-xl text-sm text-unel-humo">
+              Revisa pedidos y productos para asegurar que el flujo comercial tenga información clara.
+            </p>
+
+            <div class="flex shrink-0 flex-col gap-2 sm:flex-row sm:flex-nowrap">
+              <%= link_to "Ver pedidos", empty_orders_path,
+                class: "inline-flex justify-center rounded-xl bg-unel-verde px-4 py-2 text-sm font-semibold text-white transition hover:bg-unel-carbon" %>
+
+              <%= link_to "Ver productos", empty_products_path,
+                class: "inline-flex justify-center rounded-xl border border-unel-crema-2 bg-white px-4 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado" %>
+            </div>
+          </div>
         </div>
-
-        <p class="mt-4 text-lg font-bold text-unel-carbon">
-          No hay clientes para mostrar
-        </p>
-
-        <p class="mx-auto mt-2 max-w-md text-sm text-unel-humo">
-          Registra clientes cuando exista el backend correspondiente.
-        </p>
       </div>
     <% end %>
   </div>
