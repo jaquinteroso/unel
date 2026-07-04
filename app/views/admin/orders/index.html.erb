@@ -1,6 +1,6 @@
 <% content_for :admin_section_key, "orders" %>
 <% content_for :admin_section_inner, "Pedidos" %>
-<% content_for :admin_search_placeholder, "Buscar pedidos..." %>
+<% content_for :admin_search_placeholder, "Buscar ventas..." %>
 <% content_for :admin_search_path, admin_orders_path %>
 
 <% orders_preview = Rails.env.development? && params[:preview].present? %>
@@ -52,7 +52,7 @@
         { name: "Mero ahumado", format: "Frasco mediano", quantity: 10 },
         { name: "Salsa de tomate", format: "Frasco mediano", quantity: 20 }
       ],
-      notes: "Pedido para cocina. Avisar cuando esté listo para coordinar despacho."
+      notes: "Venta para cocina. Avisar cuando esté lista para coordinar despacho."
     },
     {
       id: 1006,
@@ -289,15 +289,15 @@ end %>
 <% status_label = lambda do |status|
   case status
   when "pending_confirmation"
-    "Por confirmar"
+    "Nueva venta"
   when "in_production"
-    "En producción"
+    "En preparación"
   when "ready"
-    "Listo"
+    "Lista para entregar"
   when "delivered"
-    "Entregado"
+    "Entregada"
   when "cancelled"
-    "Cancelado"
+    "Cancelada"
   else
     status.to_s.humanize
   end
@@ -374,17 +374,17 @@ end %>
   balance = order_balance_amount.call(order)
 
   if delivery_overdue.call(order)
-    "Entrega atrasada"
+    "Revisar entrega atrasada"
   elsif payment_overdue.call(order)
-    "Pago vencido"
+    "Contactar por pago vencido"
   elsif status == "pending_confirmation"
-    "Confirmar pedido"
+    "Revisar nueva venta"
   elsif status == "ready"
-    "Coordinar entrega"
+    "Coordinar entrega con el cliente"
   elsif status == "delivered" && balance.positive?
-    "Cobrar saldo"
+    "Cobrar saldo pendiente"
   elsif payment == "partial" && balance.positive?
-    "Revisar pago parcial"
+    "Hacer seguimiento del pago parcial"
   else
     nil
   end
@@ -428,12 +428,12 @@ end %>
   .min_by { |order| delivery_date.call(order).to_date } %>
 
 <% status_filter_options = [
-  { value: "all", label: "Todos", count: total_orders },
-  { value: "pending_confirmation", label: "Por confirmar", count: pending_confirmation_orders },
-  { value: "in_production", label: "Producción", count: production_orders },
-  { value: "ready", label: "Listos", count: ready_orders },
-  { value: "delivered", label: "Entregados", count: delivered_orders },
-  { value: "attention", label: "Atención", count: attention_orders.count }
+  { value: "all", label: "Todas", count: total_orders },
+  { value: "pending_confirmation", label: "Nuevas", count: pending_confirmation_orders },
+  { value: "in_production", label: "Preparación", count: production_orders },
+  { value: "ready", label: "Listas", count: ready_orders },
+  { value: "delivered", label: "Entregadas", count: delivered_orders },
+  { value: "attention", label: "Requieren acción", count: attention_orders.count }
 ] %>
 
 <% payment_filter_options = [
@@ -465,24 +465,22 @@ end %>
       </p>
 
       <h1 class="text-2xl font-bold text-unel-carbon md:text-3xl">
-        Pedidos y ventas
+        Ventas recibidas
       </h1>
 
       <p class="mt-2 max-w-2xl text-sm text-unel-humo">
-        Revisa pedidos por confirmar, producción, entregas, pagos pendientes y saldos vencidos desde una vista operativa diaria.
+        Compras y solicitudes organizadas por estado, entrega, pago y próxima acción.
       </p>
     </div>
 
     <div class="flex flex-wrap items-center gap-2">
       <span class="inline-flex w-fit rounded-full border border-unel-crema-2 bg-unel-crema px-3 py-1 text-xs font-semibold text-unel-humo">
-        Operación diaria
+        Ventas capturadas
       </span>
 
-      <% if orders_preview %>
-        <span class="inline-flex w-fit rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
-          Preview activo
-        </span>
-      <% end %>
+      <span class="inline-flex w-fit rounded-full border border-unel-crema-2 bg-white px-3 py-1 text-xs font-semibold text-unel-humo">
+        Revisar · preparar · entregar
+      </span>
     </div>
   </div>
 
@@ -491,15 +489,15 @@ end %>
       <div class="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
         <div class="min-w-0">
           <p class="text-sm font-semibold uppercase tracking-wide text-unel-dorado">
-            Resumen de ventas
+            Bandeja de ventas
           </p>
 
           <h2 class="mt-2 text-2xl font-bold text-unel-carbon md:text-3xl">
-            <%= active_orders %> pedidos activos
+            <%= active_orders %> ventas en curso
           </h2>
 
           <p class="mt-2 max-w-2xl text-sm leading-relaxed text-unel-humo">
-            Prioriza lo que necesita acción: confirmar ventas, avanzar producción, entregar pedidos listos y cobrar saldos pendientes.
+            Revisión rápida de ventas activas, cobros pendientes y entregas próximas.
           </p>
         </div>
 
@@ -539,7 +537,7 @@ end %>
       <div class="mt-5 grid gap-3 md:grid-cols-4">
         <div class="rounded-2xl border border-unel-crema-2 bg-unel-blanco px-4 py-3">
           <p class="text-xs font-semibold uppercase tracking-wide text-unel-humo">
-            Por confirmar
+            Nuevas por revisar
           </p>
 
           <p class="mt-1 text-lg font-bold text-unel-carbon">
@@ -549,7 +547,7 @@ end %>
 
         <div class="rounded-2xl border border-unel-crema-2 bg-unel-blanco px-4 py-3">
           <p class="text-xs font-semibold uppercase tracking-wide text-unel-humo">
-            En producción
+            En preparación
           </p>
 
           <p class="mt-1 text-lg font-bold text-unel-carbon">
@@ -559,7 +557,7 @@ end %>
 
         <div class="rounded-2xl border <%= ready_orders.positive? || deliveries_today.positive? ? "border-green-200 bg-green-50" : "border-unel-crema-2 bg-unel-blanco" %> px-4 py-3">
           <p class="text-xs font-semibold uppercase tracking-wide <%= ready_orders.positive? || deliveries_today.positive? ? "text-green-700" : "text-unel-humo" %>">
-            Listos / hoy
+            Listas / hoy
           </p>
 
           <p class="mt-1 text-lg font-bold text-unel-carbon">
@@ -569,7 +567,7 @@ end %>
 
         <div class="rounded-2xl border <%= overdue_orders.any? ? "border-red-200 bg-red-50" : "border-unel-crema-2 bg-unel-blanco" %> px-4 py-3">
           <p class="text-xs font-semibold uppercase tracking-wide <%= overdue_orders.any? ? "text-red-700" : "text-unel-humo" %>">
-            Pagos vencidos
+            Cobros vencidos
           </p>
 
           <p class="mt-1 text-lg font-bold text-unel-carbon">
@@ -585,7 +583,7 @@ end %>
           </p>
 
           <p class="mt-1 text-sm font-bold text-unel-carbon">
-            <%= attention_orders.any? ? "#{attention_orders.count} pedidos requieren acción" : "Sin alertas operativas" %>
+            <%= attention_orders.any? ? "#{attention_orders.count} ventas requieren acción" : "Sin acciones pendientes" %>
           </p>
         </div>
 
@@ -615,8 +613,8 @@ end %>
       data-controller="order-filter table-sort"
       data-order-filter-initial-status-value="<%= current_status_value %>"
       data-order-filter-initial-payment-value="<%= current_payment_value %>"
-      data-order-filter-singular-value="pedido"
-      data-order-filter-plural-value="pedidos"
+      data-order-filter-singular-value="venta"
+      data-order-filter-plural-value="ventas"
     <% end %>
     class="mt-6 rounded-3xl border border-unel-crema-2 bg-white shadow-sm"
   >
@@ -625,11 +623,11 @@ end %>
         <div class="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
           <div>
             <h2 class="text-lg font-bold text-unel-carbon">
-              Lista operativa de pedidos
+              Ventas para gestionar
             </h2>
 
             <p class="mt-1 max-w-2xl text-sm text-unel-humo">
-              Filtra por avance del pedido y por estado de pago. Después busca por cliente, producto, canal, dirección o nota.
+              Filtra por estado, pago, entrega o urgencia para ordenar el trabajo del día.
             </p>
           </div>
 
@@ -655,98 +653,98 @@ end %>
         </div>
 
         <div class="rounded-2xl border border-unel-crema-2 bg-unel-blanco p-4">
-            <div class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(22rem,28rem)] xl:items-start">
-                <div class="grid gap-4 md:grid-cols-2">
-                <div>
-                    <div class="mb-2 flex flex-wrap items-center gap-2">
-                    <span class="text-xs font-semibold uppercase tracking-wide text-unel-humo">
-                        Avance del pedido
-                    </span>
+          <div class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(22rem,28rem)] xl:items-start">
+            <div class="grid gap-4 md:grid-cols-2">
+              <div>
+                <div class="mb-2 flex flex-wrap items-center gap-2">
+                  <span class="text-xs font-semibold uppercase tracking-wide text-unel-humo">
+                    Estado de la venta
+                  </span>
 
+                  <button
+                    type="button"
+                    data-action="order-filter#clearFilters"
+                    class="text-xs font-bold text-unel-dorado transition hover:text-unel-carbon"
+                  >
+                    Limpiar todo
+                  </button>
+                </div>
+
+                <div class="flex flex-wrap gap-2" aria-label="Filtros de estado de la venta">
+                  <% status_filter_options.each do |option| %>
                     <button
-                        type="button"
-                        data-action="order-filter#clearFilters"
-                        class="text-xs font-bold text-unel-dorado transition hover:text-unel-carbon"
+                      type="button"
+                      data-order-filter-target="filterButton"
+                      data-action="order-filter#setStatusFilter"
+                      data-filter-value="<%= option[:value] %>"
+                      data-filter-label="<%= option[:label] %>"
+                      class="inline-flex rounded-full border px-3 py-1 text-xs font-semibold transition <%= initial_filter_classes.call(current_status_value, option[:value]) %>"
                     >
-                        Limpiar todo
+                      <%= option[:label] %> · <%= option[:count] %>
                     </button>
-                    </div>
-
-                    <div class="flex flex-wrap gap-2" aria-label="Filtros de estado del pedido">
-                    <% status_filter_options.each do |option| %>
-                        <button
-                        type="button"
-                        data-order-filter-target="filterButton"
-                        data-action="order-filter#setStatusFilter"
-                        data-filter-value="<%= option[:value] %>"
-                        data-filter-label="<%= option[:label] %>"
-                        class="inline-flex rounded-full border px-3 py-1 text-xs font-semibold transition <%= initial_filter_classes.call(current_status_value, option[:value]) %>"
-                        >
-                        <%= option[:label] %> · <%= option[:count] %>
-                        </button>
-                    <% end %>
-                    </div>
+                  <% end %>
                 </div>
+              </div>
 
-                <div>
-                    <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-unel-humo">
-                    Estado de pago
-                    </p>
+              <div>
+                <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-unel-humo">
+                  Estado de pago
+                </p>
 
-                    <div class="flex flex-wrap gap-2" aria-label="Filtros de pago">
-                    <% payment_filter_options.each do |option| %>
-                        <button
-                        type="button"
-                        data-order-filter-target="paymentButton"
-                        data-action="order-filter#setPaymentFilter"
-                        data-payment-value="<%= option[:value] %>"
-                        data-payment-label="<%= option[:label] %>"
-                        class="inline-flex rounded-full border px-3 py-1 text-xs font-semibold transition <%= initial_filter_classes.call(current_payment_value, option[:value]) %>"
-                        >
-                        <%= option[:label] %> · <%= option[:count] %>
-                        </button>
-                    <% end %>
-                    </div>
-                </div>
-                </div>
-
-                <% if all_orders.any? %>
-                <div class="grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
-                    <div class="flex min-w-0 items-center gap-2 rounded-xl border border-unel-crema-2 bg-white px-4 py-2.5">
-                    <label for="orders_sort" class="shrink-0 text-xs font-semibold text-unel-humo">
-                        Ordenar:
-                    </label>
-
-                    <select
-                        id="orders_sort"
-                        data-table-sort-target="select"
-                        data-action="change->table-sort#sort"
-                        class="min-w-0 flex-1 bg-transparent text-sm font-semibold text-unel-verde outline-none"
+                <div class="flex flex-wrap gap-2" aria-label="Filtros de pago">
+                  <% payment_filter_options.each do |option| %>
+                    <button
+                      type="button"
+                      data-order-filter-target="paymentButton"
+                      data-action="order-filter#setPaymentFilter"
+                      data-payment-value="<%= option[:value] %>"
+                      data-payment-label="<%= option[:label] %>"
+                      class="inline-flex rounded-full border px-3 py-1 text-xs font-semibold transition <%= initial_filter_classes.call(current_payment_value, option[:value]) %>"
                     >
-                        <option value="">Orden original</option>
-                        <option value="order_date_desc">Pedido reciente</option>
-                        <option value="order_date_asc">Pedido antiguo</option>
-                        <option value="delivery_date_asc">Entrega más próxima</option>
-                        <option value="delivery_date_desc">Entrega más lejana</option>
-                        <option value="total_amount_desc">Mayor total</option>
-                        <option value="balance_amount_desc">Mayor saldo pendiente</option>
-                        <option value="customer_name_asc">Cliente A-Z</option>
-                        <option value="priority_desc">Más urgente</option>
-                    </select>
-                    </div>
-
-                    <div class="w-full rounded-xl bg-unel-crema px-4 py-2">
-                        <input
-                            type="search"
-                            placeholder="Buscar pedido..."
-                            data-order-filter-target="input"
-                            data-action="input->order-filter#filter"
-                            class="w-full bg-transparent text-sm text-unel-negro outline-none placeholder:text-unel-humo"
-                        >
-                    </div>
+                      <%= option[:label] %> · <%= option[:count] %>
+                    </button>
+                  <% end %>
                 </div>
-                <% end %>
+              </div>
             </div>
+
+            <% if all_orders.any? %>
+              <div class="grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
+                <div class="flex min-w-0 items-center gap-2 rounded-xl border border-unel-crema-2 bg-white px-4 py-2.5">
+                  <label for="orders_sort" class="shrink-0 text-xs font-semibold text-unel-humo">
+                    Ordenar:
+                  </label>
+
+                  <select
+                    id="orders_sort"
+                    data-table-sort-target="select"
+                    data-action="change->table-sort#sort"
+                    class="min-w-0 flex-1 bg-transparent text-sm font-semibold text-unel-verde outline-none"
+                  >
+                    <option value="">Orden original</option>
+                    <option value="order_date_desc">Venta reciente</option>
+                    <option value="order_date_asc">Venta antigua</option>
+                    <option value="delivery_date_asc">Entrega más próxima</option>
+                    <option value="delivery_date_desc">Entrega más lejana</option>
+                    <option value="total_amount_desc">Mayor total</option>
+                    <option value="balance_amount_desc">Mayor saldo pendiente</option>
+                    <option value="customer_name_asc">Cliente A-Z</option>
+                    <option value="priority_desc">Más urgente</option>
+                  </select>
+                </div>
+
+                <div class="w-full rounded-xl bg-unel-crema px-4 py-2">
+                  <input
+                    type="search"
+                    placeholder="Buscar venta..."
+                    data-order-filter-target="input"
+                    data-action="input->order-filter#filter"
+                    class="w-full bg-transparent text-sm text-unel-negro outline-none placeholder:text-unel-humo"
+                  >
+                </div>
+              </div>
+            <% end %>
+          </div>
         </div>
       </div>
     </div>
@@ -851,7 +849,7 @@ end %>
             <div class="mt-4 grid gap-3 sm:grid-cols-2">
               <div class="rounded-2xl bg-white px-4 py-3">
                 <p class="text-xs font-semibold text-unel-humo">
-                  Fecha pedido
+                  Fecha venta
                 </p>
 
                 <p class="mt-1 text-sm font-bold text-unel-carbon">
@@ -913,7 +911,7 @@ end %>
                 </div>
               <% else %>
                 <p class="mt-3 text-sm text-unel-humo">
-                  Sin productos asociados todavía.
+                  Sin productos informados todavía.
                 </p>
               <% end %>
             </div>
@@ -954,18 +952,23 @@ end %>
 
             <div class="mt-4 rounded-2xl bg-white px-4 py-3">
               <div class="space-y-2">
-                <p class="text-sm text-unel-humo">
-                  <span class="font-semibold text-unel-carbon">Teléfono:</span>
-                  <%= customer_phone.presence || "Sin teléfono" %>
+                <p class="text-xs font-semibold uppercase tracking-wide text-unel-humo">
+                  Datos recibidos del cliente
                 </p>
 
                 <p class="text-sm text-unel-humo">
-                  <span class="font-semibold text-unel-carbon">Dirección:</span>
-                  <%= customer_address.presence || "Sin dirección" %>
+                  <span class="font-semibold text-unel-carbon">Contacto:</span>
+                  <%= customer_phone.presence || "Sin teléfono informado" %>
+                </p>
+
+                <p class="text-sm text-unel-humo">
+                  <span class="font-semibold text-unel-carbon">Entrega:</span>
+                  <%= customer_address.presence || "Sin dirección informada" %>
                 </p>
 
                 <% if notes.present? %>
                   <p class="border-t border-unel-crema-2 pt-2 text-xs leading-relaxed text-unel-humo">
+                    <span class="font-semibold text-unel-carbon">Nota de la venta:</span>
                     <%= notes %>
                   </p>
                 <% end %>
@@ -973,10 +976,10 @@ end %>
             </div>
 
             <div class="mt-4 grid gap-2 sm:grid-cols-3">
-              <%= link_to "Ver pedido", show_path,
+              <%= link_to "Gestionar venta", show_path,
                 class: "inline-flex justify-center rounded-xl bg-unel-verde px-3 py-2 text-sm font-semibold text-white transition hover:bg-unel-carbon sm:col-span-3" %>
 
-              <%= link_to "Cliente", customer_show_path,
+              <%= link_to "Ver cliente", customer_show_path,
                 class: "inline-flex justify-center rounded-xl border border-unel-crema-2 bg-white px-3 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado" %>
 
               <% if customer_phone.present? %>
@@ -998,7 +1001,7 @@ end %>
 
       <div data-order-filter-target="emptyState" class="hidden border-t border-unel-crema-2 px-4 py-12 text-center sm:px-6">
         <p class="text-lg font-bold text-unel-negro">
-          No encontramos pedidos con esos filtros
+          No encontramos ventas con esos filtros
         </p>
 
         <p class="mx-auto mt-2 max-w-md text-sm text-unel-humo">
@@ -1014,18 +1017,76 @@ end %>
         </button>
       </div>
     <% else %>
-      <div class="px-4 py-14 text-center sm:px-6">
-        <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-unel-crema text-lg font-bold text-unel-verde">
-          P
+      <div class="px-4 py-14 sm:px-6">
+        <div class="mx-auto max-w-3xl overflow-hidden rounded-3xl border border-unel-crema-2 bg-unel-blanco text-left">
+          <div class="border-b border-unel-crema-2 bg-white px-5 py-5 sm:px-6">
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <p class="text-sm font-semibold uppercase tracking-wide text-unel-dorado">
+                  Sin ventas recibidas
+                </p>
+
+                <h3 class="mt-2 text-xl font-bold text-unel-carbon">
+                  Las compras de clientes aparecerán aquí
+                </h3>
+
+                <p class="mt-2 max-w-2xl text-sm leading-relaxed text-unel-humo">
+                  Esta pantalla está pensada para que el vendedor no tenga que ordenar la información manualmente. Cuando un cliente compre o solicite productos, la app reunirá sus datos, productos, entrega y pago en una tarjeta lista para gestionar.
+                </p>
+              </div>
+
+              <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-unel-crema text-lg font-bold text-unel-verde">
+                V
+              </div>
+            </div>
+          </div>
+
+          <div class="grid gap-3 p-5 sm:grid-cols-3 sm:p-6">
+            <div class="rounded-2xl border border-unel-crema-2 bg-white px-4 py-4">
+              <p class="text-sm font-bold text-unel-carbon">
+                1. El cliente compra
+              </p>
+
+              <p class="mt-1 text-xs leading-relaxed text-unel-humo">
+                El cliente informa sus datos, productos, cantidades y forma de entrega desde el flujo de venta.
+              </p>
+            </div>
+
+            <div class="rounded-2xl border border-unel-crema-2 bg-white px-4 py-4">
+              <p class="text-sm font-bold text-unel-carbon">
+                2. La app ordena
+              </p>
+
+              <p class="mt-1 text-xs leading-relaxed text-unel-humo">
+                La venta queda agrupada por cliente, estado, pago, fecha y productos solicitados.
+              </p>
+            </div>
+
+            <div class="rounded-2xl border border-unel-crema-2 bg-white px-4 py-4">
+              <p class="text-sm font-bold text-unel-carbon">
+                3. El vendedor gestiona
+              </p>
+
+              <p class="mt-1 text-xs leading-relaxed text-unel-humo">
+                El usuario solo revisa, prepara, coordina entrega y hace seguimiento del cobro cuando corresponda.
+              </p>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-2 border-t border-unel-crema-2 bg-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+            <p class="text-sm text-unel-humo">
+              Revisa clientes y productos para asegurarte de que el flujo de venta tenga información clara.
+            </p>
+
+            <div class="flex flex-wrap gap-2">
+              <%= link_to "Ver clientes", admin_customers_path,
+                class: "inline-flex justify-center rounded-xl bg-unel-verde px-4 py-2 text-sm font-semibold text-white transition hover:bg-unel-carbon" %>
+
+              <%= link_to "Ver productos", admin_products_path,
+                class: "inline-flex justify-center rounded-xl border border-unel-crema-2 bg-white px-4 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado" %>
+            </div>
+          </div>
         </div>
-
-        <p class="mt-4 text-lg font-bold text-unel-carbon">
-          No hay pedidos para mostrar
-        </p>
-
-        <p class="mx-auto mt-2 max-w-md text-sm text-unel-humo">
-          Cuando exista el backend de ventas, esta vista recibirá los pedidos reales. Para revisar la interfaz en desarrollo usa <span class="font-semibold text-unel-carbon">?preview=1</span>.
-        </p>
       </div>
     <% end %>
   </div>
