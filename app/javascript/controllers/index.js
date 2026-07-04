@@ -45,3 +45,6 @@ application.register("table-overflow", TableOverflowController)
 
 import CustomerFilterController from "./customer_filter_controller"
 application.register("customer-filter", CustomerFilterController)
+
+import OrderFilterController from "./order_filter_controller"
+application.register("order-filter", OrderFilterController)
