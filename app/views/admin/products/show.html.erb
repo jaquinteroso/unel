@@ -2,6 +2,11 @@
 <% content_for :admin_section_inner, @product.name %>
 <% content_for :admin_search_placeholder, "Buscar productos..." %>
 <% content_for :admin_search_path, admin_products_path %>
+<% product_threshold = if @product.respond_to?(:low_stock_threshold) && @product.low_stock_threshold.present?
+  @product.low_stock_threshold.to_i
+else
+  5
+end %>
 
 <section class="space-y-6">
   <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -47,12 +52,18 @@
           <%= @product.description.presence || "Este producto no tiene una descripción registrada." %>
         </p>
         
-        <div class="mt-6 flex items-center gap-2 border-t border-unel-crema-2 pt-4">
-          <span class="text-sm font-semibold text-unel-carbon">Stock Actual:</span>
-          <% si_hay_stock = @product.stock.to_i > 0 %>
-          <span class="rounded-full px-3 py-1 text-xs font-bold <%= si_hay_stock ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' %>">
-            <%= @product.stock || 0 %> unidades
-          </span>
+        <div class="mt-6 border-t border-unel-crema-2 pt-4">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-sm font-semibold text-unel-carbon">Stock actual:</span>
+            <% si_hay_stock = @product.stock.to_i > 0 %>
+            <span class="rounded-full px-3 py-1 text-xs font-bold <%= si_hay_stock ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' %>">
+              <%= @product.stock || 0 %> unidades
+            </span>
+          </div>
+
+          <p class="mt-2 text-sm text-unel-humo">
+            Umbral de stock bajo: <%= product_threshold %> unidades
+          </p>
         </div>
       </div>
     </div>

@@ -1,2 +1,718 @@
-<h1>Admin::Finances#index</h1>
-<p>Find me in app/views/admin/finances/index.html.erb</p>
+<% content_for :admin_section_key, "finances" %>
+<% content_for :admin_section_inner, "Finanzas" %>
+<% content_for :admin_search_placeholder, "Buscar movimientos financieros..." %>
+<% content_for :admin_search_path, admin_finances_path %>
+
+<% finance_preview = Rails.env.development? && params[:preview].present? %>
+<% preview_mode = params[:preview].to_s %>
+<% negative_preview = finance_preview && preview_mode == "negative" %>
+<% balanced_preview = finance_preview && preview_mode == "balanced" %>
+<% positive_preview = finance_preview && %w[1 positive true].include?(preview_mode) %>
+
+<% financial_movements_index_path = finance_preview ? admin_financial_movements_path(preview: preview_mode) : admin_financial_movements_path %>
+<% debts_index_path = finance_preview ? admin_debts_path(preview: preview_mode) : admin_debts_path %>
+
+<% current_period = Date.current.strftime("%m/%Y") %>
+
+<% if positive_preview %>
+  <% monthly_income = 1_485_000 %>
+  <% monthly_expenses = 920_000 %>
+  <% pending_debts_count = 3 %>
+  <% pending_debts_total = 430_000 %>
+  <% due_soon_debts = 1 %>
+  <% overdue_debts = 1 %>
+
+  <% recent_movements = [
+    { description: "Venta pedido mayorista", category: "ventas", amount: 350_000, movement_type: "income" },
+    { description: "Compra de frascos", category: "insumos", amount: 180_000, movement_type: "expense" },
+    { description: "Pago transferencia cliente", category: "ventas", amount: 245_000, movement_type: "income" },
+    { description: "Compra de ingredientes", category: "producción", amount: 95_000, movement_type: "expense" }
+  ] %>
+<% elsif negative_preview %>
+  <% monthly_income = 780_000 %>
+  <% monthly_expenses = 1_240_000 %>
+  <% pending_debts_count = 6 %>
+  <% pending_debts_total = 1_180_000 %>
+  <% due_soon_debts = 3 %>
+  <% overdue_debts = 2 %>
+
+  <% recent_movements = [
+    { description: "Venta frascos surtidos", category: "ventas", amount: 220_000, movement_type: "income" },
+    { description: "Compra de pescado", category: "materia prima", amount: 410_000, movement_type: "expense" },
+    { description: "Pago electricidad", category: "operación", amount: 185_000, movement_type: "expense" },
+    { description: "Venta feria local", category: "ventas", amount: 160_000, movement_type: "income" },
+    { description: "Compra de tapas y etiquetas", category: "insumos", amount: 265_000, movement_type: "expense" }
+  ] %>
+<% elsif balanced_preview %>
+  <% monthly_income = 1_000_000 %>
+  <% monthly_expenses = 1_000_000 %>
+  <% pending_debts_count = 4 %>
+  <% pending_debts_total = 620_000 %>
+  <% due_soon_debts = 0 %>
+  <% overdue_debts = 0 %>
+
+  <% recent_movements = [
+    { description: "Venta pedido especial", category: "ventas", amount: 500_000, movement_type: "income" },
+    { description: "Compra de ingredientes", category: "producción", amount: 420_000, movement_type: "expense" },
+    { description: "Pago cliente frecuente", category: "ventas", amount: 500_000, movement_type: "income" },
+    { description: "Pago de operación mensual", category: "operación", amount: 580_000, movement_type: "expense" }
+  ] %>
+<% else %>
+  <% monthly_income = 0 %>
+  <% monthly_expenses = 0 %>
+  <% pending_debts_count = 0 %>
+  <% pending_debts_total = 0 %>
+  <% due_soon_debts = 0 %>
+  <% overdue_debts = 0 %>
+  <% recent_movements = [] %>
+<% end %>
+
+<% monthly_balance = monthly_income - monthly_expenses %>
+
+<% movement_value = lambda do |movement, key, default = nil|
+  if movement.respond_to?(key)
+    movement.public_send(key)
+  elsif movement.respond_to?(:[])
+    movement[key] || movement[key.to_s] || default
+  else
+    default
+  end
+end %>
+
+<% monthly_chart_max = [monthly_income, monthly_expenses, 1].max %>
+<% income_chart_width = monthly_income.positive? ? ((monthly_income.to_f / monthly_chart_max) * 100).round : 0 %>
+<% expenses_chart_width = monthly_expenses.positive? ? ((monthly_expenses.to_f / monthly_chart_max) * 100).round : 0 %>
+<% month_has_financial_data = monthly_income.positive? || monthly_expenses.positive? %>
+
+<% monthly_result_label = if !month_has_financial_data
+  "Sin datos"
+elsif monthly_balance.negative?
+  "Mes negativo"
+elsif monthly_balance.zero?
+  "Mes equilibrado"
+else
+  "Mes positivo"
+end %>
+
+<% monthly_result_classes = if !month_has_financial_data
+  "border-unel-crema-2 bg-unel-crema text-unel-humo"
+elsif monthly_balance.negative?
+  "border-red-200 bg-red-50 text-red-700"
+elsif monthly_balance.zero?
+  "border-unel-crema-2 bg-white text-unel-carbon"
+else
+  "border-unel-crema-2 bg-white text-unel-verde"
+end %>
+
+<% balance_gap = monthly_balance.abs %>
+<% expense_ratio = monthly_income.positive? ? ((monthly_expenses.to_f / monthly_income) * 100).round : nil %>
+
+<% month_gap_label = if !month_has_financial_data
+  "Sin diferencia calculable"
+elsif monthly_balance.negative?
+  "Gastos por encima de ingresos"
+elsif monthly_balance.zero?
+  "Ingresos y gastos equilibrados"
+else
+  "Ingresos por encima de gastos"
+end %>
+
+<% month_gap_value = if !month_has_financial_data
+  "Sin datos"
+else
+  number_to_currency(balance_gap, unit: "$", precision: 0, delimiter: ".")
+end %>
+
+<% month_gap_classes = if !month_has_financial_data
+  "text-unel-humo"
+elsif monthly_balance.negative?
+  "text-red-600"
+elsif monthly_balance.zero?
+  "text-unel-carbon"
+else
+  "text-unel-verde"
+end %>
+
+<% expense_ratio_label = if !month_has_financial_data
+  "Sin datos"
+elsif monthly_income.zero?
+  "Sin ingresos"
+else
+  "#{expense_ratio}%"
+end %>
+
+<% debt_pressure_label = if pending_debts_count.zero?
+  "Sin deudas activas"
+elsif overdue_debts.positive?
+  "Con atrasos"
+elsif due_soon_debts.positive?
+  "Con vencimientos cercanos"
+else
+  "Bajo control"
+end %>
+
+<% debt_pressure_classes = if overdue_debts.positive?
+  "text-red-600"
+elsif due_soon_debts.positive?
+  "text-amber-700"
+else
+  "text-unel-carbon"
+end %>
+
+<% has_financial_alerts = (monthly_expenses > monthly_income && monthly_expenses.positive?) || due_soon_debts.positive? || overdue_debts.positive? %>
+
+<section>
+  <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-unel-carbon md:text-3xl">
+        Resumen financiero
+      </h1>
+
+      <p class="mt-2 max-w-2xl text-sm text-unel-humo">
+        Revisa el estado general del mes, detecta alertas y accede rápido a ingresos, gastos y deudas.
+      </p>
+    </div>
+
+    <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+      <%= link_to "Registrar ingreso", new_admin_financial_movement_path(movement_type: "income"),
+        class: "inline-flex w-full justify-center rounded-xl bg-unel-verde px-4 py-2 text-sm font-semibold text-white transition hover:bg-unel-carbon sm:w-auto" %>
+
+      <%= link_to "Registrar gasto", new_admin_financial_movement_path(movement_type: "expense"),
+        class: "inline-flex w-full justify-center rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:border-red-300 hover:bg-white sm:w-auto" %>
+
+      <%= link_to "Registrar deuda", new_admin_debt_path,
+        class: "inline-flex w-full justify-center rounded-xl border border-unel-crema-2 px-4 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado sm:w-auto" %>
+    </div>
+  </div>
+
+  <div class="rounded-2xl border border-unel-crema-2 bg-white shadow-sm">
+    <div class="flex flex-col gap-3 border-b border-unel-crema-2 px-4 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
+      <div>
+        <p class="text-sm font-semibold uppercase tracking-wide text-unel-dorado">
+          Estado del mes
+        </p>
+
+        <h2 class="mt-1 text-lg font-bold text-unel-carbon">
+          Periodo <%= current_period %>
+        </h2>
+
+        <p class="mt-1 text-sm text-unel-humo">
+          Vista rápida para saber si el mes va positivo, negativo o todavía sin datos.
+        </p>
+      </div>
+
+      <%= link_to "Ver movimientos", financial_movements_index_path,
+        class: "inline-flex w-full justify-center rounded-xl border border-unel-crema-2 px-4 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado sm:w-auto" %>
+    </div>
+
+    <div class="grid gap-4 p-4 sm:grid-cols-2 sm:p-6 xl:grid-cols-4">
+      <div class="rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-4">
+        <p class="text-sm font-medium text-unel-humo">
+          Ingresos
+        </p>
+
+        <p class="mt-2 text-2xl font-bold text-unel-verde">
+          <%= number_to_currency(monthly_income, unit: "$", precision: 0, delimiter: ".") %>
+        </p>
+
+        <p class="mt-1 text-xs text-unel-humo">
+          Dinero recibido durante el mes.
+        </p>
+      </div>
+
+      <div class="rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-4">
+        <p class="text-sm font-medium text-unel-humo">
+          Gastos
+        </p>
+
+        <p class="mt-2 text-2xl font-bold text-red-600">
+          <%= number_to_currency(monthly_expenses, unit: "$", precision: 0, delimiter: ".") %>
+        </p>
+
+        <p class="mt-1 text-xs text-unel-humo">
+          Dinero pagado o comprometido.
+        </p>
+      </div>
+
+      <div class="rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-4">
+        <p class="text-sm font-medium text-unel-humo">
+          Balance
+        </p>
+
+        <p class="mt-2 text-2xl font-bold <%= monthly_balance.negative? ? "text-red-600" : "text-unel-carbon" %>">
+          <%= number_to_currency(monthly_balance, unit: "$", precision: 0, delimiter: ".") %>
+        </p>
+
+        <p class="mt-1 text-xs text-unel-humo">
+          Ingresos menos gastos.
+        </p>
+      </div>
+
+      <div class="rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-4">
+        <p class="text-sm font-medium text-unel-humo">
+          Deuda pendiente
+        </p>
+
+        <p class="mt-2 text-2xl font-bold text-unel-dorado">
+          <%= number_to_currency(pending_debts_total, unit: "$", precision: 0, delimiter: ".") %>
+        </p>
+
+        <p class="mt-1 text-xs text-unel-humo">
+          <%= pending_debts_count %> compromisos por pagar.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-6 rounded-2xl border border-unel-crema-2 bg-white shadow-sm">
+    <div class="flex flex-col gap-3 border-b border-unel-crema-2 px-4 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
+      <div>
+        <h2 class="text-lg font-bold text-unel-carbon">
+          Ingresos vs gastos
+        </h2>
+
+        <p class="mt-1 text-sm text-unel-humo">
+          Lectura visual del periodo para comparar rápidamente entradas y salidas.
+        </p>
+      </div>
+
+      <span class="inline-flex w-full justify-center rounded-full border px-3 py-1 text-xs font-semibold sm:w-auto <%= monthly_result_classes %>">
+        <%= monthly_result_label %>
+      </span>
+    </div>
+
+    <div class="p-4 sm:p-6">
+      <div class="space-y-6">
+        <div>
+          <div class="mb-2 flex items-center justify-between gap-3">
+            <p class="text-sm font-bold text-unel-carbon">
+              Ingresos
+            </p>
+
+            <span class="text-xs font-semibold text-unel-humo">
+              Entrada del mes
+            </span>
+          </div>
+
+          <div class="h-3 overflow-hidden rounded-full bg-unel-crema">
+            <div
+              class="h-3 rounded-full bg-unel-verde transition-all"
+              style="width: <%= income_chart_width %>%"
+            ></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="mb-2 flex items-center justify-between gap-3">
+            <p class="text-sm font-bold text-unel-carbon">
+              Gastos
+            </p>
+
+            <span class="text-xs font-semibold text-unel-humo">
+              Salida del mes
+            </span>
+          </div>
+
+          <div class="h-3 overflow-hidden rounded-full bg-unel-crema">
+            <div
+              class="h-3 rounded-full bg-red-500 transition-all"
+              style="width: <%= expenses_chart_width %>%"
+            ></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6">
+        <div class="mb-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+          <h3 class="text-sm font-bold text-unel-carbon">
+            Indicadores rápidos
+          </h3>
+
+          <p class="text-xs text-unel-humo">
+            Resumen interpretativo del periodo.
+          </p>
+        </div>
+
+        <div class="grid gap-3 md:grid-cols-3">
+          <div class="rounded-xl bg-unel-crema px-4 py-3">
+            <p class="text-xs font-semibold uppercase tracking-wide text-unel-humo">
+              Diferencia del mes
+            </p>
+
+            <p class="mt-1 text-sm font-bold <%= month_gap_classes %>">
+              <%= month_gap_value %>
+            </p>
+
+            <p class="mt-1 text-xs text-unel-humo">
+              <%= month_gap_label %>
+            </p>
+          </div>
+
+          <div class="rounded-xl bg-unel-crema px-4 py-3">
+            <p class="text-xs font-semibold uppercase tracking-wide text-unel-humo">
+              Gasto vs ingreso
+            </p>
+
+            <p class="mt-1 text-sm font-bold text-unel-carbon">
+              <%= expense_ratio_label %>
+            </p>
+
+            <p class="mt-1 text-xs text-unel-humo">
+              <% if month_has_financial_data && monthly_income.positive? %>
+                Los gastos equivalen a <%= expense_ratio %>% de lo ingresado.
+              <% else %>
+                Se calculará cuando existan ingresos y gastos registrados.
+              <% end %>
+            </p>
+          </div>
+
+          <div class="rounded-xl bg-unel-crema px-4 py-3">
+            <p class="text-xs font-semibold uppercase tracking-wide text-unel-humo">
+              Presión de deudas
+            </p>
+
+            <p class="mt-1 text-sm font-bold <%= debt_pressure_classes %>">
+              <%= debt_pressure_label %>
+            </p>
+
+            <p class="mt-1 text-xs text-unel-humo">
+              <%= pending_debts_count %> deudas activas · <%= due_soon_debts %> por vencer · <%= overdue_debts %> atrasadas
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-6 grid gap-5 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+    <div class="rounded-2xl border border-unel-crema-2 bg-white shadow-sm">
+      <div class="border-b border-unel-crema-2 px-4 py-5 sm:px-6">
+        <h2 class="text-lg font-bold text-unel-carbon">
+          Alertas financieras
+        </h2>
+
+        <p class="mt-1 text-sm text-unel-humo">
+          Señales rápidas para saber qué revisar primero.
+        </p>
+      </div>
+
+      <div class="space-y-3 p-4 sm:p-6">
+        <% if monthly_income.zero? && monthly_expenses.zero? %>
+          <div class="rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-3">
+            <p class="text-sm font-bold text-unel-carbon">
+              Sin movimientos este mes
+            </p>
+
+            <p class="mt-1 text-xs text-unel-humo">
+              Registra ingresos o gastos para comenzar a calcular el balance mensual.
+            </p>
+          </div>
+        <% end %>
+
+        <% if monthly_expenses > monthly_income && monthly_expenses.positive? %>
+          <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+            <p class="text-sm font-bold text-red-700">
+              Los gastos superan los ingresos
+            </p>
+
+            <p class="mt-1 text-xs text-red-600">
+              Revisa los movimientos del mes para entender el origen del saldo negativo.
+            </p>
+          </div>
+        <% end %>
+
+        <% if due_soon_debts.positive? %>
+          <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+            <p class="text-sm font-bold text-amber-700">
+              Hay deudas próximas a vencer
+            </p>
+
+            <p class="mt-1 text-xs text-amber-700">
+              Prioriza los compromisos con vencimiento cercano.
+            </p>
+          </div>
+        <% end %>
+
+        <% if overdue_debts.positive? %>
+          <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+            <p class="text-sm font-bold text-red-700">
+              Hay deudas atrasadas
+            </p>
+
+            <p class="mt-1 text-xs text-red-600">
+              Revisa los compromisos vencidos para regularizarlos.
+            </p>
+          </div>
+        <% end %>
+
+        <% if !has_financial_alerts && month_has_financial_data %>
+          <div class="rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-3">
+            <p class="text-sm font-bold text-unel-carbon">
+              No hay alertas críticas
+            </p>
+
+            <p class="mt-1 text-xs text-unel-humo">
+              El periodo no presenta gastos por encima de ingresos ni deudas próximas o atrasadas.
+            </p>
+          </div>
+        <% end %>
+
+        <% if pending_debts_count.zero? && monthly_income.zero? && monthly_expenses.zero? %>
+          <div class="rounded-xl border border-dashed border-unel-crema-2 bg-unel-crema px-4 py-3">
+            <p class="text-sm font-bold text-unel-carbon">
+              No hay alertas críticas
+            </p>
+
+            <p class="mt-1 text-xs text-unel-humo">
+              El resumen se volverá más útil cuando existan movimientos y deudas registradas.
+            </p>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="rounded-2xl border border-unel-crema-2 bg-white shadow-sm">
+      <div class="border-b border-unel-crema-2 px-4 py-5 sm:px-6">
+        <h2 class="text-lg font-bold text-unel-carbon">
+          Accesos rápidos
+        </h2>
+
+        <p class="mt-1 text-sm text-unel-humo">
+          Entra directo a las tareas principales del módulo financiero.
+        </p>
+      </div>
+
+      <div class="space-y-6 p-4 sm:p-6">
+        <div>
+          <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-unel-dorado">
+            Registrar
+          </p>
+
+          <div class="grid gap-3 md:grid-cols-3">
+            <%= link_to new_admin_financial_movement_path(movement_type: "income"),
+              class: "group flex min-h-[6.75rem] items-center gap-4 rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-4 transition hover:border-unel-verde hover:bg-white hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-unel-verde/20" do %>
+              <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-unel-verde text-lg font-bold leading-none text-white transition group-hover:bg-unel-carbon pb-1">
+                +
+              </span>
+
+              <span class="min-w-0">
+                <span class="block text-sm font-bold text-unel-carbon">
+                  Ingreso
+                </span>
+
+                <span class="mt-1 block text-xs leading-relaxed text-unel-humo">
+                  Ventas o pagos recibidos.
+                </span>
+              </span>
+            <% end %>
+
+            <%= link_to new_admin_financial_movement_path(movement_type: "expense"),
+              class: "group flex min-h-[6.75rem] items-center gap-4 rounded-xl border border-red-100 bg-red-50 px-4 py-4 transition hover:border-red-200 hover:bg-white hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-red-200" do %>
+              <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-red-500 text-lg font-bold leading-none text-white transition group-hover:bg-red-600 pb-1">
+                −
+              </span>
+
+              <span class="min-w-0">
+                <span class="block text-sm font-bold text-unel-carbon">
+                  Gasto
+                </span>
+
+                <span class="mt-1 block text-xs leading-relaxed text-unel-humo">
+                  Compras o egresos.
+                </span>
+              </span>
+            <% end %>
+
+            <%= link_to new_admin_debt_path,
+              class: "group flex min-h-[6.75rem] items-center gap-4 rounded-xl border border-amber-100 bg-amber-50 px-4 py-4 transition hover:border-amber-200 hover:bg-white hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-200" do %>
+              <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-unel-dorado text-lg font-bold leading-none text-white transition group-hover:bg-unel-dorado-2">
+                !
+              </span>
+
+              <span class="min-w-0">
+                <span class="block text-sm font-bold text-unel-carbon">
+                  Deuda
+                </span>
+
+                <span class="mt-1 block text-xs leading-relaxed text-unel-humo">
+                  Compromisos pendientes.
+                </span>
+              </span>
+            <% end %>
+          </div>
+        </div>
+
+        <div>
+          <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-unel-dorado">
+            Consultar
+          </p>
+
+          <div class="grid gap-3 sm:grid-cols-2">
+            <%= link_to financial_movements_index_path,
+              class: "group flex min-h-[6.75rem] items-center justify-between gap-4 rounded-xl border border-unel-crema-2 bg-unel-crema px-4 py-4 transition hover:border-unel-dorado hover:bg-white hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-unel-dorado/20" do %>
+              <span class="flex min-w-0 items-center gap-4">
+                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-unel-carbon text-lg font-bold leading-none text-white transition group-hover:bg-unel-verde pb-1">
+                  →
+                </span>
+
+                <span class="min-w-0">
+                  <span class="block text-sm font-bold text-unel-carbon">
+                    Movimientos
+                  </span>
+
+                  <span class="mt-1 block text-xs leading-relaxed text-unel-humo">
+                    Registro completo de ingresos y gastos.
+                  </span>
+                </span>
+              </span>
+
+              <span class="hidden shrink-0 rounded-full border border-unel-crema-2 bg-white px-3 py-1 text-xs font-semibold text-unel-humo transition group-hover:border-unel-dorado group-hover:text-unel-dorado lg:inline-flex">
+                Ver
+              </span>
+            <% end %>
+
+            <%= link_to debts_index_path,
+              class: "group flex min-h-[6.75rem] items-center justify-between gap-4 rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-4 transition hover:border-unel-dorado hover:bg-white hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-unel-dorado/20" do %>
+              <span class="flex min-w-0 items-center gap-4">
+                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-unel-dorado text-base font-bold leading-none text-white transition group-hover:bg-unel-dorado-2">
+                  $
+                </span>
+
+                <span class="min-w-0">
+                  <span class="block text-sm font-bold text-unel-carbon">
+                    Deudas
+                  </span>
+
+                  <span class="mt-1 block text-xs leading-relaxed text-unel-humo">
+                    Saldos, vencimientos y atrasos.
+                  </span>
+                </span>
+              </span>
+
+              <span class="hidden shrink-0 rounded-full border border-unel-crema-2 bg-white px-3 py-1 text-xs font-semibold text-unel-humo transition group-hover:border-unel-dorado group-hover:text-unel-dorado lg:inline-flex">
+                Ver
+              </span>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-6 grid gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(20rem,0.85fr)]">
+    <div class="min-w-0 rounded-2xl border border-unel-crema-2 bg-white shadow-sm">
+      <div class="flex flex-col gap-3 border-b border-unel-crema-2 px-4 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <h2 class="text-lg font-bold text-unel-carbon">
+            Últimos movimientos
+          </h2>
+
+          <p class="mt-1 text-sm text-unel-humo">
+            Vista breve de los registros financieros más recientes.
+          </p>
+        </div>
+
+        <%= link_to "Ver todos", financial_movements_index_path,
+          class: "inline-flex w-full justify-center rounded-xl border border-unel-crema-2 px-4 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado sm:w-auto" %>
+      </div>
+
+      <% if recent_movements.any? %>
+        <div class="max-h-80 divide-y divide-unel-crema-2 overflow-y-auto">
+          <% recent_movements.first(5).each do |movement| %>
+            <% raw_amount = movement_value.call(movement, :amount, 0).to_f %>
+            <% movement_type = movement_value.call(movement, :movement_type, movement_value.call(movement, :kind, "")).to_s.downcase %>
+            <% is_expense = if movement_type.present?
+              %w[expense egreso gasto outflow].include?(movement_type)
+            else
+              raw_amount.negative?
+            end %>
+            <% amount_prefix = is_expense ? "−" : "+" %>
+            <% amount_classes = is_expense ? "text-red-600" : "text-unel-verde" %>
+
+            <div class="flex items-center justify-between gap-4 px-4 py-4 sm:px-6">
+              <div>
+                <p class="text-sm font-bold text-unel-carbon">
+                  <%= movement_value.call(movement, :description, "Movimiento financiero") %>
+                </p>
+
+                <p class="mt-1 text-xs text-unel-humo">
+                  <%= movement_value.call(movement, :category, "Sin categoría").to_s.humanize %>
+                </p>
+              </div>
+
+              <span class="text-sm font-bold <%= amount_classes %>">
+                <%= amount_prefix %><%= number_to_currency(raw_amount.abs, unit: "$", precision: 0, delimiter: ".") %>
+              </span>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="px-4 py-10 text-center sm:px-6">
+          <div class="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-unel-crema text-lg font-bold text-unel-verde">
+            $
+          </div>
+
+          <p class="mt-3 text-lg font-bold text-unel-carbon">
+            No hay movimientos recientes
+          </p>
+
+          <p class="mx-auto mt-2 max-w-md text-sm text-unel-humo">
+            Los últimos ingresos y gastos aparecerán aquí cuando existan registros.
+          </p>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="min-w-0 self-start rounded-2xl border border-unel-crema-2 bg-white shadow-sm">
+      <div class="border-b border-unel-crema-2 px-4 py-5 sm:px-6">
+        <h2 class="text-lg font-bold text-unel-carbon">
+          Deudas por pagar
+        </h2>
+
+        <p class="mt-1 text-sm text-unel-humo">
+          Resumen rápido de compromisos pendientes.
+        </p>
+      </div>
+
+      <div class="space-y-2.5 p-4 sm:p-6">
+        <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-unel-crema px-4 py-3">
+          <span class="text-sm font-semibold text-unel-carbon">
+            Total pendiente
+          </span>
+
+          <span class="text-sm font-bold text-unel-dorado">
+            <%= number_to_currency(pending_debts_total, unit: "$", precision: 0, delimiter: ".") %>
+          </span>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-unel-crema px-4 py-3">
+          <span class="text-sm font-semibold text-unel-carbon">
+            Vencen pronto
+          </span>
+
+          <span class="text-sm font-bold text-amber-700">
+            <%= due_soon_debts %>
+          </span>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-unel-crema px-4 py-3">
+          <span class="text-sm font-semibold text-unel-carbon">
+            Atrasadas
+          </span>
+
+          <span class="text-sm font-bold text-red-600">
+            <%= overdue_debts %>
+          </span>
+        </div>
+
+        <div class="mt-3 flex flex-col gap-2 sm:flex-row">
+          <%= link_to "Ver deudas", debts_index_path,
+            class: "inline-flex w-full justify-center rounded-xl border border-unel-crema-2 px-4 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado" %>
+
+          <%= link_to "Registrar deuda", new_admin_debt_path,
+            class: "inline-flex w-full justify-center rounded-xl bg-unel-verde px-4 py-2 text-sm font-semibold text-white transition hover:bg-unel-carbon" %>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

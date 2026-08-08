@@ -1,8 +1,8 @@
 <aside
   data-admin-sidebar-target="sidebar"
-  class="fixed inset-y-0 left-0 z-40 h-screen w-64 shrink-0 -translate-x-full overflow-y-auto bg-unel-carbon px-4 py-6 text-unel-crema shadow-xl transition-all duration-300 lg:static lg:z-auto lg:h-auto lg:translate-x-0 lg:overflow-hidden"
+  class="fixed inset-y-0 left-0 z-40 flex h-screen w-64 shrink-0 -translate-x-full flex-col overflow-hidden bg-unel-carbon px-4 py-5 text-unel-crema shadow-xl transition-all duration-300 lg:static lg:z-auto lg:h-screen lg:translate-x-0"
 >
-  <div data-admin-sidebar-target="brand" class="mb-10 flex items-center gap-3">
+  <div data-admin-sidebar-target="brand" class="mb-7 flex items-center gap-3">
     <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-unel-verde text-sm font-bold text-unel-blanco">
       U
     </div>
@@ -18,7 +18,7 @@
     </div>
   </div>
 
-  <nav data-admin-sidebar-target="nav" class="space-y-8">
+  <nav data-admin-sidebar-target="nav" class="min-h-0 flex-1 space-y-5 overflow-y-auto pr-1">
     <div>
       <div data-admin-sidebar-target="sectionHeader" class="mb-3">
         <p class="text-xs font-semibold uppercase tracking-wide text-unel-humo">
@@ -170,9 +170,41 @@
         <div data-admin-sidebar-target="sectionDivider" class="mx-auto hidden h-px w-8 bg-unel-humo"></div>
       </div>
 
-      <%= link_to "/admin/finances",
-         data: { active_path: "/admin/finances", admin_sidebar_target: "navItem" },
-         class: "relative mt-2 flex w-full items-center justify-start gap-3 px-4 py-3 text-unel-crema hover:text-unel-dorado transition-all text-sm font-medium" do %>
+      <%= link_to admin_finances_path,
+        data: { active_path: admin_finances_path, admin_sidebar_target: "navItem" },
+        class: "relative mt-2 flex w-full items-center justify-start gap-3 px-4 py-3 text-unel-crema hover:text-unel-dorado transition-all text-sm font-medium" do %>
+        <span data-admin-sidebar-target="activeIndicator" class="absolute left-0 hidden h-7 w-1 rounded-full bg-unel-dorado-2"></span>
+
+        <span class="shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125C16.5 3.504 17.004 3 17.625 3h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
+          </svg>
+        </span>
+
+        <span data-admin-sidebar-target="label">
+          Resumen
+        </span>
+      <% end %>
+
+      <%= link_to admin_financial_movements_path,
+        data: { active_path: admin_financial_movements_path, admin_sidebar_target: "navItem" },
+        class: "relative mt-2 flex w-full items-center justify-start gap-3 px-4 py-3 text-unel-crema hover:text-unel-dorado transition-all text-sm font-medium" do %>
+        <span data-admin-sidebar-target="activeIndicator" class="absolute left-0 hidden h-7 w-1 rounded-full bg-unel-dorado-2"></span>
+
+        <span class="shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m6-6H6" />
+          </svg>
+        </span>
+
+        <span data-admin-sidebar-target="label">
+          Movimientos
+        </span>
+      <% end %>
+
+      <%= link_to admin_debts_path,
+        data: { active_path: admin_debts_path, admin_sidebar_target: "navItem" },
+        class: "relative mt-2 flex w-full items-center justify-start gap-3 px-4 py-3 text-unel-crema hover:text-unel-dorado transition-all text-sm font-medium" do %>
         <span data-admin-sidebar-target="activeIndicator" class="absolute left-0 hidden h-7 w-1 rounded-full bg-unel-dorado-2"></span>
 
         <span class="shrink-0">
@@ -182,7 +214,7 @@
         </span>
 
         <span data-admin-sidebar-target="label">
-          Finanzas
+          Deudas
         </span>
       <% end %>
     </div>
@@ -199,6 +231,7 @@
       </div>
 
       <%= link_to products_path,
+        data: { admin_sidebar_target: "navItem" },
         class: "relative mt-2 flex w-full items-center justify-start gap-3 px-4 py-3 text-unel-crema hover:text-unel-dorado transition-all text-sm font-medium" do %>
         <span class="shrink-0">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5">
@@ -213,7 +246,7 @@
     </div>
   </nav>
 
-  <div data-admin-sidebar-target="logoutWrapper" class="mt-10 border-t border-unel-humo pt-6">
+  <div data-admin-sidebar-target="logoutWrapper" class="mt-4 shrink-0 border-t border-unel-humo pt-4">
     <%= button_to destroy_admin_session_path,
       method: :delete,
       class: "w-full rounded-xl border border-red-400 px-4 py-3 text-sm font-semibold text-red-400 transition hover:bg-red-500 hover:text-white cursor-pointer" do %>

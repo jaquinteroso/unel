@@ -3,6 +3,11 @@ import { Controller } from "@hotwired/stimulus"
 export default class extends Controller {
   static targets = ["input", "row", "emptyState", "resultsCount"]
 
+  static values = {
+    singular: { type: String, default: "producto" },
+    plural: { type: String, default: "productos" }
+  }
+
   connect() {
     this.filter()
   }
@@ -27,7 +32,8 @@ export default class extends Controller {
     }
 
     if (this.hasResultsCountTarget) {
-      this.resultsCountTarget.textContent = `${visibleCount} producto${visibleCount === 1 ? "" : "s"}`
+      const label = visibleCount === 1 ? this.singularValue : this.pluralValue
+      this.resultsCountTarget.textContent = `${visibleCount} ${label}`
     }
   }
 

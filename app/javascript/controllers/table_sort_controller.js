@@ -4,61 +4,39 @@ export default class extends Controller {
   static targets = ["select", "body", "row"]
 
   connect() {
-    const savedSort = localStorage.getItem("productsTableSort")
+    this.storageKey = this.buildStorageKey()
 
-    if (savedSort && this.hasSelectTarget) {
+    this.rowTargets.forEach((row, index) => {
+      if (!row.dataset.sortOriginalIndex) {
+        row.dataset.sortOriginalIndex = index.toString()
+      }
+    })
+
+    const savedSort = localStorage.getItem(this.storageKey)
+
+    if (savedSort && this.hasSelectTarget && this.optionExists(savedSort)) {
       this.selectTarget.value = savedSort
       this.sort()
     }
   }
 
   sort() {
+    if (!this.hasSelectTarget || !this.hasBodyTarget) return
+
     const sortType = this.selectTarget.value
     const rows = Array.from(this.rowTargets)
 
-    localStorage.setItem("productsTableSort", sortType)
+    localStorage.setItem(this.storageKey, sortType)
+
+    const sortConfig = this.parseSortType(sortType)
 
     rows.sort((a, b) => {
-      switch (sortType) {
-        case "name_asc":
-          return this.compareText(a.dataset.sortName, b.dataset.sortName)
-
-        case "name_desc":
-          return this.compareText(b.dataset.sortName, a.dataset.sortName)
-
-        case "price_desc":
-          return this.compareNumber(b.dataset.sortPrice, a.dataset.sortPrice)
-
-        case "price_asc":
-          return this.compareNumber(a.dataset.sortPrice, b.dataset.sortPrice)
-
-        case "cost_desc":
-          return this.compareNumber(b.dataset.sortCost, a.dataset.sortCost)
-
-        case "cost_asc":
-          return this.compareNumber(a.dataset.sortCost, b.dataset.sortCost)
-
-        case "stock_asc":
-          return this.compareNumber(a.dataset.sortStock, b.dataset.sortStock)
-
-        case "stock_desc":
-          return this.compareNumber(b.dataset.sortStock, a.dataset.sortStock)
-
-        case "margin_desc":
-          return this.compareNumber(b.dataset.sortMargin, a.dataset.sortMargin)
-
-        case "margin_asc":
-          return this.compareNumber(a.dataset.sortMargin, b.dataset.sortMargin)
-
-        case "suggested_price_desc":
-          return this.compareNumber(b.dataset.sortSuggestedPrice, a.dataset.sortSuggestedPrice)
-
-        case "suggested_price_asc":
-          return this.compareNumber(a.dataset.sortSuggestedPrice, b.dataset.sortSuggestedPrice)
-
-        default:
-          return 0
+      if (!sortConfig) {
+        return this.compareNumber(a.dataset.sortOriginalIndex, b.dataset.sortOriginalIndex)
       }
+
+      const { key, direction } = sortConfig
+      return this.compareRows(a, b, key, direction)
     })
 
     rows.forEach((row) => {
@@ -66,12 +44,105 @@ export default class extends Controller {
     })
   }
 
+  buildStorageKey() {
+    const path = window.location.pathname
+    const selectId = this.hasSelectTarget ? this.selectTarget.id : "default"
+
+    return `unelTableSort:${path}:${selectId}`
+  }
+
+  optionExists(value) {
+    return Array.from(this.selectTarget.options).some((option) => {
+      return option.value === value
+    })
+  }
+
+  parseSortType(sortType) {
+    const match = sortType.match(/^(.*)_(asc|desc)$/)
+
+    if (!match) return null
+
+    return {
+      key: match[1],
+      direction: match[2]
+    }
+  }
+
+  compareRows(rowA, rowB, key, direction) {
+    const valueA = this.readSortValue(rowA, key)
+    const valueB = this.readSortValue(rowB, key)
+
+    const aIsBlank = this.isBlank(valueA)
+    const bIsBlank = this.isBlank(valueB)
+
+    if (aIsBlank && bIsBlank) {
+      return this.compareNumber(rowA.dataset.sortOriginalIndex, rowB.dataset.sortOriginalIndex)
+    }
+
+    if (aIsBlank) return 1
+    if (bIsBlank) return -1
+
+    const result = this.compareValues(valueA, valueB)
+
+    if (result === 0) {
+      return this.compareNumber(rowA.dataset.sortOriginalIndex, rowB.dataset.sortOriginalIndex)
+    }
+
+    return direction === "desc" ? -result : result
+  }
+
+  readSortValue(row, key) {
+    const datasetKey = this.datasetKeyFor(key)
+
+    return row.dataset[datasetKey]
+  }
+
+  datasetKeyFor(key) {
+    const camelKey = key
+      .split("_")
+      .map((part) => this.capitalize(part))
+      .join("")
+
+    return `sort${camelKey}`
+  }
+
+  capitalize(value) {
+    if (!value) return ""
+
+    return value.charAt(0).toUpperCase() + value.slice(1)
+  }
+
+  compareValues(a, b) {
+    const numberA = this.parseNumber(a)
+    const numberB = this.parseNumber(b)
+
+    if (numberA !== null && numberB !== null) {
+      return numberA - numberB
+    }
+
+    return this.compareText(a, b)
+  }
+
   compareText(a, b) {
     return this.normalizeText(a).localeCompare(this.normalizeText(b), "es")
   }
 
   compareNumber(a, b) {
-    return this.parseNumber(a) - this.parseNumber(b)
+    return Number(a || 0) - Number(b || 0)
+  }
+
+  parseNumber(value) {
+    if (this.isBlank(value)) return null
+
+    const normalizedValue = value
+      .toString()
+      .replace(/\./g, "")
+      .replace(",", ".")
+      .trim()
+
+    const number = Number(normalizedValue)
+
+    return Number.isNaN(number) ? null : number
   }
 
   normalizeText(value) {
@@ -83,7 +154,7 @@ export default class extends Controller {
       .trim()
   }
 
-  parseNumber(value) {
-    return Number(value || 0)
+  isBlank(value) {
+    return value === undefined || value === null || value.toString().trim() === ""
   }
 }

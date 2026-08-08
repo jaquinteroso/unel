@@ -31,11 +31,20 @@ application.register("table-filter", TableFilterController)
 import TrixNoAttachmentsController from "./trix_no_attachments_controller"
 application.register("trix-no-attachments", TrixNoAttachmentsController)
 
-import StockThresholdModalController from "./stock_threshold_modal_controller"
-application.register("stock-threshold-modal", StockThresholdModalController)
-
 import SupplyFormController from "./supply_form_controller"
 application.register("supply-form", SupplyFormController)
 
 import TableSortController from "./table_sort_controller"
 application.register("table-sort", TableSortController)
+
+import InventoryMovementFormController from "./inventory_movement_form_controller"
+application.register("inventory-movement-form", InventoryMovementFormController)
+
+import TableOverflowController from "./table_overflow_controller"
+application.register("table-overflow", TableOverflowController)
+
+import CustomerFilterController from "./customer_filter_controller"
+application.register("customer-filter", CustomerFilterController)
+
+import OrderFilterController from "./order_filter_controller"
+application.register("order-filter", OrderFilterController)

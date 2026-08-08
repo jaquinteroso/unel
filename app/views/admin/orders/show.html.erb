@@ -1,2 +1,989 @@
-<h1>Admin::Orders#show</h1>
-<p>Find me in app/views/admin/orders/show.html.erb</p>
+<% content_for :admin_section_key, "orders" %>
+<% content_for :admin_section_inner, "Detalle venta" %>
+<% content_for :admin_search_placeholder, "Buscar ventas..." %>
+<% content_for :admin_search_path, admin_orders_path %>
+
+<% orders_preview = Rails.env.development? && params[:preview].present? %>
+<% preview_mode = params[:preview].to_s %>
+
+<% preview_orders = [
+  {
+    id: 1008,
+    code: "PED-1008",
+    customer_id: 2,
+    customer_name: "Carlos Rojas",
+    customer_email: "carlos.rojas@example.com",
+    customer_segment: "Mayorista",
+    customer_phone: "+56 9 7345 1122",
+    customer_address: "Camino El Tepual 830, Puerto Montt",
+    order_date: Date.current,
+    delivery_date: Date.current + 2.days,
+    order_status: "pending_confirmation",
+    payment_status: "pending",
+    payment_due_date: Date.current + 2.days,
+    total_amount: 112_000,
+    paid_amount: 0,
+    channel: "WhatsApp",
+    sale_source: "Solicitud recibida",
+    delivery_method: "Retiro en local",
+    payment_method: "Transferencia",
+    items: [
+      { sku: "SA-MED", name: "Sierra ahumada", format: "Frasco mediano", quantity: 8, unit_price: 10_500, subtotal: 84_000 },
+      { sku: "CC-MED", name: "Cebolla caramelizada", format: "Frasco mediano", quantity: 4, unit_price: 7_000, subtotal: 28_000 }
+    ],
+    notes: "Confirmar disponibilidad antes de producir. Cliente pidió retiro en local.",
+    internal_notes: "Cliente mayorista. Revisar stock antes de prometer fecha definitiva.",
+    activities: [
+      { date: Date.current, title: "Venta recibida", description: "El cliente envió productos, cantidades y datos de contacto." },
+      { date: Date.current, title: "Pago pendiente", description: "La venta aún no registra abono." }
+    ]
+  },
+  {
+    id: 1007,
+    code: "PED-1007",
+    customer_id: 4,
+    customer_name: "Restaurante Puerto Sur",
+    customer_email: "compras@puertosur.cl",
+    customer_segment: "Empresa",
+    customer_phone: "+56 65 234 8890",
+    customer_address: "Costanera 215, Puerto Montt",
+    order_date: Date.current - 1.day,
+    delivery_date: Date.current + 1.day,
+    order_status: "in_production",
+    payment_status: "partial",
+    payment_due_date: Date.current + 5.days,
+    total_amount: 260_000,
+    paid_amount: 100_000,
+    channel: "Teléfono",
+    sale_source: "Venta asistida",
+    delivery_method: "Despacho coordinado",
+    payment_method: "Transferencia parcial",
+    items: [
+      { sku: "MA-MED", name: "Mero ahumado", format: "Frasco mediano", quantity: 10, unit_price: 14_000, subtotal: 140_000 },
+      { sku: "ST-MED", name: "Salsa de tomate", format: "Frasco mediano", quantity: 20, unit_price: 6_000, subtotal: 120_000 }
+    ],
+    notes: "Venta para cocina. Avisar cuando esté lista para coordinar despacho.",
+    internal_notes: "Cliente empresa. Priorizar comunicación clara por disponibilidad de cocina.",
+    activities: [
+      { date: Date.current - 1.day, title: "Venta recibida", description: "Se registró venta para cliente empresa." },
+      { date: Date.current - 1.day, title: "Abono recibido", description: "Pago parcial registrado por $100.000." },
+      { date: Date.current, title: "En preparación", description: "Productos asociados a la venta pasaron a preparación." }
+    ]
+  },
+  {
+    id: 1006,
+    code: "PED-1006",
+    customer_id: 1,
+    customer_name: "María González",
+    customer_email: "maria.gonzalez@example.com",
+    customer_segment: "Cliente frecuente",
+    customer_phone: "+56 9 8123 4567",
+    customer_address: "Av. Los Pescadores 1240, Puerto Montt",
+    order_date: Date.current - 2.days,
+    delivery_date: Date.current,
+    order_status: "ready",
+    payment_status: "paid",
+    payment_due_date: Date.current,
+    total_amount: 58_000,
+    paid_amount: 58_000,
+    channel: "Instagram",
+    sale_source: "Mensaje comercial",
+    delivery_method: "Retiro en local",
+    payment_method: "Transferencia completa",
+    items: [
+      { sku: "PA-MED", name: "Pejerreyes ahumados", format: "Frasco mediano", quantity: 3, unit_price: 14_000, subtotal: 42_000 },
+      { sku: "AL-CHI", name: "Mini alcachofas", format: "Frasco chico", quantity: 2, unit_price: 8_000, subtotal: 16_000 }
+    ],
+    notes: "Listo para entregar hoy. Cliente suele retirar por la tarde.",
+    internal_notes: "Cliente frecuente. Buena oportunidad para ofrecer pack surtido en próxima compra.",
+    activities: [
+      { date: Date.current - 2.days, title: "Venta recibida", description: "Cliente frecuente realizó una nueva solicitud." },
+      { date: Date.current - 1.day, title: "Pago recibido", description: "Pago completo confirmado." },
+      { date: Date.current, title: "Lista para entrega", description: "Venta preparada y pendiente de retiro." }
+    ]
+  },
+  {
+    id: 1005,
+    code: "PED-1005",
+    customer_id: 3,
+    customer_name: "Ana Pérez",
+    customer_email: "ana.perez@example.com",
+    customer_segment: "Nuevo cliente",
+    customer_phone: "+56 9 6543 7788",
+    customer_address: "Los Arrayanes 442, Puerto Varas",
+    order_date: Date.current - 5.days,
+    delivery_date: Date.current - 1.day,
+    order_status: "delivered",
+    payment_status: "paid",
+    payment_due_date: Date.current - 1.day,
+    total_amount: 38_000,
+    paid_amount: 38_000,
+    channel: "Catálogo",
+    sale_source: "Catálogo público",
+    delivery_method: "Despacho",
+    payment_method: "Transferencia completa",
+    items: [
+      { sku: "ST-MED", name: "Salsa de tomate", format: "Frasco mediano", quantity: 4, unit_price: 9_500, subtotal: 38_000 }
+    ],
+    notes: "Primera compra completada. Pedir feedback en próximo contacto.",
+    internal_notes: "Cliente nuevo. Buen contacto para seguimiento postventa.",
+    activities: [
+      { date: Date.current - 5.days, title: "Venta recibida", description: "Primera compra desde catálogo." },
+      { date: Date.current - 4.days, title: "Pago recibido", description: "Pago completo confirmado." },
+      { date: Date.current - 1.day, title: "Venta entregada", description: "Entrega finalizada correctamente." }
+    ]
+  },
+  {
+    id: 1004,
+    code: "PED-1004",
+    customer_id: 5,
+    customer_name: "Javiera Soto",
+    customer_email: "javiera.soto@example.com",
+    customer_segment: "Cliente ocasional",
+    customer_phone: "+56 9 9988 7766",
+    customer_address: "Pasaje Las Nalcas 91, Frutillar",
+    order_date: Date.current - 9.days,
+    delivery_date: Date.current + 3.days,
+    order_status: "pending_confirmation",
+    payment_status: "pending",
+    payment_due_date: Date.current - 2.days,
+    total_amount: 82_000,
+    paid_amount: 0,
+    channel: "WhatsApp",
+    sale_source: "Solicitud recibida",
+    delivery_method: "Despacho",
+    payment_method: "Transferencia pendiente",
+    items: [
+      { sku: "SA-MED", name: "Sierra ahumada", format: "Frasco mediano", quantity: 4, unit_price: 10_500, subtotal: 42_000 },
+      { sku: "MA-MED", name: "Mero ahumado", format: "Frasco mediano", quantity: 4, unit_price: 10_000, subtotal: 40_000 }
+    ],
+    notes: "Pago pendiente antes de preparar. Requiere seguimiento.",
+    internal_notes: "No preparar hasta confirmar pago o acuerdo con cliente.",
+    activities: [
+      { date: Date.current - 9.days, title: "Venta recibida", description: "Cliente envió solicitud por WhatsApp." },
+      { date: Date.current - 2.days, title: "Pago vencido", description: "La fecha de pago comprometida ya venció." }
+    ]
+  },
+  {
+    id: 1003,
+    code: "PED-1003",
+    customer_id: 6,
+    customer_name: "Daniel Muñoz",
+    customer_email: "daniel.munoz@example.com",
+    customer_segment: "Cliente frecuente",
+    customer_phone: "+56 9 4567 2211",
+    customer_address: "Ruta V-505 km 6, Puerto Varas",
+    order_date: Date.current - 3.days,
+    delivery_date: Date.current + 4.days,
+    order_status: "in_production",
+    payment_status: "pending",
+    payment_due_date: Date.current + 4.days,
+    total_amount: 74_000,
+    paid_amount: 0,
+    channel: "WhatsApp",
+    sale_source: "Solicitud recibida",
+    delivery_method: "Despacho",
+    payment_method: "Transferencia pendiente",
+    items: [
+      { sku: "CC-MED", name: "Cebolla caramelizada", format: "Frasco mediano", quantity: 6, unit_price: 7_000, subtotal: 42_000 },
+      { sku: "AL-CHI", name: "Mini alcachofas", format: "Frasco chico", quantity: 4, unit_price: 8_000, subtotal: 32_000 }
+    ],
+    notes: "Prefiere contacto por WhatsApp. Coordinar entrega con anticipación.",
+    internal_notes: "Cliente frecuente. Confirmar disponibilidad de despacho antes del día de entrega.",
+    activities: [
+      { date: Date.current - 3.days, title: "Venta recibida", description: "Cliente solicitó productos por WhatsApp." },
+      { date: Date.current - 2.days, title: "En preparación", description: "Venta enviada a preparación." }
+    ]
+  },
+  {
+    id: 1002,
+    code: "PED-1002",
+    customer_id: 4,
+    customer_name: "Restaurante Puerto Sur",
+    customer_email: "compras@puertosur.cl",
+    customer_segment: "Empresa",
+    customer_phone: "+56 65 234 8890",
+    customer_address: "Costanera 215, Puerto Montt",
+    order_date: Date.current - 18.days,
+    delivery_date: Date.current - 12.days,
+    order_status: "delivered",
+    payment_status: "partial",
+    payment_due_date: Date.current - 6.days,
+    total_amount: 320_000,
+    paid_amount: 180_000,
+    channel: "Teléfono",
+    sale_source: "Venta asistida",
+    delivery_method: "Despacho coordinado",
+    payment_method: "Transferencia parcial",
+    items: [
+      { sku: "SA-MED", name: "Sierra ahumada", format: "Frasco mediano", quantity: 12, unit_price: 10_500, subtotal: 126_000 },
+      { sku: "PA-MED", name: "Pejerreyes ahumados", format: "Frasco mediano", quantity: 10, unit_price: 14_000, subtotal: 140_000 },
+      { sku: "ST-MED", name: "Salsa de tomate", format: "Frasco mediano", quantity: 9, unit_price: 6_000, subtotal: 54_000 }
+    ],
+    notes: "Entregado. Saldo pendiente vencido; contactar administración.",
+    internal_notes: "Prioridad de cobranza. Cliente mantiene compras recurrentes.",
+    activities: [
+      { date: Date.current - 18.days, title: "Venta recibida", description: "Venta empresa registrada." },
+      { date: Date.current - 14.days, title: "Pago parcial", description: "Pago parcial recibido por $180.000." },
+      { date: Date.current - 12.days, title: "Venta entregada", description: "Productos entregados correctamente." },
+      { date: Date.current - 6.days, title: "Saldo vencido", description: "Saldo pendiente superó fecha comprometida." }
+    ]
+  }
+] %>
+
+<% order_attribute = lambda do |order, attribute, default = nil|
+  if order.respond_to?(attribute)
+    order.public_send(attribute)
+  elsif order.respond_to?(:[])
+    order[attribute] || order[attribute.to_s] || default
+  else
+    default
+  end
+end %>
+
+<% item_attribute = lambda do |item, attribute, default = nil|
+  if item.respond_to?(attribute)
+    item.public_send(attribute)
+  elsif item.respond_to?(:[])
+    item[attribute] || item[attribute.to_s] || default
+  else
+    default
+  end
+end %>
+
+<% activity_attribute = lambda do |activity, attribute, default = nil|
+  if activity.respond_to?(attribute)
+    activity.public_send(attribute)
+  elsif activity.respond_to?(:[])
+    activity[attribute] || activity[attribute.to_s] || default
+  else
+    default
+  end
+end %>
+
+<% preview_order = orders_preview ? preview_orders.find { |order| order[:id].to_s == params[:id].to_s } : nil %>
+
+<% order_record = if defined?(@order) && @order.present?
+  @order
+else
+  preview_order
+end %>
+
+<% orders_back_path = orders_preview ? admin_orders_path(preview: preview_mode) : admin_orders_path %>
+
+<% formatted_date = lambda do |date, fallback = "Sin fecha"|
+  if date.present? && date.respond_to?(:strftime)
+    date.strftime("%d/%m/%Y")
+  elsif date.present?
+    date.to_s
+  else
+    fallback
+  end
+end %>
+
+<% days_label = lambda do |date|
+  if date.blank? || !date.respond_to?(:to_date)
+    nil
+  else
+    difference = (date.to_date - Date.current).to_i
+
+    if difference == 0
+      "Hoy"
+    elsif difference == 1
+      "Mañana"
+    elsif difference.positive?
+      "En #{difference} días"
+    elsif difference == -1
+      "Ayer"
+    else
+      "Hace #{difference.abs} días"
+    end
+  end
+end %>
+
+<% status_label = lambda do |status|
+  case status
+  when "pending_confirmation"
+    "Nueva venta"
+  when "in_production"
+    "En preparación"
+  when "ready"
+    "Lista para entregar"
+  when "delivered"
+    "Entregada"
+  when "cancelled"
+    "Cancelada"
+  else
+    status.to_s.humanize
+  end
+end %>
+
+<% status_classes = lambda do |status|
+  case status
+  when "pending_confirmation"
+    "border-amber-200 bg-amber-50 text-amber-700"
+  when "in_production"
+    "border-unel-crema-2 bg-unel-crema text-unel-verde"
+  when "ready"
+    "border-green-200 bg-green-50 text-green-700"
+  when "delivered"
+    "border-unel-crema-2 bg-white text-unel-humo"
+  when "cancelled"
+    "border-red-200 bg-red-50 text-red-700"
+  else
+    "border-unel-crema-2 bg-unel-crema text-unel-humo"
+  end
+end %>
+
+<% payment_label = lambda do |status, overdue = false|
+  if overdue
+    "Vencido"
+  else
+    case status
+    when "paid"
+      "Pagado"
+    when "partial"
+      "Pago parcial"
+    when "pending"
+      "Pendiente"
+    else
+      status.to_s.humanize
+    end
+  end
+end %>
+
+<% payment_classes = lambda do |status, overdue = false|
+  if overdue
+    "border-red-200 bg-red-50 text-red-700"
+  else
+    case status
+    when "paid"
+      "border-green-200 bg-green-50 text-green-700"
+    when "partial"
+      "border-amber-200 bg-amber-50 text-amber-700"
+    when "pending"
+      "border-unel-crema-2 bg-white text-unel-humo"
+    else
+      "border-unel-crema-2 bg-unel-crema text-unel-humo"
+    end
+  end
+end %>
+
+<% if order_record.present? %>
+  <% order_id = order_attribute.call(order_record, :id, params[:id]) %>
+  <% code = order_attribute.call(order_record, :code, nil).presence ||
+    order_attribute.call(order_record, :order_number, nil).presence ||
+    "PED-#{order_id.to_s.rjust(4, '0')}" %>
+
+  <% customer_record = order_attribute.call(order_record, :customer, nil) %>
+  <% customer_id = order_attribute.call(order_record, :customer_id, nil).presence || customer_record.try(:id) %>
+  <% customer_name = order_attribute.call(order_record, :customer_name, nil).presence ||
+    customer_record.try(:name).presence ||
+    customer_record.try(:full_name).presence ||
+    "Cliente sin nombre" %>
+  <% customer_email = order_attribute.call(order_record, :customer_email, nil).presence ||
+    customer_record.try(:email) %>
+  <% customer_segment = order_attribute.call(order_record, :customer_segment, nil).presence ||
+    customer_record.try(:segment).presence ||
+    "Sin segmento" %>
+  <% customer_phone = order_attribute.call(order_record, :customer_phone, nil).presence ||
+    order_attribute.call(order_record, :phone, nil).presence ||
+    customer_record.try(:phone) %>
+  <% customer_address = order_attribute.call(order_record, :customer_address, nil).presence ||
+    order_attribute.call(order_record, :address, nil).presence ||
+    customer_record.try(:address) %>
+
+  <% order_date = order_attribute.call(order_record, :order_date, nil).presence ||
+    order_attribute.call(order_record, :created_at, nil) %>
+  <% delivery_date = order_attribute.call(order_record, :delivery_date, nil).presence ||
+    order_attribute.call(order_record, :estimated_delivery_date, nil) %>
+  <% payment_due_date = order_attribute.call(order_record, :payment_due_date, nil).presence ||
+    order_attribute.call(order_record, :due_date, nil) %>
+
+  <% order_status = order_attribute.call(order_record, :order_status, nil).presence ||
+    order_attribute.call(order_record, :status, "pending_confirmation").to_s %>
+  <% payment_status = order_attribute.call(order_record, :payment_status, "pending").to_s %>
+
+  <% total_amount = (order_attribute.call(order_record, :total_amount, nil).presence ||
+    order_attribute.call(order_record, :total, 0)).to_f %>
+  <% paid_amount = (order_attribute.call(order_record, :paid_amount, nil).presence ||
+    order_attribute.call(order_record, :amount_paid, 0)).to_f %>
+  <% balance_amount = [total_amount - paid_amount, 0].max %>
+
+  <% channel = order_attribute.call(order_record, :channel, "Manual") %>
+  <% sale_source = order_attribute.call(order_record, :sale_source, nil).presence || channel %>
+  <% delivery_method = order_attribute.call(order_record, :delivery_method, "Sin método definido") %>
+  <% payment_method = order_attribute.call(order_record, :payment_method, "Sin método definido") %>
+  <% notes = order_attribute.call(order_record, :notes, nil) %>
+  <% internal_notes = order_attribute.call(order_record, :internal_notes, nil) %>
+
+  <% items = order_attribute.call(order_record, :items, nil).presence ||
+    order_attribute.call(order_record, :order_items, nil).presence ||
+    [] %>
+  <% items = items.respond_to?(:to_a) ? items.to_a : [] %>
+
+  <% activities = if defined?(@activities) && @activities.present?
+    @activities.to_a
+  else
+    order_attribute.call(order_record, :activities, nil).presence || []
+  end %>
+  <% activities = activities.respond_to?(:to_a) ? activities.to_a : [] %>
+
+  <% payment_overdue = balance_amount.positive? &&
+    payment_due_date.present? &&
+    payment_due_date.respond_to?(:to_date) &&
+    payment_due_date.to_date < Date.current %>
+
+  <% delivery_overdue = !["delivered", "cancelled"].include?(order_status) &&
+    delivery_date.present? &&
+    delivery_date.respond_to?(:to_date) &&
+    delivery_date.to_date < Date.current %>
+
+  <% action_recommendation = if delivery_overdue
+    "Revisar entrega atrasada"
+  elsif payment_overdue
+    "Contactar por pago vencido"
+  elsif order_status == "pending_confirmation"
+    "Revisar nueva venta"
+  elsif order_status == "in_production"
+    "Preparar productos y confirmar avance"
+  elsif order_status == "ready"
+    "Coordinar entrega con el cliente"
+  elsif order_status == "delivered" && balance_amount.positive?
+    "Cobrar saldo pendiente"
+  elsif payment_status == "partial" && balance_amount.positive?
+    "Hacer seguimiento del pago parcial"
+  else
+    "Sin acción urgente"
+  end %>
+
+  <% primary_action_label = if order_status == "delivered" && balance_amount.zero?
+    "Venta finalizada"
+  elsif order_status == "delivered" && balance_amount.positive?
+    "Registrar pago"
+  elsif payment_overdue
+    "Registrar pago"
+  elsif order_status == "pending_confirmation"
+    "Marcar en preparación"
+  elsif order_status == "in_production"
+    "Marcar lista para entregar"
+  elsif order_status == "ready"
+    "Marcar como entregada"
+  else
+    "Actualizar estado"
+  end %>
+
+  <% primary_action_disabled = order_status == "delivered" && balance_amount.zero? %>
+  <% payment_action_disabled = balance_amount.zero? %>
+  <% payment_action_label = balance_amount.positive? ? "Registrar pago" : "Pago registrado" %>
+  <% show_payment_action = balance_amount.positive? && primary_action_label != payment_action_label %>
+
+  <% payment_percentage = total_amount.positive? ? [[(paid_amount / total_amount) * 100, 100].min, 0].max : 0 %>
+  <% total_units = items.sum { |item| item_attribute.call(item, :quantity, 0).to_i } %>
+  <% phone_href = customer_phone.present? ? customer_phone.to_s.gsub(/[^\d+]/, "") : nil %>
+
+  <% customer_path = if customer_id.present?
+    orders_preview ? admin_customer_path(customer_id, preview: preview_mode) : admin_customer_path(customer_id)
+  else
+    admin_customers_path
+  end %>
+
+  <section>
+    <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+      <div>
+        <%= link_to "← Volver a ventas", orders_back_path,
+          class: "mb-4 inline-flex text-sm font-semibold text-unel-dorado transition hover:text-unel-carbon" %>
+
+        <p class="mb-3 text-sm font-semibold uppercase tracking-wide text-unel-dorado">
+          Gestión de venta
+        </p>
+
+        <div class="flex flex-wrap items-center gap-3">
+          <h1 class="text-2xl font-bold text-unel-carbon md:text-3xl">
+            <%= code %>
+          </h1>
+
+          <span class="rounded-full border px-3 py-1 text-xs font-semibold <%= status_classes.call(order_status) %>">
+            <%= status_label.call(order_status) %>
+          </span>
+
+          <span class="rounded-full border px-3 py-1 text-xs font-semibold <%= payment_classes.call(payment_status, payment_overdue) %>">
+            <%= payment_label.call(payment_status, payment_overdue) %>
+          </span>
+        </div>
+
+        <p class="mt-2 max-w-2xl text-sm text-unel-humo">
+          Venta de <span class="font-semibold text-unel-carbon"><%= customer_name %></span>, recibida por <%= sale_source %>.
+        </p>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="inline-flex w-fit rounded-full border border-unel-crema-2 bg-unel-crema px-3 py-1 text-xs font-semibold text-unel-humo">
+          <%= formatted_date.call(order_date) %>
+        </span>
+
+        <span class="inline-flex w-fit rounded-full border border-unel-crema-2 bg-white px-3 py-1 text-xs font-semibold text-unel-humo">
+          <%= total_units %> unidades
+        </span>
+      </div>
+    </div>
+
+    <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_24rem]">
+      <div class="space-y-6">
+        <div class="rounded-3xl border border-unel-crema-2 bg-white shadow-sm">
+          <div class="border-b border-unel-crema-2 p-5 sm:p-6">
+            <p class="text-sm font-semibold uppercase tracking-wide text-unel-dorado">
+              Próxima acción
+            </p>
+
+            <div class="mt-3 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <h2 class="text-2xl font-bold text-unel-carbon">
+                  <%= action_recommendation %>
+                </h2>
+
+                <p class="mt-2 max-w-2xl text-sm leading-relaxed text-unel-humo">
+                  Estado, pago y entrega de esta venta.
+                </p>
+              </div>
+
+              <div class="flex flex-wrap gap-2">
+                <% if customer_phone.present? %>
+                  <%= link_to "Contactar", "tel:#{phone_href}",
+                    class: "inline-flex justify-center rounded-xl border border-unel-crema-2 bg-white px-4 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado" %>
+                <% end %>
+
+                <button
+                  type="button"
+                  <%= "disabled" if primary_action_disabled %>
+                  class="inline-flex justify-center rounded-xl px-4 py-2 text-sm font-semibold transition <%= primary_action_disabled ? "cursor-not-allowed bg-unel-crema text-unel-humo" : "bg-unel-verde text-white hover:bg-unel-carbon" %>"
+                >
+                  <%= primary_action_label %>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid gap-3 p-5 sm:grid-cols-3 sm:p-6">
+            <div class="rounded-2xl bg-unel-crema px-4 py-3">
+              <p class="text-xs font-semibold uppercase tracking-wide text-unel-humo">
+                Total venta
+              </p>
+
+              <p class="mt-1 text-xl font-bold text-unel-dorado">
+                <%= number_to_currency(total_amount, unit: "$", precision: 0, delimiter: ".") %>
+              </p>
+            </div>
+
+            <div class="rounded-2xl bg-unel-crema px-4 py-3">
+              <p class="text-xs font-semibold uppercase tracking-wide text-unel-humo">
+                Pagado
+              </p>
+
+              <p class="mt-1 text-xl font-bold text-unel-carbon">
+                <%= number_to_currency(paid_amount, unit: "$", precision: 0, delimiter: ".") %>
+              </p>
+            </div>
+
+            <div class="rounded-2xl border <%= balance_amount.positive? ? (payment_overdue ? "border-red-200 bg-red-50" : "border-amber-200 bg-amber-50") : "border-green-200 bg-green-50" %> px-4 py-3">
+              <p class="text-xs font-semibold uppercase tracking-wide <%= balance_amount.positive? ? (payment_overdue ? "text-red-700" : "text-amber-700") : "text-green-700" %>">
+                Saldo
+              </p>
+
+              <p class="mt-1 text-xl font-bold <%= balance_amount.positive? ? (payment_overdue ? "text-red-700" : "text-amber-700") : "text-green-700" %>">
+                <%= balance_amount.positive? ? number_to_currency(balance_amount, unit: "$", precision: 0, delimiter: ".") : "Pagado" %>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="rounded-3xl border border-unel-crema-2 bg-white shadow-sm">
+          <div class="border-b border-unel-crema-2 px-5 py-4 sm:px-6">
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 class="text-lg font-bold text-unel-carbon">
+                  Productos solicitados
+                </h2>
+
+                <p class="mt-1 text-sm text-unel-humo">
+                  Productos, formatos, cantidades y valores asociados a esta venta.
+                </p>
+              </div>
+
+              <span class="inline-flex w-fit rounded-full border border-unel-crema-2 bg-unel-crema px-3 py-1 text-xs font-semibold text-unel-humo">
+                <%= total_units %> unidades
+              </span>
+            </div>
+          </div>
+
+          <% if items.any? %>
+            <div class="divide-y divide-unel-crema-2">
+              <% items.each do |item| %>
+                <% product_record = item_attribute.call(item, :product, nil) %>
+                <% item_name = item_attribute.call(item, :name, nil).presence ||
+                  item_attribute.call(item, :product_name, nil).presence ||
+                  product_record.try(:name).presence ||
+                  "Producto" %>
+                <% item_format = item_attribute.call(item, :format, nil).presence ||
+                  product_record.try(:format) %>
+                <% item_sku = item_attribute.call(item, :sku, nil).presence ||
+                  product_record.try(:sku) %>
+                <% item_quantity = item_attribute.call(item, :quantity, 0).to_i %>
+                <% item_unit_price = (item_attribute.call(item, :unit_price, nil).presence ||
+                  item_attribute.call(item, :price, 0)).to_f %>
+                <% item_subtotal = (item_attribute.call(item, :subtotal, nil).presence ||
+                  item_attribute.call(item, :total_price, nil).presence ||
+                  (item_quantity * item_unit_price)).to_f %>
+
+                <div class="grid gap-4 px-5 py-4 sm:grid-cols-[minmax(0,1fr)_8rem_8rem] sm:items-center sm:px-6">
+                  <div class="min-w-0">
+                    <p class="font-bold text-unel-carbon">
+                      <%= item_name %>
+                    </p>
+
+                    <p class="mt-1 text-sm text-unel-humo">
+                      <%= [item_format, item_sku, (item_unit_price.positive? ? "#{number_to_currency(item_unit_price, unit: "$", precision: 0, delimiter: ".")} c/u" : nil)].compact.join(" · ").presence || "Sin formato informado" %>
+                    </p>
+                  </div>
+
+                  <div class="rounded-2xl bg-unel-blanco px-4 py-3 text-left sm:text-center">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-unel-humo">
+                      Cantidad
+                    </p>
+
+                    <p class="mt-1 text-sm font-bold text-unel-carbon">
+                      <%= item_quantity %>
+                    </p>
+                  </div>
+
+                  <div class="rounded-2xl bg-unel-blanco px-4 py-3 text-left sm:text-center">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-unel-humo">
+                      Subtotal
+                    </p>
+
+                    <p class="mt-1 text-sm font-bold text-unel-dorado">
+                      <%= number_to_currency(item_subtotal, unit: "$", precision: 0, delimiter: ".") %>
+                    </p>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          <% else %>
+            <div class="px-5 py-10 text-center sm:px-6">
+              <p class="text-base font-bold text-unel-carbon">
+                Sin productos informados
+              </p>
+
+              <p class="mx-auto mt-2 max-w-md text-sm text-unel-humo">
+                Cuando la venta tenga productos asociados, aparecerán en esta sección.
+              </p>
+            </div>
+          <% end %>
+        </div>
+
+        <div class="rounded-3xl border border-unel-crema-2 bg-white shadow-sm">
+          <div class="border-b border-unel-crema-2 px-5 py-4 sm:px-6">
+            <h2 class="text-lg font-bold text-unel-carbon">
+              Pago y entrega
+            </h2>
+
+            <p class="mt-1 text-sm text-unel-humo">
+              Resumen de coordinación, pago y entrega.
+            </p>
+          </div>
+
+          <div class="grid gap-4 p-5 sm:p-6 lg:grid-cols-2">
+            <div class="rounded-2xl border <%= payment_overdue ? "border-red-200 bg-red-50" : "border-unel-crema-2 bg-unel-blanco" %> px-4 py-4">
+              <p class="text-xs font-semibold uppercase tracking-wide <%= payment_overdue ? "text-red-700" : "text-unel-humo" %>">
+                Estado de pago
+              </p>
+
+              <div class="mt-3 flex flex-wrap items-center gap-2">
+                <span class="rounded-full border px-3 py-1 text-xs font-semibold <%= payment_classes.call(payment_status, payment_overdue) %>">
+                  <%= payment_label.call(payment_status, payment_overdue) %>
+                </span>
+
+                <span class="text-sm font-bold text-unel-carbon">
+                  <%= payment_method %>
+                </span>
+              </div>
+
+              <div class="mt-4 h-2 overflow-hidden rounded-full bg-white">
+                <div class="h-full rounded-full bg-unel-verde" style="width: <%= payment_percentage %>%"></div>
+              </div>
+
+              <p class="mt-3 text-sm text-unel-humo">
+                Vence:
+                <span class="font-semibold text-unel-carbon">
+                  <%= formatted_date.call(payment_due_date, "Sin fecha") %>
+                </span>
+              </p>
+            </div>
+
+            <div class="rounded-2xl border <%= delivery_overdue ? "border-red-200 bg-red-50" : "border-unel-crema-2 bg-unel-blanco" %> px-4 py-4">
+              <p class="text-xs font-semibold uppercase tracking-wide <%= delivery_overdue ? "text-red-700" : "text-unel-humo" %>">
+                Entrega
+              </p>
+
+              <p class="mt-3 text-sm font-bold text-unel-carbon">
+                <%= delivery_method %>
+              </p>
+
+              <p class="mt-2 text-sm text-unel-humo">
+                Fecha:
+                <span class="font-semibold text-unel-carbon">
+                  <%= formatted_date.call(delivery_date, "Sin definir") %>
+                </span>
+              </p>
+
+              <% if days_label.call(delivery_date).present? %>
+                <p class="mt-1 text-sm <%= delivery_overdue ? "text-red-700" : "text-unel-humo" %>">
+                  <%= days_label.call(delivery_date) %>
+                </p>
+              <% end %>
+            </div>
+          </div>
+        </div>
+
+        <div class="rounded-3xl border border-unel-crema-2 bg-white shadow-sm">
+          <div class="border-b border-unel-crema-2 px-5 py-4 sm:px-6">
+            <h2 class="text-lg font-bold text-unel-carbon">
+              Actividad de la venta
+            </h2>
+
+            <p class="mt-1 text-sm text-unel-humo">
+              Eventos relevantes asociados a esta venta.
+            </p>
+          </div>
+
+          <% if activities.any? %>
+            <div class="divide-y divide-unel-crema-2">
+              <% activities.each do |activity| %>
+                <% activity_date = activity_attribute.call(activity, :date, nil).presence ||
+                  activity_attribute.call(activity, :created_at, nil) %>
+                <% activity_title = activity_attribute.call(activity, :title, "Actividad") %>
+                <% activity_description = activity_attribute.call(activity, :description, nil) %>
+
+                <div class="flex gap-4 px-5 py-4 sm:px-6">
+                  <div class="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-unel-dorado"></div>
+
+                  <div>
+                    <p class="text-sm font-bold text-unel-carbon">
+                      <%= activity_title %>
+                    </p>
+
+                    <% if activity_description.present? %>
+                      <p class="mt-1 text-sm text-unel-humo">
+                        <%= activity_description %>
+                      </p>
+                    <% end %>
+
+                    <p class="mt-1 text-xs font-semibold uppercase tracking-wide text-unel-humo">
+                      <%= formatted_date.call(activity_date) %>
+                    </p>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          <% else %>
+            <div class="px-5 py-10 text-center sm:px-6">
+              <p class="text-base font-bold text-unel-carbon">
+                Sin actividad registrada
+              </p>
+
+              <p class="mx-auto mt-2 max-w-md text-sm text-unel-humo">
+                Los cambios de estado, pagos y contactos relevantes aparecerán aquí.
+              </p>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <aside class="space-y-6">
+        <div class="rounded-3xl border border-unel-crema-2 bg-white p-5 shadow-sm sm:p-6">
+          <p class="text-sm font-semibold uppercase tracking-wide text-unel-dorado">
+            Cliente
+          </p>
+
+          <h2 class="mt-2 text-xl font-bold text-unel-carbon">
+            <%= customer_name %>
+          </h2>
+
+          <p class="mt-1 text-sm font-semibold text-unel-humo">
+            <%= customer_segment %>
+          </p>
+
+          <div class="mt-5 space-y-3">
+            <div class="rounded-2xl bg-unel-blanco px-4 py-3">
+              <p class="text-xs font-semibold uppercase tracking-wide text-unel-humo">
+                Contacto
+              </p>
+
+              <p class="mt-1 text-sm font-bold text-unel-carbon">
+                <%= customer_phone.presence || "Sin teléfono informado" %>
+              </p>
+
+              <% if customer_email.present? %>
+                <p class="mt-1 text-sm text-unel-humo">
+                  <%= customer_email %>
+                </p>
+              <% end %>
+            </div>
+
+            <div class="rounded-2xl bg-unel-blanco px-4 py-3">
+              <p class="text-xs font-semibold uppercase tracking-wide text-unel-humo">
+                Entrega
+              </p>
+
+              <p class="mt-1 text-sm font-bold text-unel-carbon">
+                <%= customer_address.presence || "Sin dirección informada" %>
+              </p>
+            </div>
+          </div>
+
+          <div class="mt-5 grid gap-2">
+            <%= link_to "Ver ficha del cliente", customer_path,
+              class: "inline-flex justify-center rounded-xl border border-unel-crema-2 bg-white px-4 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado" %>
+
+            <% if customer_phone.present? %>
+              <%= link_to "Llamar cliente", "tel:#{phone_href}",
+                class: "inline-flex justify-center rounded-xl bg-unel-verde px-4 py-2 text-sm font-semibold text-white transition hover:bg-unel-carbon" %>
+            <% else %>
+              <span class="inline-flex justify-center rounded-xl bg-unel-verde px-4 py-2 text-sm font-semibold text-white opacity-50">
+                Llamar cliente
+              </span>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="rounded-3xl border border-unel-crema-2 bg-white p-5 shadow-sm sm:p-6">
+          <p class="text-sm font-semibold uppercase tracking-wide text-unel-dorado">
+            Estado de la venta
+          </p>
+
+          <% steps = [
+            { key: "pending_confirmation", label: "Nueva" },
+            { key: "in_production", label: "Preparación" },
+            { key: "ready", label: "Lista" },
+            { key: "delivered", label: "Entregada" }
+          ] %>
+
+          <% current_step_index = steps.find_index { |step| step[:key] == order_status } || 0 %>
+
+          <div class="mt-5 space-y-3">
+            <% steps.each_with_index do |step, index| %>
+              <% completed = index < current_step_index || order_status == "delivered" %>
+              <% current = index == current_step_index && order_status != "delivered" %>
+
+              <div class="flex items-center gap-3">
+                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs font-bold <%= completed || current ? "border-unel-verde bg-unel-verde text-white" : "border-unel-crema-2 bg-unel-blanco text-unel-humo" %>">
+                  <%= index + 1 %>
+                </div>
+
+                <p class="text-sm font-semibold <%= completed || current ? "text-unel-carbon" : "text-unel-humo" %>">
+                  <%= step[:label] %>
+                </p>
+              </div>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="rounded-3xl border border-unel-crema-2 bg-white p-5 shadow-sm sm:p-6">
+          <p class="text-sm font-semibold uppercase tracking-wide text-unel-dorado">
+            Notas
+          </p>
+
+          <div class="mt-4 space-y-3">
+            <div class="rounded-2xl bg-unel-blanco px-4 py-3">
+              <p class="text-xs font-semibold uppercase tracking-wide text-unel-humo">
+                Nota de la venta
+              </p>
+
+              <p class="mt-1 text-sm leading-relaxed text-unel-carbon">
+                <%= notes.presence || "Sin nota registrada." %>
+              </p>
+            </div>
+
+            <div class="rounded-2xl bg-unel-blanco px-4 py-3">
+              <p class="text-xs font-semibold uppercase tracking-wide text-unel-humo">
+                Nota interna
+              </p>
+
+              <p class="mt-1 text-sm leading-relaxed text-unel-carbon">
+                <%= internal_notes.presence || "Sin nota interna." %>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="rounded-3xl border border-unel-crema-2 bg-white p-5 shadow-sm sm:p-6">
+          <p class="text-sm font-semibold uppercase tracking-wide text-unel-dorado">
+            Acciones
+          </p>
+
+          <div class="mt-4 grid gap-2">
+            <button
+              type="button"
+              <%= "disabled" if primary_action_disabled %>
+              class="inline-flex justify-center rounded-xl px-4 py-2 text-sm font-semibold transition <%= primary_action_disabled ? "cursor-not-allowed bg-unel-crema text-unel-humo" : "bg-unel-verde text-white hover:bg-unel-carbon" %>"
+            >
+              <%= primary_action_label %>
+            </button>
+
+            <% if show_payment_action %>
+                <button
+                    type="button"
+                    class="inline-flex justify-center rounded-xl border border-unel-crema-2 bg-white px-4 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado"
+                >
+                    <%= payment_action_label %>
+                </button>
+            <% end %>
+
+            <button
+              type="button"
+              class="inline-flex justify-center rounded-xl border border-unel-crema-2 bg-white px-4 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado"
+            >
+              Agregar nota
+            </button>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+<% else %>
+  <section>
+    <div class="mb-8">
+      <%= link_to "← Volver a ventas", orders_back_path,
+        class: "mb-4 inline-flex text-sm font-semibold text-unel-dorado transition hover:text-unel-carbon" %>
+
+      <p class="mb-3 text-sm font-semibold uppercase tracking-wide text-unel-dorado">
+        Gestión de venta
+      </p>
+
+      <h1 class="text-2xl font-bold text-unel-carbon md:text-3xl">
+        Venta no encontrada
+      </h1>
+
+      <p class="mt-2 max-w-2xl text-sm text-unel-humo">
+        No encontramos información para esta venta. Vuelve a la bandeja para revisar las ventas disponibles.
+      </p>
+    </div>
+
+    <div class="rounded-3xl border border-unel-crema-2 bg-white px-5 py-12 text-center shadow-sm sm:px-6">
+      <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-unel-crema text-lg font-bold text-unel-verde">
+        V
+      </div>
+
+      <p class="mt-4 text-lg font-bold text-unel-carbon">
+        No hay datos para mostrar
+      </p>
+
+      <p class="mx-auto mt-2 max-w-md text-sm text-unel-humo">
+        Revisa que la venta exista o vuelve al listado para seleccionar otra.
+      </p>
+
+      <%= link_to "Volver a ventas", orders_back_path,
+        class: "mt-6 inline-flex justify-center rounded-xl bg-unel-verde px-4 py-2 text-sm font-semibold text-white transition hover:bg-unel-carbon" %>
+    </div>
+  </section>
+<% end %>

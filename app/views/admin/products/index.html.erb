@@ -18,9 +18,15 @@
 <% end %>
 
 <% products = defined?(@products) && @products.present? ? @products : preview_products %>
-<% low_stock_threshold = defined?(@low_stock_threshold) && @low_stock_threshold.present? ? @low_stock_threshold.to_i : 5 %>
-<% stock_setting_backend_ready = respond_to?(:admin_stock_setting_path) %>
-<% low_stock_count = products.count { |product| product.stock.to_i <= low_stock_threshold } %>
+<% default_low_stock_threshold = 5 %>
+<% product_low_stock_threshold = lambda do |product|
+  if product.respond_to?(:low_stock_threshold) && product.low_stock_threshold.present?
+    product.low_stock_threshold.to_i
+  else
+    default_low_stock_threshold
+  end
+end %>
+<% low_stock_count = products.count { |product| product.stock.to_i <= product_low_stock_threshold.call(product) } %>
 
 <% product_stats = if defined?(@product_stats) && @product_stats.present? %>
   <% @product_stats.with_indifferent_access.merge(low_stock: low_stock_count) %>
@@ -40,7 +46,7 @@
 <% end %>
 
 
-<section data-controller="stock-threshold-modal" data-action="keydown@window->stock-threshold-modal#closeWithEscape">
+<section>
   <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
     <div>
       <h1 class="text-2xl font-bold text-unel-carbon md:text-3xl">
@@ -79,16 +85,8 @@
       </p>
 
       <p class="mt-2 text-xs text-unel-humo">
-        Productos con <%= low_stock_threshold %> unidades o menos
+        Productos bajo su umbral o agotados
       </p>
-
-      <button
-        type="button"
-        data-action="stock-threshold-modal#open"
-        class="mt-4 text-xs font-semibold text-unel-dorado transition hover:text-unel-dorado-2"
-      >
-        Editar cantidad mínima
-      </button>
     </div>
   </div>
 
@@ -105,30 +103,30 @@
       </p>
     </div>
 
-    <div class="flex flex-col gap-4 border-b border-unel-crema-2 px-4 py-4 sm:px-6 md:flex-row md:items-center md:justify-between">
-      <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+    <div class="flex flex-col gap-4 border-b border-unel-crema-2 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
+      <div class="grid w-full gap-3 sm:grid-cols-2 lg:flex lg:w-auto lg:items-center">
         <%= link_to "Nuevo producto", new_admin_product_path,
-          class: "w-full rounded-xl bg-unel-verde px-4 py-2 text-center text-sm font-semibold text-unel-blanco transition hover:bg-unel-carbon sm:w-auto" %>
+          class: "w-full rounded-xl bg-unel-verde px-4 py-2 text-center text-sm font-semibold text-unel-blanco transition hover:bg-unel-carbon lg:w-auto" %>
 
-        <button type="button" class="w-full rounded-xl border border-unel-crema-2 px-4 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado sm:w-auto">
+        <button type="button" class="w-full rounded-xl border border-unel-crema-2 px-4 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado lg:w-auto">
           Exportar
         </button>
       </div>
 
-      <div class="flex w-full flex-col gap-3 sm:flex-row sm:items-center md:w-auto">
-        <span data-table-filter-target="resultsCount" class="text-xs text-unel-humo">
+      <div class="grid w-full gap-3 sm:grid-cols-2 lg:flex lg:w-auto lg:items-center">
+        <span data-table-filter-target="resultsCount" class="text-xs text-unel-humo sm:col-span-2 lg:col-span-1">
         </span>
 
-
-        <div class="flex w-full items-center gap-2 rounded-xl border border-unel-crema-2 px-4 py-2 sm:w-auto">
-          <label for="products_sort" class="text-xs font-semibold text-unel-humo">
-            Ordenar por:
+        <div class="flex w-full min-w-0 items-center gap-2 rounded-xl border border-unel-crema-2 px-4 py-2 lg:w-64">
+          <label for="products_sort" class="shrink-0 text-xs font-semibold text-unel-humo">
+            Ordenar:
           </label>
+
           <select
             id="products_sort"
             data-table-sort-target="select"
             data-action="change->table-sort#sort"
-            class="w-full bg-transparent text-sm font-semibold text-unel-verde outline-none sm:w-56"
+            class="min-w-0 flex-1 bg-transparent text-sm font-semibold text-unel-verde outline-none"
           >
             <option value="">Orden original</option>
             <option value="name_asc">Nombre A-Z</option>
@@ -146,125 +144,142 @@
           </select>
         </div>
 
-        <div class="w-full rounded-xl bg-unel-crema px-4 py-2 sm:w-auto">
+        <div class="w-full rounded-xl bg-unel-crema px-4 py-2 lg:w-64">
           <input
             type="search"
             placeholder="Buscar producto..."
             data-table-filter-target="input"
             data-action="input->table-filter#filter"
-            class="w-full bg-transparent text-sm text-unel-negro outline-none placeholder:text-unel-humo sm:w-64"
+            class="w-full bg-transparent text-sm text-unel-negro outline-none placeholder:text-unel-humo"
           >
         </div>
       </div>
     </div>
 
     <% if products.any? %>
-      <div class="overflow-x-auto">
-        <table class="min-w-245 w-full text-left text-sm">
-          <thead class="bg-unel-verde text-xs uppercase tracking-wide text-unel-blanco">
-            <tr>
-              <th class="px-6 py-4 font-semibold w-16">Imagen</th>
-              <th class="px-6 py-4 font-semibold">Producto</th>
-              <th class="px-6 py-4 font-semibold">Costo</th>
-              <th class="px-6 py-4 font-semibold">Margen</th>
-              <th class="px-6 py-4 font-semibold">Precio sugerido</th>
-              <th class="px-6 py-4 font-semibold">Precio final</th>
-              <th class="px-6 py-4 font-semibold">Stock</th>
-              <th class="px-6 py-4 text-right font-semibold">Acciones</th>
-            </tr>
-          </thead>
+      <div data-controller="table-overflow" class="unel-table-scroll-wrapper">
+        <div data-table-overflow-target="hint" class="unel-scroll-hint">
+          Desliza para ver toda la tabla →
+        </div>
 
-          <tbody data-table-sort-target="body" class="divide-y divide-unel-crema-2">
-            <% products.each do |product| %>
-              <% cost = product.respond_to?(:calculated_cost) ? product.calculated_cost.to_f : product.cost.to_f %>
-              <% margin = product.margin.to_f %>
-              <% suggested_price = product.respond_to?(:suggested_price) && product.suggested_price.present? ? product.suggested_price.to_f : cost * (1 + margin / 100.0) %>
-              <% final_price = product.price || 0 %>
-              <% stock = product.stock.to_i %>
-
-              <tr
-                data-table-filter-target="row"
-                data-table-sort-target="row"
-                data-search-text="<%= [product.name, cost, product.margin, suggested_price, final_price, stock].join(' ') %>"
-                data-sort-name="<%= product.name %>"
-                data-sort-cost="<%= cost %>"
-                data-sort-margin="<%= product.margin || 0 %>"
-                data-sort-suggested-price="<%= suggested_price %>"
-                data-sort-price="<%= final_price %>"
-                data-sort-stock="<%= stock %>"
-                class="transition hover:bg-unel-crema/50"
-                >
-                  <td class="px-6 py-4">
-                    <% if product.respond_to?(:image) && product.image.attached? %>
-                      <%= image_tag product.image, class: "h-10 w-10 rounded-lg object-cover border border-unel-crema-2" %>
-                    <% else %>
-                      <div class="h-10 w-10 rounded-lg bg-unel-crema flex items-center justify-center text-unel-humo text-xs border border-unel-crema-2 text-center leading-tight">
-                        Sin foto
-                      </div>
-                    <% end %>
-                  </td>
-
-                  <td class="px-6 py-4 font-semibold text-unel-negro">
-                    <% if preview_enabled %>
-                      <%= product.name %>
-                    <% else %>
-                      <%= link_to product.name, admin_product_path(product), class: "hover:text-unel-dorado transition" %>
-                    <% end %>
-                  </td>
-
-                  <td class="px-6 py-4 text-unel-humo">
-                    <div class="font-semibold text-unel-carbon">
-                      <%= number_to_currency(cost, unit: "$", precision: 0, delimiter: ".") %>
-                    </div>
-                  </td>
-
-                  <td class="px-6 py-4 text-unel-humo">
-                    <%= product.margin || 0 %>%
-                  </td>
-
-                  <td class="px-6 py-4 font-semibold text-unel-carbon">
-                    <%= number_to_currency(suggested_price, unit: "$", precision: 0, delimiter: ".") %>
-                  </td>
-
-                  <td class="px-6 py-4 font-semibold text-unel-verde">
-                    <%= number_to_currency(final_price, unit: "$", precision: 0, delimiter: ".") %>
-                  </td>
-
-                  <td class="px-6 py-4">
-                    <% if stock <= 0 %>
-                      <span class="inline-flex rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">
-                        Agotado
-                      </span>
-                    <% elsif stock <= low_stock_threshold %>
-                      <span class="inline-flex rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
-                        Bajo · <%= stock %>
-                      </span>
-                    <% else %>
-                      <span class="inline-flex rounded-full border border-unel-crema-2 bg-white px-3 py-1 text-xs font-semibold text-unel-verde">
-                        <%= stock %> unidades
-                      </span>
-                    <% end %>
-                  </td>
-
-                  <td class="px-6 py-4">
-                    <div class="flex items-center justify-end gap-3">
-                      <% if preview_enabled %>
-                        <span class="text-sm font-semibold text-unel-humo">Editar</span>
-                      <% else %>
-                        <%= link_to "Editar", edit_admin_product_path(product),
-                          class: "text-sm font-semibold text-unel-dorado transition hover:text-unel-dorado-2" %>
-
-                        <%= button_to "Eliminar", admin_product_path(product),
-                        method: :delete,
-                        form: { data: { turbo_confirm: "¿Eliminar #{product.name}?" } },
-                        class: "text-sm font-semibold text-red-500 transition hover:text-red-700 cursor-pointer" %>
-                    <% end %>
-                    </div>
-                  </td>
+        <div
+          data-table-overflow-target="scroll"
+          data-action="scroll->table-overflow#check"
+          class="overflow-x-auto"
+        >
+          <table class="min-w-245 w-full text-left text-sm">
+            <thead class="bg-unel-verde text-xs uppercase tracking-wide text-unel-blanco">
+              <tr>
+                <th class="px-6 py-4 font-semibold w-16">Imagen</th>
+                <th class="px-6 py-4 font-semibold">Producto</th>
+                <th class="px-6 py-4 font-semibold">Costo</th>
+                <th class="px-6 py-4 font-semibold">Margen</th>
+                <th class="px-6 py-4 font-semibold">Precio sugerido</th>
+                <th class="px-6 py-4 font-semibold">Precio final</th>
+                <th class="px-6 py-4 font-semibold">Stock</th>
+                <th class="px-6 py-4 text-right font-semibold">Acciones</th>
               </tr>
-            <% end %>
-          </tbody>
-        </table>
+            </thead>
+
+            <tbody data-table-sort-target="body" class="divide-y divide-unel-crema-2">
+              <% products.each do |product| %>
+                <% cost = product.respond_to?(:calculated_cost) ? product.calculated_cost.to_f : product.cost.to_f %>
+                <% margin = product.margin.to_f %>
+                <% suggested_price = product.respond_to?(:suggested_price) && product.suggested_price.present? ? product.suggested_price.to_f : cost * (1 + margin / 100.0) %>
+                <% final_price = product.price || 0 %>
+                <% stock = product.stock.to_i %>
+                <% product_threshold = product_low_stock_threshold.call(product) %>
+
+                <tr
+                  data-table-filter-target="row"
+                  data-table-sort-target="row"
+                  data-search-text="<%= [product.name, cost, product.margin, suggested_price, final_price, stock, product_threshold].join(' ') %>"
+                  data-sort-name="<%= product.name %>"
+                  data-sort-cost="<%= cost %>"
+                  data-sort-margin="<%= product.margin || 0 %>"
+                  data-sort-suggested-price="<%= suggested_price %>"
+                  data-sort-price="<%= final_price %>"
+                  data-sort-stock="<%= stock %>"
+                  class="transition hover:bg-unel-crema/50"
+                  >
+                    <td class="px-6 py-4">
+                      <% if product.respond_to?(:image) && product.image.attached? %>
+                        <%= image_tag product.image, class: "h-10 w-10 rounded-lg object-cover border border-unel-crema-2" %>
+                      <% else %>
+                        <div class="h-10 w-10 rounded-lg bg-unel-crema flex items-center justify-center text-unel-humo text-xs border border-unel-crema-2 text-center leading-tight">
+                          Sin foto
+                        </div>
+                      <% end %>
+                    </td>
+
+                    <td class="px-6 py-4 font-semibold text-unel-negro">
+                      <% if preview_enabled %>
+                        <%= product.name %>
+                      <% else %>
+                        <%= link_to product.name, admin_product_path(product), class: "hover:text-unel-dorado transition" %>
+                      <% end %>
+                    </td>
+
+                    <td class="px-6 py-4 text-unel-humo">
+                      <div class="font-semibold text-unel-carbon">
+                        <%= number_to_currency(cost, unit: "$", precision: 0, delimiter: ".") %>
+                      </div>
+                    </td>
+
+                    <td class="px-6 py-4 text-unel-humo">
+                      <%= product.margin || 0 %>%
+                    </td>
+
+                    <td class="px-6 py-4 font-semibold text-unel-carbon">
+                      <%= number_to_currency(suggested_price, unit: "$", precision: 0, delimiter: ".") %>
+                    </td>
+
+                    <td class="px-6 py-4 font-semibold text-unel-verde">
+                      <%= number_to_currency(final_price, unit: "$", precision: 0, delimiter: ".") %>
+                    </td>
+
+                    <td class="px-6 py-4">
+                      <div class="flex items-center justify-between gap-3">
+                        <% if stock <= 0 %>
+                          <span class="inline-flex rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">
+                            Agotado
+                          </span>
+                        <% elsif stock <= product_threshold %>
+                          <span class="inline-flex rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+                            Bajo · <%= stock %>
+                          </span>
+                        <% else %>
+                          <span class="inline-flex rounded-full border border-unel-crema-2 bg-white px-3 py-1 text-xs font-semibold text-unel-verde">
+                            <%= stock %> unidades
+                          </span>
+                        <% end %>
+
+                        <span class="inline-flex shrink-0 rounded-full border border-unel-crema-2 bg-unel-crema px-2.5 py-1 text-xs font-medium text-unel-humo">
+                          Umbral: <%= product_threshold %>
+                        </span>
+                      </div>
+                    </td>
+
+                    <td class="px-6 py-4">
+                      <div class="flex items-center justify-end gap-3">
+                        <% if preview_enabled %>
+                          <span class="text-sm font-semibold text-unel-humo">Editar</span>
+                        <% else %>
+                          <%= link_to "Editar", edit_admin_product_path(product),
+                            class: "text-sm font-semibold text-unel-dorado transition hover:text-unel-dorado-2" %>
+
+                          <%= button_to "Eliminar", admin_product_path(product),
+                          method: :delete,
+                          form: { data: { turbo_confirm: "¿Eliminar #{product.name}?" } },
+                          class: "text-sm font-semibold text-red-500 transition hover:text-red-700 cursor-pointer" %>
+                      <% end %>
+                      </div>
+                    </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <div data-table-filter-target="emptyState" class="hidden border-t border-unel-crema-2 px-4 py-12 text-center sm:px-6">
@@ -300,117 +315,5 @@
         </div>
       </div>
     <% end %>
-  </div>
-
-  <div
-    data-stock-threshold-modal-target="modal"
-    class="fixed inset-0 z-50 hidden"
-  >
-    <div
-      data-action="click->stock-threshold-modal#close"
-      class="absolute inset-0 bg-black/40"
-    ></div>
-
-    <div class="relative z-10 flex min-h-screen items-center justify-center px-4">
-      <div class="w-full max-w-md rounded-2xl border border-unel-crema-2 bg-white p-6 shadow-xl">
-        <div class="flex items-start justify-between gap-4">
-          <div>
-            <h2 class="text-lg font-bold text-unel-carbon">
-              Editar cantidad mínima
-            </h2>
-
-            <p class="mt-1 text-sm text-unel-humo">
-              Los productos con esta cantidad o menos se marcarán como stock bajo.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            data-action="stock-threshold-modal#close"
-            class="rounded-lg px-2 py-1 text-unel-humo transition hover:bg-unel-crema hover:text-unel-carbon"
-          >
-            ✕
-          </button>
-        </div>
-
-        <% if stock_setting_backend_ready %>
-          <%= form_with url: admin_stock_setting_path, method: :patch, local: true, class: "mt-6 space-y-4" do %>
-            <div>
-              <label for="low_stock_threshold" class="block text-sm font-semibold text-unel-carbon">
-                Cantidad mínima
-              </label>
-
-              <input
-                id="low_stock_threshold"
-                type="number"
-                name="low_stock_threshold"
-                value="<%= low_stock_threshold %>"
-                min="0"
-                step="1"
-                data-stock-threshold-modal-target="input"
-                class="mt-2 w-full rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-3 text-sm font-semibold text-unel-carbon outline-none transition focus:border-unel-dorado"
-              >
-            </div>
-
-            <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-              <button
-                type="button"
-                data-action="stock-threshold-modal#close"
-                class="rounded-xl border border-unel-crema-2 px-4 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado"
-              >
-                Cancelar
-              </button>
-
-              <button
-                type="submit"
-                class="rounded-xl bg-unel-verde px-4 py-2 text-sm font-semibold text-unel-blanco transition hover:bg-unel-carbon"
-              >
-                Guardar cambios
-              </button>
-            </div>
-          <% end %>
-        <% else %>
-          <div class="mt-6 space-y-4">
-            <div>
-              <label for="low_stock_threshold_preview" class="block text-sm font-semibold text-unel-carbon">
-                Cantidad mínima
-              </label>
-
-              <input
-                id="low_stock_threshold_preview"
-                type="number"
-                value="<%= low_stock_threshold %>"
-                min="0"
-                step="1"
-                data-stock-threshold-modal-target="input"
-                class="mt-2 w-full rounded-xl border border-unel-crema-2 bg-unel-blanco px-4 py-3 text-sm font-semibold text-unel-carbon outline-none transition focus:border-unel-dorado"
-              >
-            </div>
-
-            <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-              Esta configuración todavía no se puede guardar porque falta conectar el backend.
-            </div>
-
-            <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-              <button
-                type="button"
-                data-action="stock-threshold-modal#close"
-                class="rounded-xl border border-unel-crema-2 px-4 py-2 text-sm font-semibold text-unel-humo transition hover:border-unel-dorado hover:text-unel-dorado"
-              >
-                Cerrar
-              </button>
-
-              <button
-                type="button"
-                disabled
-                class="rounded-xl bg-unel-verde px-4 py-2 text-sm font-semibold text-unel-blanco opacity-50"
-              >
-                Guardar cambios
-              </button>
-            </div>
-          </div>
-        <% end %>
-      </div>
-    </div>
   </div>
 </section>
